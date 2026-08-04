@@ -1,0 +1,108 @@
+# Ngưỡng chất lượng — VIẾT TRƯỚC khi render video đầu tiên.
+#
+# Ngày viết: 2026-08-04. Chưa có video nào để chấm.
+# Sửa ngưỡng sau khi nhìn thấy kết quả = không còn là ngưỡng.
+# Muốn sửa: ghi lý do + ngày vào research/, đừng sửa lặng lẽ.
+
+# ─────────────────────────────────────────────────────────────
+# T1 — cổng kỹ thuật. Chạy bằng ffprobe + OpenCV, KHÔNG LLM.
+# Đây là tầng DUY NHẤT được chặn cứng bằng số. Fail là không ra.
+# ─────────────────────────────────────────────────────────────
+t1_technical:
+  duration_sec:
+    min: 15          # ngắn hơn thì chưa kịp truyền đạt gì
+    max: 60          # dài hơn thì tụt retention trên TikTok
+  resolution:
+    width: 1080
+    height: 1920     # đúng tuyệt đối, không chấp nhận sai lệch
+
+  audio:
+    max_peak_dbfs: -1.0        # cao hơn = clip, nghe rè
+    min_rms_dbfs: -30.0        # thấp hơn = quá nhỏ, người xem không nghe rõ
+    max_silence_sec: 2.0       # im quá 2s giữa video = người xem lướt
+
+  video:
+    max_black_frame_sec: 0.5   # frame đen dài hơn = lỗi render
+    min_fps: 24
+    max_fps: 60
+
+  captions:
+    # Lệch giữa timestamp trong spec và audio thật.
+    # 120ms là ngưỡng người bắt đầu cảm nhận được phụ đề "trễ".
+    max_drift_ms: 120
+    require_word_level: true
+
+  # Vùng an toàn TikTok — UI (like/share/caption/username) che các mép này.
+  # Chữ tràn vào đây thì trên máy nhìn ổn, trên app bị che.
+  # Số tính theo % của 1080×1920.
+  safe_area_pct:
+    top: 8       # thanh trạng thái + nút quay lại
+    bottom: 20   # caption + nhạc + thanh tiến trình
+    left: 4
+    right: 18    # cột nút like / comment / share
+
+# ─────────────────────────────────────────────────────────────
+# T2 — chất lượng hình ảnh (VLM). ĐỀ XUẤT render lại, không chặn.
+# Ngưỡng đặt CAO có chủ ý: VLM hay "chê lấy lệ", ngưỡng thấp thì
+# mọi video đều tốn 2 vòng sửa vô ích.
+# ─────────────────────────────────────────────────────────────
+t2_visual:
+  min_shot_score: 6           # thang 0–10
+  max_failing_shots_pct: 25   # quá 1/4 số shot hỏng thì render lại cả loạt
+  block_on:
+    - anatomy_error           # tay 6 ngón, mặt méo — người xem nhận ra ngay
+    - garbled_text_in_image   # chữ trong ảnh bị bóp thành ký tự vô nghĩa
+  warn_only:
+    - style_inconsistent
+    - low_contrast
+
+# ─────────────────────────────────────────────────────────────
+# T3 — sức hút. ĐỀ XUẤT sửa script, không chặn.
+# Tầng chủ quan nhất → rubric ở configs/rubric.md, không để LLM tự nghĩ tiêu chí.
+# ─────────────────────────────────────────────────────────────
+t3_appeal:
+  min_total_score: 7          # thang 0–10
+  min_hook_score: 8           # hook chấm khắt hơn: 3 giây đầu quyết định tất cả
+  weights:
+    hook: 0.40                # nặng nhất — người xem quyết định ở lại hay lướt
+    pacing: 0.25
+    vietnamese_quality: 0.25  # câu dịch máy nghe ra ngay, giết uy tín
+    cta: 0.10
+
+# ─────────────────────────────────────────────────────────────
+# T4 — độ chính xác sự thật. CHẶN CỨNG.
+# Nội dung AI rất dễ sai tên model / con số / ngày. Sai trên TikTok bị bóc nhanh.
+# ─────────────────────────────────────────────────────────────
+t4_facts:
+  max_contradictions: 0       # mâu thuẫn trực tiếp với nguồn gốc = chặn
+  max_unverified_claims: 3    # chưa kiểm được thì gắn cờ cho Tony, KHÔNG chặn
+  require_source_for:
+    - model_name
+    - benchmark_number
+    - release_date
+    - org_name
+
+# ─────────────────────────────────────────────────────────────
+# Vòng lặp QC
+# ─────────────────────────────────────────────────────────────
+qc_loop:
+  # Trần CỨNG. Vòng 1 bắt lỗi hiển nhiên, vòng 2 bắt lỗi tinh,
+  # vòng 3 hiếm khi đáng tiền. Thiếu trần = đốt token không kiểm soát.
+  # Đây phải là hằng số trong code, không chỉ nằm ở config.
+  max_rounds: 2
+  # Hết vòng mà chưa đạt thì VẪN gửi Tony kèm danh sách lỗi còn lại.
+  # Critic đề xuất, không quyết định.
+  send_on_exhausted: true
+
+# ─────────────────────────────────────────────────────────────
+# Ngưỡng vận hành — xem research/00-problem.md mục "đủ tốt"
+# ─────────────────────────────────────────────────────────────
+operational:
+  max_wall_time_min: 40       # từ lúc chốt chủ đề đến khi có mp4
+  max_vram_gb: 6.0            # ràng buộc cứng của RTX 2060
+  target_approve_rate: 0.5    # metric chính, đo trên 20 video đầu
+  target_t1_pass_rate: 0.9
+  max_avg_qc_rounds: 1.5
+  # Điều kiện dừng dự án: approve_rate < 0.3 sau 20 video
+  # → vấn đề ở nội dung, không ở pipeline. Xem lại rubric, ĐỪNG thêm agent.
+  abort_approve_rate: 0.3

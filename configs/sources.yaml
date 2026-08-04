@@ -1,0 +1,51 @@
+# Nguồn trend cho agent trend-scout.
+#
+# KHÔNG có nguồn TikTok nào ở đây, và đó là chủ ý:
+#   - Research API của TikTok đã siết còn tổ chức học thuật
+#   - Creative Center CẤM harvest tự động trong ToS
+# Trend cần ở đây là trend LĨNH VỰC AI, không phải trend TikTok.
+# Nguồn dưới đây vừa hợp lệ vừa giàu hơn. Xem research/02-sources.md.
+
+sources:
+  - name: arxiv
+    kind: rss
+    url: http://export.arxiv.org/rss/cs.AI
+    also: [cs.CL, cs.CV]
+    weight: 0.8
+    note: nguồn gốc, đáng tin nhất — nhưng chậm hơn thực tế 6-18 tháng
+
+  - name: hackernews
+    kind: api
+    url: https://hacker-news.firebaseio.com/v0/topstories.json
+    filter_keywords: [AI, LLM, model, GPU, open-source, Claude, GPT, agent]
+    weight: 1.0
+    note: bắt trend nhanh nhất, nhiễu nhiều
+
+  - name: github_trending
+    kind: scrape
+    url: https://github.com/trending/python?since=daily
+    weight: 0.9
+    note: cái gì người ta thật sự chạy, không phải cái gì người ta viết paper
+
+  - name: huggingface_papers
+    kind: scrape
+    url: https://huggingface.co/papers
+    weight: 0.9
+
+  - name: reddit_localllama
+    kind: rss
+    url: https://www.reddit.com/r/LocalLLaMA/hot/.rss
+    weight: 0.7
+    note: hợp khán giả tự chạy model ở nhà — trùng gu với nội dung của kênh
+
+scoring:
+  # Điểm chủ đề = tổng có trọng số của các yếu tố dưới
+  recency_days: 7          # cũ hơn 7 ngày thì bỏ
+  min_sources: 1
+  boost_if_multi_source: 1.5   # xuất hiện ở nhiều nguồn = trend thật
+  # Không lặp chủ đề đã làm trong 30 ngày
+  dedupe_window_days: 30
+
+# raw_quote BẮT BUỘC lưu cùng mỗi mục — QC tầng 4 đối chiếu với nó.
+# Mất raw_quote thì T4 thành "LLM tự nhớ", đúng thứ thiết kế QC muốn tránh.
+require_raw_quote: true

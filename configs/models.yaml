@@ -1,0 +1,57 @@
+# Model. Tất cả open-weight, chạy local, 0đ.
+# Số tốc độ là "reported" từ research/02-sources.md — P1 sẽ đo lại thành verified.
+
+tts:
+  backend: vieneu                # vieneu | dummy | <model của Tony sau này>
+  # Khi model TTS của Tony xong: đổi endpoint ở đây, KHÔNG sửa code pipeline.
+  vieneu:
+    endpoint: http://127.0.0.1:8801/tts
+    model: VieNeu-TTS-v2
+    license: Apache-2.0
+    vram_gb: 3                   # ngưỡng pass của P1.S2
+    # Timestamp từng từ là BẮT BUỘC — phụ đề karaoke ăn trực tiếp từ đó.
+    # Nếu VieNeu không trả: dùng ForcedAligner của Qwen3-ASR ở repo voice.
+    requires_word_timestamps: true
+  dummy:
+    engine: espeak-ng            # để test pipeline khi service TTS chưa bật
+
+image:
+  default: sdxl_lightning
+  sdxl_lightning:
+    model: ByteDance/SDXL-Lightning
+    steps: 4
+    vram_gb: 5
+    est_sec_per_image: 10        # reported
+    role: mặc định — ảnh thường
+  flux_schnell_q4:
+    model: city96/FLUX.1-schnell-gguf
+    quant: Q4_0                  # 6.88GB — sát trần 6GB, cần CPU offload
+    vram_gb: 6
+    est_sec_per_image: 120       # reported
+    role: ảnh "hero", 1-2 cái mỗi video
+
+video:
+  # BẬT sau khi P1.S4 pass. Turing không có FP8 -> số trên mạng không áp dụng thẳng.
+  enabled: false
+  ltx_2b:
+    model: Lightricks/LTX-Video
+    variant: 2B-distilled
+    resolution: 512x512          # 720p ngoài tầm 6GB
+    tiling: true
+    vram_gb: 6
+    role: 2-3 shot nhấn
+  # Loại hẳn, ghi lại để không ai thử lại:
+  # - LTX-2      : cần ~20GB
+  # - Wan2.2 14B : cần 65-80GB @720p
+
+vlm:
+  # Chấm chất lượng ảnh (QC tầng 2). Chạy SAU khi visual đã nhả VRAM.
+  model: Qwen/Qwen3-VL
+  vram_gb: 4
+
+agent:
+  # Package là claude-agent-sdk, KHÔNG phải client.beta.messages.tool_runner
+  # của SDK anthropic. Hai thứ khác nhau, rất hay bị lẫn.
+  # Docs: code.claude.com/docs/en/agent-sdk
+  sdk: claude-agent-sdk
+  auth: claude-code                # dùng auth sẵn có -> 0đ, không cần API key

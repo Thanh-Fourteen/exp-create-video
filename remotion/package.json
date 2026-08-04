@@ -1,0 +1,21 @@
+{
+  "name": "exp-create-video-remotion",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Khối dựng video. Đọc video-spec.json do Python sinh ra, xuất mp4 1080x1920. LƯU Ý: Remotion license là NOASSERTION — miễn phí cá nhân và công ty <=3 người; DTG dùng thương mại phải mua. Xem research/repo-cards/remotion.md.",
+  "scripts": {
+    "start": "remotion studio",
+    "render": "remotion render",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "remotion": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.1",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,51 @@
+# Phong cách video. Remotion đọc file này qua video-spec.json.
+
+format:
+  width: 1080
+  height: 1920
+  fps: 30
+  target_duration_sec: 45      # trong khoảng 15-60 của thresholds.yaml
+
+# Vùng an toàn TikTok — UI che các mép này. Số ở thresholds.yaml (safe_area_pct).
+# Chữ tràn vào đây: trên máy nhìn ổn, trên app bị che.
+
+typography:
+  caption:
+    font: "Be Vietnam Pro"       # font Việt, có đủ dấu — KHÔNG dùng Inter/Roboto
+    weight: 800
+    size_px: 72
+    stroke_px: 6                 # viền đen để đọc được trên mọi nền
+    color: "#FFFFFF"
+    highlight_color: "#FFE14D"   # màu từ đang đọc (karaoke)
+    position: center-lower       # trên vùng UI TikTok, dưới tâm màn hình
+  hook:
+    size_px: 96                  # to hơn hẳn — 3 giây đầu phải đập vào mắt
+    weight: 900
+
+motion:
+  # Chuyển động là thứ tạo "sinh động" ở đây, vì trần chất lượng ảnh do 2060
+  # đặt ra rất thấp. Đầu tư ở đây, không ở khối sinh ảnh.
+  ken_burns:
+    zoom_range: [1.0, 1.15]      # zoom nhẹ; mạnh hơn thành chóng mặt
+    duration_sec: [3, 6]
+  transition:
+    default: cut                 # cut hợp nhịp TikTok hơn fade
+    accent: whip-pan
+    duration_frames: 6
+  shot_duration_sec: [3, 8]      # đổi ý mỗi 5-8s theo rubric
+
+audio:
+  voice_gain_db: 0
+  music_gain_db: -18             # nhạc nền phải chìm hẳn dưới giọng đọc
+  ducking: true
+  # Nhạc nền CHƯA CHỐT — xem "Nợ kỹ thuật" ở todos.md.
+  # Hai phương án: nhạc CC0 (tự động được) hay Tony thêm nhạc trending trong app
+  # (hợp thuật toán TikTok hơn nhưng phá luồng tự động).
+  music_dir: data/music
+
+palette:
+  # Tránh "AI slop" mặc định: gradient tím trên nền trắng/đen, font hệ thống.
+  bg: "#0D0D0F"
+  fg: "#FFFFFF"
+  accent: "#4DE1C1"
+  warn: "#FF6B4D"

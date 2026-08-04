@@ -1,0 +1,48 @@
+# data — never commit; keep manifests, not bytes
+
+# model artefacts
+*.pt
+*.pth
+*.onnx
+*.safetensors
+checkpoints/
+weights/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+*.egg-info/
+dist/
+build/
+
+# local
+.env
+.DS_Store
+.claude/settings.local.json
+
+# --- exp-create-video ---
+exp/*
+!exp/.gitkeep
+out/*
+!out/.gitkeep
+data/footage/*
+!data/footage/.gitkeep
+data/music/*
+!data/music/.gitkeep
+
+# remotion / node
+node_modules/
+remotion/out/
+.remotion/
+
+# media
+*.mp4
+*.mov
+*.wav
+*.mp3
+*.png
+*.jpg
+*.jpeg

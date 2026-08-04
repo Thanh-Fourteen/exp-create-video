@@ -1,0 +1,29 @@
+# Nhịp chạy tự động.
+
+cron:
+  trend_scan: "0 7 * * *"        # 07:00 mỗi ngày: quét trend, đề xuất qua Telegram
+  scheduled_post: "0 * * * *"    # mỗi giờ: kiểm hàng đợi hẹn giờ
+
+flow:
+  topics_proposed: 5             # số chủ đề gửi Tony chọn
+  # Tony duyệt HAI chỗ: chọn chủ đề (sáng) và duyệt video (tối).
+  approval_gates: [topic, video]
+
+render:
+  # Render nền, không cần vội. Ngưỡng ở thresholds.yaml: max_wall_time_min 40.
+  concurrent_jobs: 1             # 6GB VRAM không cho chạy hai job cùng lúc
+  lock_file: out/.render.lock    # chống cron chạy chồng job -> OOM chắc chắn
+
+publish:
+  # draft: đẩy vào hộp draft TikTok, Tony mở app bấm đăng. Hợp ToS, không cần audit.
+  # direct: đăng công khai tự động — CHỈ đổi sau khi audit pass ở P6.S2.
+  mode: draft
+  platform: tiktok
+
+telegram:
+  # Token đọc từ .env (đã gitignore), không để ở đây.
+  notify_on:
+    - topics_ready
+    - video_ready
+    - job_failed
+    - token_expiring       # token TikTok hết hạn im lặng -> phải có cảnh báo
