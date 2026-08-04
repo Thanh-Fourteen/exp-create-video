@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authorization callback — DTG Video Assistant</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6;
+         max-width: 40rem; margin: 0 auto; padding: 3.5rem 1.25rem;
+         background: #0D0D0F; color: #fff; }
+  h1 { font-size: 1.4rem; margin: 0 0 1.5rem; }
+  .ok { color: #4DE1C1; } .bad { color: #FF6B4D; }
+  #box { background: #1c1c20; border: 1px solid #2f2f36; border-radius: 8px;
+         padding: 1rem; font-family: ui-monospace, monospace; font-size: .95rem;
+         word-break: break-all; user-select: all; cursor: pointer; }
+  button { margin-top: 1rem; background: #4DE1C1; color: #0D0D0F; border: 0;
+           border-radius: 6px; padding: .6rem 1.1rem; font-size: .95rem;
+           font-weight: 600; cursor: pointer; }
+  p.hint { color: #a1a1aa; font-size: .92rem; }
+  code { background: #1c1c20; padding: .12rem .35rem; border-radius: 3px; color: #FFE14D; }
+</style>
+</head>
+<body>
+
+<h1 id="title">Reading authorization response…</h1>
+<div id="box">…</div>
+<button id="copy" hidden>Copy</button>
+<p class="hint" id="hint"></p>
+
+<script>
+  const q = new URLSearchParams(location.search);
+  const code = q.get("code");
+  const err  = q.get("error") || q.get("error_description");
+  const state = q.get("state");
+  const title = document.getElementById("title");
+  const box   = document.getElementById("box");
+  const hint  = document.getElementById("hint");
+  const btn   = document.getElementById("copy");
+
+  if (code) {
+    // Ghép code|state để script phía CLI kiểm được state, chống CSRF.
+    const payload = code + "|" + (state || "");
+    title.innerHTML = '<span class="ok">Authorized.</span> Copy this and paste it into the terminal:';
+    box.textContent = payload;
+    btn.hidden = false;
+    btn.onclick = () => navigator.clipboard.writeText(payload)
+      .then(() => { btn.textContent = "Copied"; });
+    hint.innerHTML = 'Then run: <code>python3 exp/probes/tiktok_draft.py paste</code>';
+  } else {
+    title.innerHTML = '<span class="bad">Authorization failed.</span>';
+    box.textContent = err || "No code returned. Check the app settings and try again.";
+    hint.textContent = "Nothing was stored. You can close this tab and retry.";
+  }
+</script>
+
+</body>
+</html>

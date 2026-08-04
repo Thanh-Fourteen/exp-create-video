@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DTG Video Assistant</title>
+<style>
+  :root { color-scheme: dark; }
+  body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.65;
+         max-width: 40rem; margin: 0 auto; padding: 4rem 1.25rem;
+         background: #0D0D0F; color: #FFFFFF; }
+  h1 { font-size: 1.8rem; margin: 0 0 .4rem; }
+  .tag { color: #4DE1C1; font-size: .95rem; margin: 0 0 2.5rem; }
+  h2 { font-size: 1.05rem; margin: 2.5rem 0 .6rem; color: #4DE1C1; }
+  p, li { color: #d4d4d8; }
+  ul { padding-left: 1.2rem; }
+  code { background: #1c1c20; padding: .12rem .35rem; border-radius: 3px;
+         font-size: .88em; color: #FFE14D; }
+  footer { margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid #27272a;
+           font-size: .9rem; }
+  a { color: #4DE1C1; }
+</style>
+</head>
+<body>
+
+<h1>DTG Video Assistant</h1>
+<p class="tag">A personal tool for drafting short vertical videos about AI.</p>
+
+<p>DTG Video Assistant is a single-user application. It generates short vertical videos
+on AI-related topics in Vietnamese and uploads them to its owner's own TikTok account as
+<strong>drafts</strong>. The owner then reviews each draft inside the TikTok app and
+decides whether to publish it.</p>
+
+<h2>How it works</h2>
+<ul>
+  <li>The app writes a script, generates narration and images, and assembles a
+      1080&times;1920 video — all on the owner's own computer.</li>
+  <li>It uploads the finished file to the owner's TikTok drafts through the official
+      Content Posting API (<code>video.upload</code> scope, draft/inbox flow).</li>
+  <li>Nothing is published automatically. Publishing is always a manual step taken by
+      the owner in the TikTok app.</li>
+</ul>
+
+<h2>Scope of access</h2>
+<p>The app requests only <code>user.info.basic</code> and <code>video.upload</code>, and
+only for the owner's own account. It does not read other users' data, does not post
+publicly, and does not share data with any third party. Details are in the privacy policy
+below.</p>
+
+<footer>
+  <a href="terms.html">Terms of Service</a> &nbsp;·&nbsp;
+  <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
+  <a href="mailto:teamtriscec@gmail.com">Contact</a>
+</footer>
+
+</body>
+</html>
