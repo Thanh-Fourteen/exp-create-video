@@ -9,11 +9,13 @@ checkpoints/
 weights/
 
 # python
+.pip-cache/          # cache pip cục bộ, 2,8GB — đừng để lọt vào git
 __pycache__/
 *.py[cod]
 .venv/
 venv/
 .ipynb_checkpoints/
+.pytest_cache/
 *.egg-info/
 dist/
 build/
@@ -28,8 +30,6 @@ exp/*
 !exp/.gitkeep
 out/*
 !out/.gitkeep
-data/footage/*
-!data/footage/.gitkeep
 data/music/*
 !data/music/.gitkeep
 
@@ -46,3 +46,6 @@ remotion/out/
 *.png
 *.jpg
 *.jpeg
+
+# trạng thái runtime của tool autoclick — không phải mã nguồn
+.autoclick/

@@ -5,7 +5,12 @@ Date: **2026-08-04** · Status: **đã grounded một phần** — P1 đã chạ
 S1 chờ Tony làm phần tay. Các số tốc độ dưới đây đã chuyển từ *reported* sang *verified*
 ở những chỗ ghi rõ.
 
-Phạm vi: luồng 1 (video tự sinh hoàn toàn). Luồng 2 (footage Tony) hoãn tới P6.
+> **Cập nhật 2026-10-01:** quét lại thị trường + audit ở `research/08-nang-cap-chat-luong.md`.
+> Stack giữ nguyên; thêm phase P3b (nâng chất lượng) trước P4. Luồng 2 / P6 **đã bỏ**.
+> Flux-Q4 "hero" được thay bằng ứng viên Nunchaku INT4 (chưa probe). VieNeu-TTS-v2 trong
+> bảng dưới đã được thay bằng v3-Turbo qua exp-echo từ 2026-08-14.
+
+Phạm vi: luồng 1 (video tự sinh hoàn toàn).
 
 ---
 

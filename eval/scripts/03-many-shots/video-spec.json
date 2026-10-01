@@ -1,0 +1,1670 @@
+{
+  "version": "1.0",
+  "meta": {
+    "id": "demo-01",
+    "topic": "Vì sao model AI open-source chạy được trên card đồ hoạ cũ",
+    "created_at": "2026-08-14T05:05:10+00:00",
+    "sources": [
+      {
+        "claim": "Model bốn tỉ tham số ở FP16 cần khoảng tám GB, quantize xuống bốn bit còn khoảng hai phẩy năm GB",
+        "url": "https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md",
+        "confidence": "reported"
+      },
+      {
+        "claim": "Quantization bốn bit kiểu K-quant làm perplexity tăng rất ít so với FP16",
+        "url": "https://github.com/ggml-org/llama.cpp/discussions/406",
+        "confidence": "reported"
+      },
+      {
+        "claim": "Qwen3-30B-A3B có khoảng ba mươi tỉ tham số nhưng chỉ kích hoạt hơn ba tỉ mỗi token",
+        "url": "https://huggingface.co/Qwen/Qwen3-30B-A3B",
+        "confidence": "reported"
+      },
+      {
+        "claim": "llama.cpp cho phép đẩy bớt layer từ VRAM sang RAM khi GPU không đủ bộ nhớ",
+        "url": "https://github.com/ggml-org/llama.cpp/blob/master/tools/main/README.md",
+        "confidence": "verified"
+      }
+    ],
+    "script_ref": "script.json",
+    "qc_round": 0
+  },
+  "format": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "duration_sec": 51.64
+  },
+  "shots": [
+    {
+      "id": "s1",
+      "start_sec": 0.0,
+      "end_sec": 1.92,
+      "asset": {
+        "kind": "image",
+        "path": "img/00.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      },
+      "overlay": {
+        "text": "6GB",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s2",
+      "start_sec": 1.92,
+      "end_sec": 3.84,
+      "asset": {
+        "kind": "image",
+        "path": "img/01.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      },
+      "overlay": {
+        "text": "6GB",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s3",
+      "start_sec": 3.84,
+      "end_sec": 5.76,
+      "asset": {
+        "kind": "image",
+        "path": "img/02.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      },
+      "overlay": {
+        "text": "6GB",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s4",
+      "start_sec": 5.76,
+      "end_sec": 7.92,
+      "asset": {
+        "kind": "image",
+        "path": "img/03.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      },
+      "overlay": {
+        "text": "4-bit ≈ 2.5GB",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s5",
+      "start_sec": 7.92,
+      "end_sec": 10.08,
+      "asset": {
+        "kind": "image",
+        "path": "img/04.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      },
+      "overlay": {
+        "text": "4-bit ≈ 2.5GB",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s6",
+      "start_sec": 10.08,
+      "end_sec": 12.24,
+      "asset": {
+        "kind": "image",
+        "path": "img/05.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      },
+      "overlay": {
+        "text": "4-bit ≈ 2.5GB",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s7",
+      "start_sec": 12.24,
+      "end_sec": 14.0,
+      "asset": {
+        "kind": "image",
+        "path": "img/06.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      },
+      "overlay": {
+        "text": "30B → 3B active",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s8",
+      "start_sec": 14.0,
+      "end_sec": 15.76,
+      "asset": {
+        "kind": "image",
+        "path": "img/07.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      },
+      "overlay": {
+        "text": "30B → 3B active",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s9",
+      "start_sec": 15.76,
+      "end_sec": 17.52,
+      "asset": {
+        "kind": "image",
+        "path": "img/08.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      },
+      "overlay": {
+        "text": "30B → 3B active",
+        "position": "bottom",
+        "emphasis": true
+      }
+    },
+    {
+      "id": "s10",
+      "start_sec": 17.52,
+      "end_sec": 19.84,
+      "asset": {
+        "kind": "image",
+        "path": "img/00.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s11",
+      "start_sec": 19.84,
+      "end_sec": 22.16,
+      "asset": {
+        "kind": "image",
+        "path": "img/01.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s12",
+      "start_sec": 22.16,
+      "end_sec": 24.48,
+      "asset": {
+        "kind": "image",
+        "path": "img/02.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s13",
+      "start_sec": 24.48,
+      "end_sec": 26.42,
+      "asset": {
+        "kind": "image",
+        "path": "img/03.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s14",
+      "start_sec": 26.42,
+      "end_sec": 28.36,
+      "asset": {
+        "kind": "image",
+        "path": "img/04.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s15",
+      "start_sec": 28.36,
+      "end_sec": 30.3,
+      "asset": {
+        "kind": "image",
+        "path": "img/05.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s16",
+      "start_sec": 30.3,
+      "end_sec": 32.24,
+      "asset": {
+        "kind": "image",
+        "path": "img/06.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s17",
+      "start_sec": 32.24,
+      "end_sec": 34.0,
+      "asset": {
+        "kind": "image",
+        "path": "img/07.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s18",
+      "start_sec": 34.0,
+      "end_sec": 35.76,
+      "asset": {
+        "kind": "image",
+        "path": "img/08.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s19",
+      "start_sec": 35.76,
+      "end_sec": 37.52,
+      "asset": {
+        "kind": "image",
+        "path": "img/00.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s20",
+      "start_sec": 37.52,
+      "end_sec": 39.94,
+      "asset": {
+        "kind": "image",
+        "path": "img/01.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s21",
+      "start_sec": 39.94,
+      "end_sec": 42.36,
+      "asset": {
+        "kind": "image",
+        "path": "img/02.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s22",
+      "start_sec": 42.36,
+      "end_sec": 44.227,
+      "asset": {
+        "kind": "image",
+        "path": "img/03.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s23",
+      "start_sec": 44.227,
+      "end_sec": 46.093,
+      "asset": {
+        "kind": "image",
+        "path": "img/04.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s24",
+      "start_sec": 46.093,
+      "end_sec": 47.96,
+      "asset": {
+        "kind": "image",
+        "path": "img/05.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    },
+    {
+      "id": "s25",
+      "start_sec": 47.96,
+      "end_sec": 49.8,
+      "asset": {
+        "kind": "image",
+        "path": "img/06.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "cut"
+      }
+    },
+    {
+      "id": "s26",
+      "start_sec": 49.8,
+      "end_sec": 51.64,
+      "asset": {
+        "kind": "image",
+        "path": "img/07.png"
+      },
+      "motion": {
+        "type": "ken_burns",
+        "from": {
+          "scale": 1.0,
+          "x_pct": -2.5,
+          "y_pct": 0
+        },
+        "to": {
+          "scale": 1.15,
+          "x_pct": 2.5,
+          "y_pct": 0
+        }
+      },
+      "transition_in": {
+        "type": "whip-pan",
+        "duration_frames": 6
+      }
+    }
+  ],
+  "captions": [
+    {
+      "start_sec": 0.0,
+      "end_sec": 2.8,
+      "text": "Model bốn tỉ tham số chạy vừa card sáu GB.",
+      "style": "hook",
+      "words": [
+        {
+          "w": "Model",
+          "start": 0.0,
+          "end": 0.425
+        },
+        {
+          "w": "bốn",
+          "start": 0.425,
+          "end": 0.68
+        },
+        {
+          "w": "tỉ",
+          "start": 0.68,
+          "end": 0.85
+        },
+        {
+          "w": "tham",
+          "start": 0.85,
+          "end": 1.19
+        },
+        {
+          "w": "số",
+          "start": 1.19,
+          "end": 1.36
+        },
+        {
+          "w": "chạy",
+          "start": 1.36,
+          "end": 1.7
+        },
+        {
+          "w": "vừa",
+          "start": 1.7,
+          "end": 1.955
+        },
+        {
+          "w": "card",
+          "start": 1.955,
+          "end": 2.295
+        },
+        {
+          "w": "sáu",
+          "start": 2.295,
+          "end": 2.55
+        },
+        {
+          "w": "GB.",
+          "start": 2.55,
+          "end": 2.72
+        }
+      ]
+    },
+    {
+      "start_sec": 2.8,
+      "end_sec": 5.48,
+      "text": "Bí mật nằm ở một chữ: quantization.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Bí",
+          "start": 2.72,
+          "end": 2.72
+        },
+        {
+          "w": "mật",
+          "start": 3.2,
+          "end": 3.52
+        },
+        {
+          "w": "nằm",
+          "start": 3.68,
+          "end": 3.92
+        },
+        {
+          "w": "ở",
+          "start": 3.92,
+          "end": 4.08
+        },
+        {
+          "w": "một",
+          "start": 4.08,
+          "end": 4.24
+        },
+        {
+          "w": "chữ:",
+          "start": 4.24,
+          "end": 4.48
+        },
+        {
+          "w": "quantization.",
+          "start": 4.48,
+          "end": 5.36
+        }
+      ]
+    },
+    {
+      "start_sec": 5.76,
+      "end_sec": 8.08,
+      "text": "Model gốc lưu trọng số ở mười sáu bit.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Model",
+          "start": 5.76,
+          "end": 6.16
+        },
+        {
+          "w": "gốc",
+          "start": 6.16,
+          "end": 6.4
+        },
+        {
+          "w": "lưu",
+          "start": 6.4,
+          "end": 6.56
+        },
+        {
+          "w": "trọng",
+          "start": 6.56,
+          "end": 6.88
+        },
+        {
+          "w": "số",
+          "start": 6.88,
+          "end": 7.12
+        },
+        {
+          "w": "ở",
+          "start": 7.12,
+          "end": 7.2
+        },
+        {
+          "w": "mười",
+          "start": 7.28,
+          "end": 7.44
+        },
+        {
+          "w": "sáu",
+          "start": 7.44,
+          "end": 7.68
+        },
+        {
+          "w": "bit.",
+          "start": 7.68,
+          "end": 7.92
+        }
+      ]
+    },
+    {
+      "start_sec": 8.36,
+      "end_sec": 11.96,
+      "text": "Mỗi tham số ngốn hai byte, bốn tỉ tham số thành tám GB.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Mỗi",
+          "start": 8.4,
+          "end": 8.652
+        },
+        {
+          "w": "tham",
+          "start": 8.652,
+          "end": 8.987
+        },
+        {
+          "w": "số",
+          "start": 8.987,
+          "end": 9.155
+        },
+        {
+          "w": "ngốn",
+          "start": 9.155,
+          "end": 9.491
+        },
+        {
+          "w": "hai",
+          "start": 9.491,
+          "end": 9.742
+        },
+        {
+          "w": "byte,",
+          "start": 9.742,
+          "end": 10.078
+        },
+        {
+          "w": "bốn",
+          "start": 10.078,
+          "end": 10.33
+        },
+        {
+          "w": "tỉ",
+          "start": 10.33,
+          "end": 10.498
+        },
+        {
+          "w": "tham",
+          "start": 10.498,
+          "end": 10.833
+        },
+        {
+          "w": "số",
+          "start": 10.833,
+          "end": 11.001
+        },
+        {
+          "w": "thành",
+          "start": 11.001,
+          "end": 11.42
+        },
+        {
+          "w": "tám",
+          "start": 11.42,
+          "end": 11.672
+        },
+        {
+          "w": "GB.",
+          "start": 11.672,
+          "end": 11.84
+        }
+      ]
+    },
+    {
+      "start_sec": 12.24,
+      "end_sec": 14.08,
+      "text": "Không card sáu GB nào nhét nổi.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Không",
+          "start": 12.24,
+          "end": 12.59
+        },
+        {
+          "w": "card",
+          "start": 12.59,
+          "end": 12.87
+        },
+        {
+          "w": "sáu",
+          "start": 12.87,
+          "end": 13.08
+        },
+        {
+          "w": "GB",
+          "start": 13.08,
+          "end": 13.22
+        },
+        {
+          "w": "nào",
+          "start": 13.22,
+          "end": 13.43
+        },
+        {
+          "w": "nhét",
+          "start": 13.43,
+          "end": 13.71
+        },
+        {
+          "w": "nổi.",
+          "start": 13.71,
+          "end": 13.92
+        }
+      ]
+    },
+    {
+      "start_sec": 14.36,
+      "end_sec": 17.24,
+      "text": "Quantization ép mỗi trọng số xuống còn bốn bit.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Quantization",
+          "start": 14.4,
+          "end": 15.04
+        },
+        {
+          "w": "ép",
+          "start": 15.04,
+          "end": 15.2
+        },
+        {
+          "w": "mỗi",
+          "start": 15.2,
+          "end": 15.44
+        },
+        {
+          "w": "trọng",
+          "start": 15.44,
+          "end": 15.92
+        },
+        {
+          "w": "số",
+          "start": 15.92,
+          "end": 16.32
+        },
+        {
+          "w": "xuống",
+          "start": 16.32,
+          "end": 16.32
+        },
+        {
+          "w": "còn",
+          "start": 16.32,
+          "end": 16.64
+        },
+        {
+          "w": "bốn",
+          "start": 16.64,
+          "end": 16.88
+        },
+        {
+          "w": "bit.",
+          "start": 16.88,
+          "end": 17.12
+        }
+      ]
+    },
+    {
+      "start_sec": 17.52,
+      "end_sec": 20.32,
+      "text": "Tám GB tụt xuống còn khoảng hai phẩy năm GB.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Tám",
+          "start": 17.52,
+          "end": 17.753
+        },
+        {
+          "w": "GB",
+          "start": 17.753,
+          "end": 17.908
+        },
+        {
+          "w": "tụt",
+          "start": 17.908,
+          "end": 18.141
+        },
+        {
+          "w": "xuống",
+          "start": 18.141,
+          "end": 18.529
+        },
+        {
+          "w": "còn",
+          "start": 18.529,
+          "end": 18.762
+        },
+        {
+          "w": "khoảng",
+          "start": 18.762,
+          "end": 19.228
+        },
+        {
+          "w": "hai",
+          "start": 19.228,
+          "end": 19.461
+        },
+        {
+          "w": "phẩy",
+          "start": 19.461,
+          "end": 19.772
+        },
+        {
+          "w": "năm",
+          "start": 19.772,
+          "end": 20.005
+        },
+        {
+          "w": "GB.",
+          "start": 20.005,
+          "end": 20.16
+        }
+      ]
+    },
+    {
+      "start_sec": 20.6,
+      "end_sec": 24.2,
+      "text": "Chất lượng gần như không đổi, perplexity chỉ nhích lên chút xíu.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Chất",
+          "start": 20.64,
+          "end": 20.8
+        },
+        {
+          "w": "lượng",
+          "start": 20.8,
+          "end": 21.04
+        },
+        {
+          "w": "gần",
+          "start": 21.04,
+          "end": 21.2
+        },
+        {
+          "w": "như",
+          "start": 21.2,
+          "end": 21.36
+        },
+        {
+          "w": "không",
+          "start": 21.36,
+          "end": 21.6
+        },
+        {
+          "w": "đổi,",
+          "start": 21.6,
+          "end": 21.84
+        },
+        {
+          "w": "perplexity",
+          "start": 22.08,
+          "end": 22.56
+        },
+        {
+          "w": "chỉ",
+          "start": 22.72,
+          "end": 23.04
+        },
+        {
+          "w": "nhích",
+          "start": 23.04,
+          "end": 23.2
+        },
+        {
+          "w": "lên",
+          "start": 23.28,
+          "end": 23.52
+        },
+        {
+          "w": "chút",
+          "start": 23.52,
+          "end": 23.68
+        },
+        {
+          "w": "xíu.",
+          "start": 23.68,
+          "end": 24.08
+        }
+      ]
+    },
+    {
+      "start_sec": 24.48,
+      "end_sec": 27.2,
+      "text": "Nhưng chỗ ngoặt thật sự nằm ở kiến trúc MoE.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Nhưng",
+          "start": 24.56,
+          "end": 24.925
+        },
+        {
+          "w": "chỗ",
+          "start": 24.925,
+          "end": 25.144
+        },
+        {
+          "w": "ngoặt",
+          "start": 25.144,
+          "end": 25.508
+        },
+        {
+          "w": "thật",
+          "start": 25.508,
+          "end": 25.8
+        },
+        {
+          "w": "sự",
+          "start": 25.8,
+          "end": 25.946
+        },
+        {
+          "w": "nằm",
+          "start": 25.946,
+          "end": 26.165
+        },
+        {
+          "w": "ở",
+          "start": 26.165,
+          "end": 26.238
+        },
+        {
+          "w": "kiến",
+          "start": 26.238,
+          "end": 26.529
+        },
+        {
+          "w": "trúc",
+          "start": 26.529,
+          "end": 26.821
+        },
+        {
+          "w": "MoE.",
+          "start": 26.821,
+          "end": 27.04
+        }
+      ]
+    },
+    {
+      "start_sec": 27.48,
+      "end_sec": 31.96,
+      "text": "Qwen3-30B-A3B có hơn ba mươi tỉ tham số.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Qwen3-30B-A3B",
+          "start": 27.52,
+          "end": 29.104
+        },
+        {
+          "w": "có",
+          "start": 29.104,
+          "end": 29.392
+        },
+        {
+          "w": "hơn",
+          "start": 29.392,
+          "end": 29.824
+        },
+        {
+          "w": "ba",
+          "start": 29.824,
+          "end": 30.112
+        },
+        {
+          "w": "mươi",
+          "start": 30.112,
+          "end": 30.688
+        },
+        {
+          "w": "tỉ",
+          "start": 30.688,
+          "end": 30.976
+        },
+        {
+          "w": "tham",
+          "start": 30.976,
+          "end": 31.552
+        },
+        {
+          "w": "số.",
+          "start": 31.552,
+          "end": 31.84
+        }
+      ]
+    },
+    {
+      "start_sec": 32.24,
+      "end_sec": 34.64,
+      "text": "Mỗi token nó chỉ kích hoạt hơn ba tỉ.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Mỗi",
+          "start": 32.24,
+          "end": 32.56
+        },
+        {
+          "w": "token",
+          "start": 32.56,
+          "end": 32.96
+        },
+        {
+          "w": "nó",
+          "start": 32.96,
+          "end": 33.12
+        },
+        {
+          "w": "chỉ",
+          "start": 33.12,
+          "end": 33.28
+        },
+        {
+          "w": "kích",
+          "start": 33.28,
+          "end": 33.52
+        },
+        {
+          "w": "hoạt",
+          "start": 33.52,
+          "end": 34.0
+        },
+        {
+          "w": "hơn",
+          "start": 34.0,
+          "end": 34.0
+        },
+        {
+          "w": "ba",
+          "start": 34.0,
+          "end": 34.16
+        },
+        {
+          "w": "tỉ.",
+          "start": 34.16,
+          "end": 34.48
+        }
+      ]
+    },
+    {
+      "start_sec": 34.92,
+      "end_sec": 37.24,
+      "text": "Nghĩa là card chỉ phải gánh phần đang chạy.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Nghĩa",
+          "start": 34.96,
+          "end": 35.36
+        },
+        {
+          "w": "là",
+          "start": 35.36,
+          "end": 35.36
+        },
+        {
+          "w": "card",
+          "start": 35.36,
+          "end": 35.68
+        },
+        {
+          "w": "chỉ",
+          "start": 35.68,
+          "end": 35.92
+        },
+        {
+          "w": "phải",
+          "start": 35.92,
+          "end": 36.16
+        },
+        {
+          "w": "gánh",
+          "start": 36.16,
+          "end": 36.32
+        },
+        {
+          "w": "phần",
+          "start": 36.32,
+          "end": 36.64
+        },
+        {
+          "w": "đang",
+          "start": 36.64,
+          "end": 36.8
+        },
+        {
+          "w": "chạy.",
+          "start": 36.8,
+          "end": 37.12
+        }
+      ]
+    },
+    {
+      "start_sec": 37.52,
+      "end_sec": 42.08,
+      "text": "Thiếu VRAM nữa thì llama.cpp đẩy bớt layer sang RAM.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Thiếu",
+          "start": 37.6,
+          "end": 38.127
+        },
+        {
+          "w": "VRAM",
+          "start": 38.127,
+          "end": 38.548
+        },
+        {
+          "w": "nữa",
+          "start": 38.548,
+          "end": 38.864
+        },
+        {
+          "w": "thì",
+          "start": 38.864,
+          "end": 39.18
+        },
+        {
+          "w": "llama.cpp",
+          "start": 39.18,
+          "end": 40.023
+        },
+        {
+          "w": "đẩy",
+          "start": 40.023,
+          "end": 40.34
+        },
+        {
+          "w": "bớt",
+          "start": 40.34,
+          "end": 40.656
+        },
+        {
+          "w": "layer",
+          "start": 40.656,
+          "end": 41.182
+        },
+        {
+          "w": "sang",
+          "start": 41.182,
+          "end": 41.604
+        },
+        {
+          "w": "RAM.",
+          "start": 41.604,
+          "end": 41.92
+        }
+      ]
+    },
+    {
+      "start_sec": 42.36,
+      "end_sec": 44.04,
+      "text": "Chậm hơn thật, nhưng vẫn chạy.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Chậm",
+          "start": 42.4,
+          "end": 42.8
+        },
+        {
+          "w": "hơn",
+          "start": 42.8,
+          "end": 42.88
+        },
+        {
+          "w": "thật,",
+          "start": 42.88,
+          "end": 43.04
+        },
+        {
+          "w": "nhưng",
+          "start": 43.12,
+          "end": 43.6
+        },
+        {
+          "w": "vẫn",
+          "start": 43.6,
+          "end": 43.6
+        },
+        {
+          "w": "chạy.",
+          "start": 43.6,
+          "end": 43.92
+        }
+      ]
+    },
+    {
+      "start_sec": 44.32,
+      "end_sec": 47.68,
+      "text": "Bạn chỉ cần một file GGUF và LM Studio.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Bạn",
+          "start": 44.4,
+          "end": 44.72
+        },
+        {
+          "w": "chỉ",
+          "start": 44.72,
+          "end": 45.04
+        },
+        {
+          "w": "cần",
+          "start": 45.04,
+          "end": 45.36
+        },
+        {
+          "w": "một",
+          "start": 45.36,
+          "end": 45.68
+        },
+        {
+          "w": "file",
+          "start": 45.68,
+          "end": 46.107
+        },
+        {
+          "w": "GGUF",
+          "start": 46.107,
+          "end": 46.533
+        },
+        {
+          "w": "và",
+          "start": 46.533,
+          "end": 46.747
+        },
+        {
+          "w": "LM",
+          "start": 46.747,
+          "end": 46.96
+        },
+        {
+          "w": "Studio.",
+          "start": 46.96,
+          "end": 47.6
+        }
+      ]
+    },
+    {
+      "start_sec": 47.96,
+      "end_sec": 51.64,
+      "text": "Card bạn mấy GB, đang chạy model gì, comment cho mình biết.",
+      "style": "caption",
+      "words": [
+        {
+          "w": "Card",
+          "start": 48.0,
+          "end": 48.313
+        },
+        {
+          "w": "bạn",
+          "start": 48.313,
+          "end": 48.548
+        },
+        {
+          "w": "mấy",
+          "start": 48.548,
+          "end": 48.782
+        },
+        {
+          "w": "GB,",
+          "start": 48.782,
+          "end": 48.939
+        },
+        {
+          "w": "đang",
+          "start": 48.939,
+          "end": 49.252
+        },
+        {
+          "w": "chạy",
+          "start": 49.252,
+          "end": 49.564
+        },
+        {
+          "w": "model",
+          "start": 49.564,
+          "end": 49.956
+        },
+        {
+          "w": "gì,",
+          "start": 49.956,
+          "end": 50.112
+        },
+        {
+          "w": "comment",
+          "start": 50.112,
+          "end": 50.66
+        },
+        {
+          "w": "cho",
+          "start": 50.66,
+          "end": 50.894
+        },
+        {
+          "w": "mình",
+          "start": 50.894,
+          "end": 51.207
+        },
+        {
+          "w": "biết.",
+          "start": 51.207,
+          "end": 51.52
+        }
+      ]
+    }
+  ],
+  "audio": {
+    "voice": {
+      "path": "voice.wav",
+      "duration_sec": 51.64,
+      "gain_db": 0,
+      "backend": "echo",
+      "timestamp_source": "forced_aligner",
+      "display_mapping": "mixed"
+    }
+  },
+  "style": {
+    "palette": {
+      "bg": "#0D0D0F",
+      "fg": "#FFFFFF",
+      "accent": "#4DE1C1",
+      "warn": "#FF6B4D"
+    },
+    "caption": {
+      "font": "Be Vietnam Pro",
+      "weight": 800,
+      "size_px": 72,
+      "stroke_px": 6,
+      "color": "#FFFFFF",
+      "highlight_color": "#FFE14D",
+      "position": "center-lower"
+    },
+    "hook": {
+      "font": "Be Vietnam Pro",
+      "weight": 900,
+      "size_px": 96,
+      "stroke_px": 8,
+      "color": "#FFFFFF",
+      "highlight_color": "#FFE14D",
+      "position": "top"
+    },
+    "safe_area_pct": {
+      "top": 8,
+      "bottom": 20,
+      "left": 4,
+      "right": 18
+    }
+  }
+}

@@ -1,110 +1,100 @@
 # exp-create-video
 
-Hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
+Hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI. Chi phí 0đ, chạy hết trên
+một RTX 2060 6GB.
 
 ```
-cron 07:00 ─▶ trend-scout ─▶ topic-picker ─▶ [Tony chọn chủ đề qua Telegram]
-                                                        │
-                            scriptwriter ◀──────────────┘
-                                  ▼
-                              voice (TTS) ─▶ visual (SDXL/Flux) ─▶ editor (Remotion)
-                                                                          ▼
-                                          ┌───── qc-critic: T1→T2→T3→T4 ──┤
-                                          │      tối đa 2 vòng sửa        │
-                                          └───────────────────────────────┘
-                                                          ▼
-                                    [Tony duyệt video] ─▶ TikTok draft
+[P5] trend-scout ─▶ [Tony chọn chủ đề qua Telegram]
+                              │
+     scriptwriter ◀───────────┘           (Claude qua claude-agent-sdk)
+          ▼
+     voice: exp-echo VieNeu-TTS-v3 + forced aligner + loudnorm
+          ▼
+     visual: SDXL-Lightning  (+ P3b: shot "bằng chứng" stat/chart/screenshot)
+          ▼
+     video-spec.json ─▶ Remotion (Ken Burns, karaoke, hook, overlay)
+          ▼
+     QC: T1 code (chặn cứng) → [P4] T2 VLM · T3 sức hút · T4 sự thật, tối đa 2 vòng
+          ▼
+     [P5] Tony duyệt ─▶ TikTok draft
 ```
 
-Luồng thứ hai (Tony gửi footage tự quay + prompt → video hoàn chỉnh) làm ở P6, dùng
-lại toàn bộ khối render và QC của luồng 1.
+## Trạng thái — 2026-10-01
 
-## Trạng thái
+Một lệnh: chủ đề → mp4 1080×1920 có giọng đọc, phụ đề karaoke theo timestamp đo
+được, overlay số liệu đúng câu, loudness −14 LUFS, và cổng QC kỹ thuật 14 kiểm.
 
-**Mới dựng repo — chưa có code implementation.** Đây là bộ khung + kế hoạch.
+```bash
+# cần service exp-echo ở cổng 8000 — lệnh bật ở CLAUDE.md
+.venv/bin/python -m create_video.pipeline "chủ đề" --duration 40
+.venv/bin/python -m create_video.pipeline "chủ đề" --visual color     # bỏ GPU, test nhanh
+.venv/bin/python -m create_video.pipeline "chủ đề" --voice-join grouped  # so cách ghép giọng
+.venv/bin/python -m pytest -q
+```
 
-| Có gì | Ở đâu |
+| Phase | Trạng thái |
 |---|---|
-| Kế hoạch đầy đủ, 6 phase, 20 step, mỗi step có prompt tự chứa | `todos.md` |
-| Bài toán, metric, "đủ tốt" bằng số | `research/00-problem.md` |
-| Quyết định kiến trúc + ma trận lựa chọn | `research/05-decision.md` |
-| Nhật ký nguồn (verified/reported/assumed) | `research/02-sources.md` |
-| Ngưỡng chất lượng — viết trước khi có video nào | `configs/thresholds.yaml` |
-| Rubric chấm sức hút | `configs/rubric.md` |
+| P1 probe giết-hoặc-sống | ✅ (S1 TikTok chờ Tony làm phần tay; S4 LTX fail → bỏ video local) |
+| P2 khối dựng + QC tầng 1 | ✅ |
+| P3 nội dung: ra video hoàn chỉnh | ✅ |
+| **P3b nâng chất lượng** | 🔶 S1 xong · S2 chờ Tony nghe mù · S3–S8 chưa |
+| P4 QC tầng 2-4 | ⬜ (`qc/t2_vlm.py` đã viết, chưa nối) |
+| P5 trend-scout, Telegram, đăng TikTok | ⬜ |
 
-**Bắt đầu từ đâu:** mở `todos.md`, làm **P1** — bốn probe giết-hoặc-sống. Ba trong bốn,
-nếu fail, buộc phải đổi kiến trúc; viết code trước khi biết kết quả là xây trên nền
-chưa kiểm.
+P6 (luồng footage của Tony, audit direct-post) **đã bỏ** 2026-10-01 — đăng giữ chế độ draft.
 
-## Chặn ở đây — chưa biết, phải probe
+## Đọc gì
 
-| Câu hỏi | Probe |
+| Cần | Ở đâu |
 |---|---|
-| TikTok draft API có đẩy được vào tài khoản thật không? Có cần Business account? | P1.S1 |
-| VieNeu-TTS-v2 có trả timestamp từng từ không? | P1.S2 |
-| Remotion render 60s trên 12 core mất bao lâu? | P1.S3 |
-| LTX-Video 2B có chạy nổi trên Turing 6GB (không FP8) không? | P1.S4 |
-
-Mọi con số tốc độ trong `research/` hiện là **reported** (đọc từ nguồn thứ cấp).
-P1 chuyển chúng thành **verified**.
-
-## Chưa quyết
-
-- **Nhạc nền** — nhạc CC0 (tự động được) hay Tony thêm nhạc trending trong app TikTok
-  (hợp thuật toán hơn nhưng phá luồng tự động)?
-- **Tần suất** — 1 video/ngày hay vài video/tuần?
-- **Tài khoản TikTok** — đã có chưa, có phải Business account không? (P1.S1 trả lời)
-
-## ⚠️ Rủi ro license — Remotion
-
-`remotion-dev/remotion` có license **NOASSERTION** `[gh api, 2026-08-04]`: miễn phí cho
-cá nhân và công ty **≤ 3 người**; **DTG dùng thương mại phải mua license**.
-
-P1.S3 phải đọc `LICENSE` gốc và ghi điều kiện chính xác vào
-`research/repo-cards/remotion.md`.
-
-**Đường thoát nếu điều kiện thành vấn đề:** chuyển sang [Revideo](https://github.com/midrender/revideo)
-(fork MIT, cùng mô hình lập trình). Đổi được vì ranh giới `video-spec.json` giữ nguyên.
+| Việc phải làm, mỗi step tự chứa | `todos.md` |
+| Vì sao P3b, trần chất lượng nằm đâu, quét thị trường 2026-10 | `research/08-nang-cap-chat-luong.md` |
+| Quyết định kiến trúc gốc | `research/05-decision.md` |
+| Số đo thật từng probe | `research/probes/` |
+| So trước/sau khối render | `eval/results/` (3 fixture cố định ở `eval/scripts/`) |
+| Ngưỡng — viết trước khi chạy | `configs/thresholds.yaml` |
+| Model đang dùng + đã loại | `configs/models.yaml` |
 
 ## Cài đặt
 
-Chưa cài gì. Khi bắt đầu P1:
-
 ```bash
-# Python — mỗi probe một venv riêng trong exp/, đừng dùng chung
-python3 -m venv exp/<tên>/venv
-
-# Remotion — P1.S3
-cd remotion && npm install
+bash scripts/setup.sh     # venv + pip -e . + Remotion npm + font Anton + kiểm ffmpeg
 ```
 
-Bí mật (token TikTok, Telegram) để trong `.env` ở gốc repo — đã gitignore.
-
-## Phần cứng
-
-| | tony (mặc định) | tris (tắt) |
-|---|---|---|
-| GPU | RTX 2060 **6GB** | 2× RTX 5090 nhưng chỉ mượn được **< 2GB** |
-| CPU / RAM | 12 core / 31GB | 32 core / 123GB |
-
-**Chạy hết trên tony.** Khe 2GB trên 5090 ít hơn 6GB trống của 2060, nên tris không
-giúp được khâu nút thắt. Chỉ bật tris (`configs/machines.yaml`) nếu P1.S3 cho thấy
-Remotion render quá chậm — render là việc CPU-bound, 0 VRAM, và đó là chỗ 32 core thắng.
+Trọng số SDXL nằm ở `exp/hf-cache` (code tự đặt `HF_HOME`). Bí mật (TikTok, Telegram)
+trong `.env` — đã gitignore.
 
 ## Cấu trúc
 
 ```
-todos.md                 ★ kế hoạch — mỗi step có prompt tự chứa
-research/                quyết định, nguồn, kết quả probe, repo-card
-configs/                 ngưỡng, rubric, model, nguồn trend, style, lịch
-src/create_video/        Python: agents, voice, visual, spec, qc, publish, queue
-remotion/                TypeScript: composition + components
-eval/scripts/            spec cố định để so trước/sau khi đổi khối render
-exp/ data/ out/          gitignore
+todos.md                ★ kế hoạch
+research/               quyết định, nguồn, probe, repo-card
+configs/                ngưỡng, rubric, model, style, máy, nguồn trend, lịch
+src/create_video/
+  agents/scriptwriter   kịch bản + tự kiểm ràng buộc bằng code
+  voice/                exp-echo HTTP, ghép câu, chốt chặn TTS lặp, loudnorm, aligner
+  visual/               SDXL-Lightning, ColorCard (test)
+  spec/                 video-spec.json: schema, build, validate, captions, post.json
+  qc/                   t1_technical (code, chặn cứng), t2_vlm (P4)
+  pipeline.py           orchestrator một lệnh
+remotion/src/           Video.tsx + components (KenBurns, KaraokeCaption, Hook, Overlay, Transition)
+eval/                   fixture cố định + kết quả so trước/sau
+scripts/                setup, render, freeze_eval, make_eval_fixtures, gen_plan_autoclick
+exp/ out/ data/         gitignore
 ```
 
-## Git
+## Rủi ro license
 
-Repo đã `git init`, **chưa commit lần nào** — Tony tự quản git.
+- **Remotion** — miễn phí cho cá nhân/công ty ≤ 3 người; DTG dùng thương mại có thể
+  phải mua. Đường thoát: Revideo (MIT) hoặc HyperFrames (Apache-2.0) — đổi được vì
+  ranh giới `video-spec.json`. Chi tiết `research/repo-cards/remotion-dev-remotion.md`.
+- **Giọng VieNeu** — exp-echo local ghi CC-BY-NC-4.0, card HF mới ghi Apache-2.0 → kiểm
+  revision trước khi kênh kiếm tiền (`research/08` §3).
 
-`git worktree` (dùng để chạy song song, xem `todos.md`) cần ít nhất 1 commit.
+## Phần cứng
+
+tony: RTX 2060 **6GB** (Turing, fp16, không FP8/bf16), 12 core, 31GB RAM. GPU dùng chung
+với dự án khác — kiểm `nvidia-smi` trước bước GPU. tris (2× 5090) tắt: chỉ mượn được
+< 2GB VRAM.
+
+Tony tự quản git.

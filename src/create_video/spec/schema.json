@@ -1,0 +1,574 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://exp-create-video/video-spec.json",
+  "title": "video-spec",
+  "description": "Ranh giới DUY NHẤT giữa Python và Remotion. Python sinh, Remotion tiêu thụ. Mô tả CÁI GÌ, không mô tả LÀM THẾ NÀO: 'ken_burns từ trái sang phải trong 4 giây' là dữ liệu; tên hàm là code.",
+  "type": "object",
+  "required": [
+    "version",
+    "meta",
+    "format",
+    "shots",
+    "captions",
+    "audio",
+    "style"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "description": "Phiên bản schema. Remotion từ chối spec khác major version.",
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "id",
+        "topic",
+        "created_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 3
+        },
+        "created_at": {
+          "type": "string",
+          "description": "ISO-8601"
+        },
+        "sources": {
+          "description": "Nguồn của mọi con số/tên model nói trong video. QC tầng 4 đối chiếu vào đây.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "claim",
+              "url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "claim": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "confidence": {
+                "enum": [
+                  "verified",
+                  "reported",
+                  "assumed"
+                ]
+              }
+            }
+          }
+        },
+        "script_ref": {
+          "type": "string",
+          "description": "Đường tới kịch bản gốc"
+        },
+        "qc_round": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "caption": {
+          "description": "Caption TikTok, P3.S5. TikTok cắt hiển thị ở 150 ký tự.",
+          "type": "string",
+          "maxLength": 150
+        },
+        "hashtags": {
+          "description": "3-5 hashtag ngách, không # đầu, không #fyp/#viral.",
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          }
+        },
+        "keywords": {
+          "description": "Từ khoá để chèn caption/overlay. keywords[0] là từ khoá chính.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "format": {
+      "type": "object",
+      "required": [
+        "width",
+        "height",
+        "fps",
+        "duration_sec"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "width": {
+          "const": 1080
+        },
+        "height": {
+          "const": 1920
+        },
+        "fps": {
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 60
+        },
+        "duration_sec": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "shots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "start_sec",
+          "end_sec",
+          "asset"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "start_sec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end_sec": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "asset": {
+            "type": "object",
+            "required": [
+              "kind",
+              "path"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "image",
+                  "video",
+                  "color"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "description": "Tương đối so với gốc repo. kind=color thì là mã màu."
+              },
+              "alt": {
+                "type": "string",
+                "description": "Prompt đã sinh ra ảnh — cần khi QC tầng 2 chê và phải render lại"
+              },
+              "depth_path": {
+                "type": "string",
+                "description": "Depth map PNG (gần = sáng) cho motion.type=parallax (P3b.S10). Thiếu thì Remotion lùi về Ken Burns."
+              }
+            }
+          },
+          "motion": {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "enum": [
+                  "none",
+                  "ken_burns",
+                  "parallax"
+                ]
+              },
+              "from": {
+                "$ref": "#/definitions/frameState"
+              },
+              "to": {
+                "$ref": "#/definitions/frameState"
+              }
+            }
+          },
+          "transition_in": {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "enum": [
+                  "cut",
+                  "fade",
+                  "whip-pan",
+                  "slide-up"
+                ]
+              },
+              "duration_frames": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 30
+              }
+            }
+          },
+          "overlay": {
+            "description": "Chữ dán trên shot (tên model, con số). KHÁC phụ đề karaoke.",
+            "type": "object",
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "position": {
+                "enum": [
+                  "top",
+                  "center",
+                  "bottom"
+                ]
+              },
+              "emphasis": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "captions": {
+      "description": "Phụ đề karaoke. Timestamp từng từ là BẮT BUỘC — không có thì không có phụ đề động, mà đó là một trong ba thứ tạo sức hút ở đây.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "start_sec",
+          "end_sec",
+          "text",
+          "words"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "start_sec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end_sec": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "style": {
+            "enum": [
+              "caption",
+              "hook"
+            ]
+          },
+          "words": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "w",
+                "start",
+                "end"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "w": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "start": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "end": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "overlays": {
+      "description": "Chữ dán trên hình (tên model, con số) CÓ THỜI GIAN RIÊNG — hiện đúng lúc câu chứa nó được đọc. Thêm ở 1.1 vì gắn overlay vào shot làm nó hiện sai lúc khi một shot phủ nhiều câu (research/08 §1). `shots[].overlay` vẫn được đọc cho spec cũ.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "start_sec",
+          "end_sec",
+          "text"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "start_sec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "end_sec": {
+            "type": "number",
+            "minimum": 0
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24
+          },
+          "position": {
+            "enum": [
+              "top",
+              "center",
+              "bottom"
+            ]
+          },
+          "emphasis": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "required": [
+        "voice"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "voice": {
+          "type": "object",
+          "required": [
+            "path",
+            "duration_sec"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "duration_sec": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "gain_db": {
+              "type": "number"
+            },
+            "backend": {
+              "type": "string"
+            },
+            "voice_id": {
+              "type": "string"
+            },
+            "timestamp_source": {
+              "description": "native | forced_aligner | even_split. Phải nói THẬT: even_split đo được lệch 458ms, vượt ngưỡng 120ms — người debug phụ đề lệch cần biết mình đang cầm số đo hay số chia đều.",
+              "enum": [
+                "native",
+                "forced_aligner",
+                "even_split",
+                "unknown"
+              ]
+            },
+            "display_mapping": {
+              "description": "exact = mỗi từ hiển thị có timestamp đo được. redistributed = chuỗi đọc bị chuẩn hoá lệch token (số, ký hiệu) nên thời gian trong câu là chia lại theo độ dài chữ, chỉ hai đầu câu là số đo. Xem src/create_video/spec/captions.py.",
+              "enum": [
+                "exact",
+                "redistributed",
+                "mixed"
+              ]
+            }
+          }
+        },
+        "music": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "path"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "gain_db": {
+              "type": "number"
+            },
+            "ducking": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "style": {
+      "description": "Đã RESOLVE từ configs/style.yaml bởi Python. Remotion không đọc YAML — đó là điều giữ cho ranh giới chỉ có một.",
+      "type": "object",
+      "required": [
+        "palette",
+        "caption",
+        "hook",
+        "safe_area_pct"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "palette": {
+          "type": "object",
+          "required": [
+            "bg",
+            "fg",
+            "accent"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "bg": {
+              "$ref": "#/definitions/hexColor"
+            },
+            "fg": {
+              "$ref": "#/definitions/hexColor"
+            },
+            "accent": {
+              "$ref": "#/definitions/hexColor"
+            },
+            "warn": {
+              "$ref": "#/definitions/hexColor"
+            }
+          }
+        },
+        "caption": {
+          "$ref": "#/definitions/textStyle"
+        },
+        "hook": {
+          "$ref": "#/definitions/textStyle"
+        },
+        "safe_area_pct": {
+          "description": "UI TikTok che các mép này. Chữ tràn vào: trên máy nhìn ổn, trên app bị che.",
+          "type": "object",
+          "required": [
+            "top",
+            "bottom",
+            "left",
+            "right"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "top": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "bottom": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "left": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            },
+            "right": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 50
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "hexColor": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}$"
+    },
+    "frameState": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scale": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 2.0
+        },
+        "x_pct": {
+          "type": "number",
+          "minimum": -50,
+          "maximum": 50
+        },
+        "y_pct": {
+          "type": "number",
+          "minimum": -50,
+          "maximum": 50
+        }
+      }
+    },
+    "textStyle": {
+      "type": "object",
+      "required": [
+        "font",
+        "size_px",
+        "color"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "font": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 900
+        },
+        "size_px": {
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 200
+        },
+        "stroke_px": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "color": {
+          "$ref": "#/definitions/hexColor"
+        },
+        "highlight_color": {
+          "$ref": "#/definitions/hexColor"
+        },
+        "position": {
+          "enum": [
+            "top",
+            "center",
+            "center-lower",
+            "bottom"
+          ]
+        }
+      }
+    }
+  }
+}

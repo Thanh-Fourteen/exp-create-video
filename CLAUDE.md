@@ -3,7 +3,32 @@
 Hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI: quét trend → kịch bản →
 dựng video → tự chấm QC 2 vòng → Tony duyệt qua Telegram → đăng TikTok.
 
-**Trạng thái: mới dựng repo. Chưa có code implementation.** Việc tiếp theo ở `todos.md`.
+**Trạng thái (2026-10-01): pipeline chạy được đầu-cuối** — một lệnh ra mp4 có giọng
+đọc (loudnorm −14 LUFS), phụ đề karaoke, overlay số liệu đúng câu, ảnh sinh tại chỗ và
+QC tầng 1 (14 kiểm). Đang ở **P3b — nâng chất lượng** (`research/08-nang-cap-chat-luong.md`),
+chen trước P4. Chưa có: QC tầng 2-4, trend-scout, bot Telegram, publisher TikTok.
+P6 đã bỏ. Việc tiếp theo ở `todos.md`.
+
+```bash
+# cần service exp-echo đang chạy ở cổng 8000 (xem "Phụ thuộc ngoài" bên dưới)
+.venv/bin/python -m create_video.pipeline "chủ đề" --duration 40
+.venv/bin/python -m create_video.pipeline "chủ đề" --visual color   # bỏ GPU, test nhanh
+.venv/bin/python -m pytest -q
+```
+
+## Phụ thuộc ngoài: repo `exp-echo`
+
+Giọng đọc và forced aligner đều đến từ `/mnt/data1tb/exp-echo` (dự án STT/TTS riêng
+của Tony), qua **HTTP** — không chung interpreter, trừ aligner gọi bằng subprocess vào
+python của env đó.
+
+```bash
+cd /mnt/data1tb/exp-echo && VOICE_WARMUP=0 VOICE_UI=0 \
+  exp/conda-envs/voice/bin/uvicorn voice.server.api:app --host 127.0.0.1 --port 8000
+```
+
+`VOICE_WARMUP=0` là cần thiết: mặc định service nạp model ASR lên GPU lúc khởi động và
+sẽ OOM nếu card đang bận — mà pipeline video không dùng ASR.
 
 ## Ngôn ngữ
 
@@ -21,7 +46,8 @@ Ngưỡng đầy đủ: `configs/thresholds.yaml` · Cơ sở: `research/05-deci
 
 - **Chi phí 0đ** — chỉ model open-weight local, không API trả tiền
 - **Máy `tony`: RTX 2060 6GB.** `tris` mặc định tắt (`configs/machines.yaml`)
-- **6GB không cho nạp `visual` (~5–6GB) và VLM (~4GB) cùng lúc** — phải tuần tự hoá
+- **Không nạp hai khối GPU cùng lúc** (SDXL offload đỉnh 624 MiB, aligner 1,9GB, VLM ~4GB)
+  — tuần tự hoá. GPU dùng chung với dự án khác: `nvidia-smi` trước mọi bước GPU
 - Video dọc 1080×1920, 15–60s, tiếng Việt, khán giả VN
 - Đăng chế độ **draft** (chưa audit → direct post bị ép `SELF_ONLY`)
 - Trend **không lấy từ TikTok** (Research API siết, Creative Center cấm scrape)
@@ -59,3 +85,7 @@ Ngưỡng đầy đủ: `configs/thresholds.yaml` · Cơ sở: `research/05-deci
 
 `todos.md` việc phải làm · `research/` quyết định + probe · `configs/` ngưỡng và cấu hình
 · `src/create_video/` Python · `remotion/` TypeScript · `out/` video · `eval/` bộ đối chứng
+· `exp/hf-cache` trọng số model (code tự đặt `HF_HOME`)
+
+Mốc "trước" để so chất lượng: `out/demo-02`. Đồ đã dọn 2026-10-01 nằm ở
+`/mnt/data1tb/_trash-exp-create-video-2026-10-01/` cho tới khi Tony xoá.

@@ -1,53 +1,71 @@
 # Model. Tất cả open-weight, chạy local, 0đ.
-# Số tốc độ là "reported" từ research/02-sources.md — P1 sẽ đo lại thành verified.
+# Code chỉ ĐỌC khối `tts` (pipeline.py). Các khối còn lại ghi model đang dùng/sắp
+# probe để có MỘT chỗ tra — lý do chọn ở research/05-decision.md và
+# research/08-nang-cap-chat-luong.md (quét lại thị trường 2026-10-01).
+#
+# Đã loại, ghi lại để không ai thử lại (chi tiết research/08 §4):
+#   - LTX-Video 2B   : OOM mọi cấu hình trên 2060 (P1.S4). Video local ĐÓNG.
+#   - LTX-2, Wan2.2  : 20GB+ · FramePack bản 20XX: ~40 phút/giây video
+#   - Qwen-Image INT4: crash trên sm_75 (nunchaku #801) · Sana-Sprint: chỉ bf16
+#   - TTS NC license : F5-vi, OmniVoice, viXTTS, VietTTS — kênh kiếm tiền không dùng được
 
 tts:
-  backend: vieneu                # vieneu | dummy | <model của Tony sau này>
-  # Khi model TTS của Tony xong: đổi endpoint ở đây, KHÔNG sửa code pipeline.
-  vieneu:
-    endpoint: http://127.0.0.1:8801/tts
-    model: VieNeu-TTS-v2
-    license: Apache-2.0
-    vram_gb: 3                   # ngưỡng pass của P1.S2
-    # Timestamp từng từ là BẮT BUỘC — phụ đề karaoke ăn trực tiếp từ đó.
-    # Nếu VieNeu không trả: dùng ForcedAligner của Qwen3-ASR ở repo voice.
-    requires_word_timestamps: true
-  dummy:
-    engine: espeak-ng            # để test pipeline khi service TTS chưa bật
+  # Service exp-echo (/mnt/data1tb/exp-echo), model VieNeu-TTS-v3-Turbo.
+  # WER 3,3% [ViTTS-Bench, 2026-09] — ngang nhóm đầu trong các model dùng thương
+  # mại được → chưa có lý do đổi model (research/08 §3).
+  echo:
+    endpoint: http://127.0.0.1:8000
+    model: VieNeu-TTS-v3-Turbo
+    # ⚠ Card HF ngày 2026-10-01 ghi Apache-2.0 cho CẢ preset voice (23 giọng);
+    # exp-echo local ghi CC-BY-NC-4.0 (14 giọng) → nhiều khả năng revision cũ.
+    # Tony kiểm trước khi kênh kiếm tiền — todos.md "Nợ kỹ thuật".
+    license: code Apache-2.0 · giọng CC-BY-NC-4.0 (local) — xem ghi chú trên
+    # Đổi giọng ở ĐÂY, không sửa code. Danh sách thật: GET /v1/voices.
+    # Tony chọn Thanh Bình ngày 2026-08-14 (nam, Bắc, tier `wide`).
+    voice: Thanh Bình
+    style: tu_nhien              # tu_nhien | tin_tuc | doc_truyen
+    seed: 7                      # cố định → chạy lại ra đúng giọng đó, so A/B công bằng
+    # Cách ghép câu (P3b.S2, 2026-10-01). per_line = kiểu cũ (gap cố định 0,28s,
+    # 27% demo-02 là lặng). Chưa chốt — Tony nghe mù A/B/C rồi chọn, xem
+    # research/probes/p3b-s2-giong.md. Tạm đặt `tight` vì không đổi số lần gọi TTS.
+    join:
+      mode: tight                # per_line | tight | grouped
+      group_size: 3              # chỉ dùng cho grouped
+    vram_gb: 0                   # ONNX/CPU — không tranh VRAM với khối visual
+    # exp-echo KHÔNG trả timestamp. Aligner chạy riêng bằng python của exp-echo:
+    aligner:
+      model: Qwen/Qwen3-ForcedAligner-0.6B   # tiếng Việt KHÔNG chính thức, đo thật thì đúng
+      python: /mnt/data1tb/exp-echo/exp/conda-envs/voice/bin/python
+      vram_gb: 1.9               # đo thật P1.S2 — tiến trình thoát là nhả sạch
+  # Chuẩn loudness voice 2-pass (P3b.S2). Đích -14 LUFS là đồng thuận blog,
+  # TikTok không công bố spec (research/08 §3). Ngưỡng kiểm ở thresholds.yaml.
+  loudnorm:
+    target_lufs: -14.0
+    true_peak_db: -1.5
 
 image:
+  # Trọng số ở exp/hf-cache (visual/sdxl.py tự đặt HF_HOME).
   default: sdxl_lightning
   sdxl_lightning:
     model: ByteDance/SDXL-Lightning
     steps: 4
-    vram_gb: 5
-    est_sec_per_image: 10        # reported
-    role: mặc định — ảnh thường
-  flux_schnell_q4:
-    model: city96/FLUX.1-schnell-gguf
-    quant: Q4_0                  # 6.88GB — sát trần 6GB, cần CPU offload
-    vram_gb: 6
-    est_sec_per_image: 120       # reported
-    role: ảnh "hero", 1-2 cái mỗi video
+    vram_peak_mib: 624           # đo thật P3.S3, sequential CPU offload
+    sec_per_image: 8.2           # đo thật P3.S3
+  # Ứng viên thay thế — CHƯA probe (P3b.S8, sau khi có shot "bằng chứng"):
+  # Nunchaku INT4 + FLUX.1-schnell (Apache-2.0, hỗ trợ Turing chính thức).
+  # Z-Image-Turbo INT4 là phương án hai — có báo NaN fp16 trên RTX 2060 (issue #15).
 
-video:
-  # BẬT sau khi P1.S4 pass. Turing không có FP8 -> số trên mạng không áp dụng thẳng.
-  enabled: false
-  ltx_2b:
-    model: Lightricks/LTX-Video
-    variant: 2B-distilled
-    resolution: 512x512          # 720p ngoài tầm 6GB
-    tiling: true
-    vram_gb: 6
-    role: 2-3 shot nhấn
-  # Loại hẳn, ghi lại để không ai thử lại:
-  # - LTX-2      : cần ~20GB
-  # - Wan2.2 14B : cần 65-80GB @720p
+depth:
+  # Parallax 2.5D (P3b.S10). CHỈ bản Small là Apache-2.0 — Base/Large/Giant CC-BY-NC.
+  model: depth-anything/Depth-Anything-V2-Small-hf
+  sec_per_image: 0.48            # đo thật 2026-10-01, lần 2-3
+  vram_peak_mib: 211             # đo thật
 
 vlm:
-  # Chấm chất lượng ảnh (QC tầng 2). Chạy SAU khi visual đã nhả VRAM.
-  model: Qwen/Qwen3-VL
-  vram_gb: 4
+  # Chấm ảnh (QC tầng 2, P4.S1 — code ở qc/t2_vlm.py, CHƯA nối vào pipeline,
+  # CHƯA có số đo thật). Chạy SAU khi visual đã nhả VRAM. vram_gb là ước lượng.
+  model: Qwen/Qwen3-VL-2B-Instruct
+  vram_gb: 4                     # assumed — P4.S1 phải đo đỉnh thật
 
 agent:
   # Package là claude-agent-sdk, KHÔNG phải client.beta.messages.tool_runner

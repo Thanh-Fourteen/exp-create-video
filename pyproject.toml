@@ -1,0 +1,39 @@
+[project]
+name = "create-video"
+version = "0.1.0"
+description = "Hệ nhiều agent tự tạo video TikTok tiếng Việt về AI"
+requires-python = ">=3.11"
+
+# Vì sao repo này có venv RIÊNG, không dùng env conda của exp-echo:
+# env `voice` của exp-echo bị đóng băng theo constraints.txt để giữ bảng số
+# O-WER/RTF so sánh được. Cài diffusers/claude-agent-sdk vào đó là phá bảng số
+# của dự án khác. Ranh giới giữa hai repo là HTTP (exp-echo /v1/tts), không phải
+# chung interpreter — trừ forced aligner, gọi qua subprocess sang python của
+# exp-echo vì nó cần đúng model cache ở đó.
+dependencies = [
+  "jsonschema>=4.21",
+  "PyYAML>=6.0",
+  "numpy>=1.26",
+  "opencv-python-headless>=4.9",   # QC tầng 1 — kiểm bbox chữ trong vùng an toàn
+  "Pillow>=10.2",
+  "torch>=2.6",                    # khối visual, SDXL-Lightning trên 2060
+  "torchvision",                   # Qwen3VLProcessor (QC tầng 2) đòi, dù không dùng video
+  "diffusers>=0.32",
+  "transformers>=4.44",
+  "accelerate>=1.0",
+  "safetensors>=0.4",
+  "bitsandbytes>=0.50",            # nạp VLM (QC tầng 2) ở 4-bit — xem qc/t2_vlm.py
+  "claude-agent-sdk>=0.1",         # KHÔNG phải anthropic.beta.messages.tool_runner
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+# Không có dòng này thì `pytest` trần quét cả exp/ltx/repo/tests và vỡ ở bước
+# collect (thiếu module ltx_video) — research/08 §1.
+testpaths = ["tests"]

@@ -18,7 +18,7 @@ machines:
     repo: /mnt/data1tb/exp-create-video
 
   tris:
-    enabled: false        # bật khi P1.S3 cho thấy render trên tony quá chậm
+    enabled: false        # P1.S3 pass (render 60s hết 37s trên tony) → không cần
     host: tris            # ssh alias
     gpu: "2x RTX 5090"
     vram_gb: 2            # khe mượn được, KHÔNG phải 32 — hai card đang bận
@@ -28,11 +28,12 @@ machines:
       Chỉ dùng cho Remotion render (CPU-bound, 0 VRAM). Đừng đẩy job sinh ảnh
       sang đây — khe 2GB nhỏ hơn 6GB trống của tony.
 
-# Ràng buộc phát sinh từ 6GB: khối visual (~5-6GB) và VLM chấm ảnh (~4GB)
-# KHÔNG được nạp cùng lúc. Hàng đợi phải tuần tự hoá job chiếm GPU và
+# Ràng buộc phát sinh từ 6GB: các khối GPU KHÔNG được nạp cùng lúc. Số đo thật:
+# SDXL offload đỉnh 624 MiB (P3.S3), aligner 1,9GB (P1.S2); VLM ~4GB vẫn là ước
+# lượng. GPU còn dùng chung với dự án khác của Tony → kiểm nvidia-smi trước. Hàng đợi phải tuần tự hoá job chiếm GPU và
 # gọi torch.cuda.empty_cache() trước khi sang bước sau.
 # Quên -> OOM ngẫu nhiên giữa chừng render, rất khó truy.
 gpu_exclusive_stages:
   - visual
   - qc_t2_vlm
-  - tts
+  - aligner              # TTS chạy CPU (ONNX); chỉ forced aligner chiếm GPU

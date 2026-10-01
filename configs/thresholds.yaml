@@ -20,9 +20,21 @@ t1_technical:
     max_peak_dbfs: -1.0        # cao hơn = clip, nghe rè
     min_rms_dbfs: -30.0        # thấp hơn = quá nhỏ, người xem không nghe rõ
     max_silence_sec: 2.0       # im quá 2s giữa video = người xem lướt
+    # Thêm 2026-10-01 (P3b) — KIỂM MỚI, không sửa ngưỡng cũ. Viết trước khi chạy,
+    # lý do ở research/08-nang-cap-chat-luong.md §6. demo-02 đo -20,0 LUFS và lọt
+    # qua vì cổng cũ chỉ đo mean_volume. Đích -14 là đồng thuận blog (reported) —
+    # TikTok không công bố spec loudness.
+    loudness:
+      integrated_lufs: [-15.5, -12.5]
+      max_true_peak_dbtp: -1.0
 
   video:
     max_black_frame_sec: 0.5   # frame đen dài hơn = lỗi render
+    # Thêm 2026-10-01 (P3b.S1), cùng lý do như loudness ở trên — research/08 §6.
+    # demo-02: dải nền ~24px mép phải đầu mỗi shot (Ken Burns pan > scale), và
+    # whip-pan trượt trên nền đen ~60% khung. blackdetect toàn khung không bắt được.
+    max_border_px: 4           # dải tối phẳng sát mép, ngoài frame transition cố ý
+    max_static_sec: 2.0        # đứng hình hoàn toàn — mọi shot phải có chuyển động
     min_fps: 24
     max_fps: 60
 
@@ -52,9 +64,18 @@ t2_visual:
   block_on:
     - anatomy_error           # tay 6 ngón, mặt méo — người xem nhận ra ngay
     - garbled_text_in_image   # chữ trong ảnh bị bóp thành ký tự vô nghĩa
+    # Thêm 2026-08-21 (P4.S1) khi viết qc/t2_vlm.py — chưa có trong bản gốc vì
+    # tầng T2 lúc đó chưa tồn tại. Đây là hoàn thiện taxonomy để dựng feature,
+    # KHÔNG phải chỉnh ngưỡng sau khi thấy kết quả: ảnh lạc chủ đề là lỗi rõ
+    # ràng như lỗi giải phẫu, không phải gu thẩm mỹ. Xem research/probes/p4s1-vlm.md
+    - topic_mismatch
   warn_only:
     - style_inconsistent
     - low_contrast
+    # Thêm 2026-08-21 (P4.S1), cùng lý do trên. Chuyển cảnh giật là vấn đề NHỊP
+    # DỰNG (đáng lẽ thuộc T3), nhưng VLM đang cầm sẵn hai ảnh cạnh nhau nên tiện
+    # ghi vết ở đây — không chặn, vì đây không phải lỗi ảnh mà là lựa chọn dựng.
+    - harsh_cut
 
 # ─────────────────────────────────────────────────────────────
 # T3 — sức hút. ĐỀ XUẤT sửa script, không chặn.

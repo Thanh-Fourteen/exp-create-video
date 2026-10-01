@@ -5,33 +5,49 @@ format:
   height: 1920
   fps: 30
   target_duration_sec: 45      # trong khoảng 15-60 của thresholds.yaml
+  # 2026-08-14 sáng: hạ 45 -> 35 cho nhịp nhanh hơn.
+  # 2026-08-14 chiều: TRẢ VỀ 45. Tony nghe demo-02: "không tự nhiên như người
+  # nói, để tốc độ cũ có vẻ tốt hơn". Xem research/06-nhip-va-font.md.
 
 # Vùng an toàn TikTok — UI che các mép này. Số ở thresholds.yaml (safe_area_pct).
 # Chữ tràn vào đây: trên máy nhìn ổn, trên app bị che.
 
 typography:
   caption:
-    font: "Be Vietnam Pro"       # font Việt, có đủ dấu — KHÔNG dùng Inter/Roboto
-    weight: 800
-    size_px: 72
-    stroke_px: 6                 # viền đen để đọc được trên mọi nền
+    # 2026-08-14: Be Vietnam Pro -> Anton (Tony: "font hơi xấu").
+    # Anton là condensed: cùng cỡ chữ thì chứa nhiều ký tự hơn trên một dòng,
+    # nên vừa to hơn vừa ÍT xuống dòng hơn — mà xuống dòng mới là thứ đẩy chữ
+    # vào vùng UI TikTok che (xem eval/results/2026-08-14-baseline.md).
+    # Chỉ có một weight (400), và nó vốn đã rất nặng nên không cần 800.
+    font: "Anton"                # font Việt, có đủ dấu — KHÔNG dùng Inter/Roboto
+    weight: 400
+    size_px: 84
+    stroke_px: 8                 # viền đen để đọc được trên mọi nền (Anton nặng hơn -> viền dày hơn)
     color: "#FFFFFF"
     highlight_color: "#FFE14D"   # màu từ đang đọc (karaoke)
     position: center-lower       # trên vùng UI TikTok, dưới tâm màn hình
   hook:
-    size_px: 96                  # to hơn hẳn — 3 giây đầu phải đập vào mắt
-    weight: 900
+    size_px: 112                 # to hơn hẳn — 3 giây đầu phải đập vào mắt
+    weight: 400
 
 motion:
   # Chuyển động là thứ tạo "sinh động" ở đây, vì trần chất lượng ảnh do 2060
   # đặt ra rất thấp. Đầu tư ở đây, không ở khối sinh ảnh.
   ken_burns:
-    zoom_range: [1.0, 1.15]      # zoom nhẹ; mạnh hơn thành chóng mặt
+    # 2026-08-14 sáng: 1.15 -> 1.22, 3-6s -> 2-4s cho nhịp nhanh.
+    # 2026-08-14 chiều: trả về khi hoàn nhịp cũ. Biên độ zoom đi kèm độ dài
+    # shot — shot dài mà zoom mạnh thì thành chóng mặt, đúng cảnh báo ban đầu.
+    zoom_range: [1.0, 1.15]
     duration_sec: [3, 6]
   transition:
     default: cut                 # cut hợp nhịp TikTok hơn fade
     accent: whip-pan
     duration_frames: 6
+    accent_every: 3              # cứ 3 shot thì 1 whip-pan
+  # P3b.S10 (2026-10-01): ảnh SDXL + depth map (Depth Anything V2-Small, Apache)
+  # → camera trôi trong cảnh thay vì zoom phẳng. Tony: "ảnh chưa sinh động".
+  parallax: true
+  # 2026-08-14 chiều: trả về 3-8s sau khi Tony nghe demo-02 (nhịp 2-4s).
   shot_duration_sec: [3, 8]      # đổi ý mỗi 5-8s theo rubric
 
 audio:

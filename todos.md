@@ -23,6 +23,8 @@ dự án nằm ở P1 — làm P1 trước khi viết bất kỳ dòng code pipe
 | **Bài toán & metric** | `research/00-problem.md` |
 | **Nguồn + độ tin** | `research/02-sources.md` |
 | **Kỷ luật đo** | `.claude/rules/eval-discipline.md` |
+| **Chiến lược nội dung** | `research/07-len-xu-huong.md` — completion 70%, nhãn AI, SEO, chống AI slop |
+| **Quyết định phong cách** | `research/06-nhip-va-font.md` — font Anton, giọng Thanh Bình, nhịp 3-8s |
 
 **Ba ràng buộc dễ quên nhất:**
 
@@ -128,7 +130,7 @@ worktree.
 | **P3** | S1 (scriptwriter) ∥ S2 (voice adapter) | không | S3 (visual) cần GPU, chạy riêng |
 | **P4** | S2 (T3 sức hút) ∥ S3 (T4 sự thật) | không | S1 (T2 VLM) cần GPU, chạy riêng |
 | **P5** | S1 (trend-scout) ∥ S2 (Telegram) ∥ S3 (TikTok publish) | không | ✅ ba worktree cùng lúc |
-| **P6** | S1 (luồng 2) ∥ S2 (hồ sơ audit) | không | ✅ khác hẳn nhau |
+| **P3b** | S1 (lỗi dựng) ∥ S2 (giọng) ∥ S4 (shot bằng chứng) | không* | *S8 (model ảnh) chiếm GPU, chạy riêng |
 
 **Nhịp gợi ý:** P1 mở 2 worktree (S1, S3) + làm S2→S4 tuần tự ở worktree chính.
 P5 mở 3 worktree — đây là phase song song hoá tốt nhất.
@@ -430,7 +432,7 @@ PHỤ THUỘC: P2.S2 cần P2.S1 xong trước. P2.S1 và P2.S3 chạy song song
 
 ---
 
-### [ ] P2.S1 — Schema `video-spec.json`
+### [x] P2.S1 — Schema `video-spec.json` — ✅ **xong** (2026-08-14, schema + validator ngữ nghĩa)
 
 **Mục tiêu:** định nghĩa ranh giới duy nhất giữa Python và TypeScript.
 
@@ -459,7 +461,7 @@ nào**. "Ken Burns từ trái sang phải, 4 giây" là dữ liệu; "gọi hàm
 
 ---
 
-### [ ] P2.S2 — Remotion composition đọc spec
+### [x] P2.S2 — Remotion composition đọc spec — ✅ **xong** (2026-08-14, karaoke chạy trên mp4 thật)
 
 **Mục tiêu:** `video-spec.json` → mp4 1080×1920 hoàn chỉnh.
 
@@ -489,7 +491,7 @@ Chữ tràn vào đó thì trên máy nhìn ổn, trên app bị che. Số cụ 
 
 ---
 
-### [ ] P2.S3 — Cổng QC tầng 1 (kỹ thuật)
+### [x] P2.S3 — Cổng QC tầng 1 (kỹ thuật) — ✅ **xong** (2026-08-14, 10 kiểm, đã thử 3 ca fail có chủ ý)
 
 **Mục tiêu:** kiểm mp4 bằng **code, không LLM**.
 
@@ -579,7 +581,7 @@ P3.S1 (scriptwriter) và P3.S2 (voice adapter) không đụng GPU, song song đ�
 
 ---
 
-### [ ] P3.S1 — Agent scriptwriter
+### [x] P3.S1 — Agent scriptwriter — ✅ **xong** (2026-08-14, claude-agent-sdk + rubric trong prompt)
 
 **Mục tiêu:** chủ đề → `script.json` (hook + body + CTA + shot list + prompt ảnh).
 
@@ -608,7 +610,7 @@ vì ví dụ mạnh hơn mô tả rất nhiều.
 
 ---
 
-### [ ] P3.S2 — Cắm voice vào pipeline
+### [x] P3.S2 — Cắm voice vào pipeline — ✅ **xong** (2026-08-14, exp-echo v3-Turbo, `research/probes/p3s2-voice-echo.md`)
 
 **Mục tiêu:** `script.json` → wav + word timestamp, qua adapter.
 
@@ -635,7 +637,7 @@ kế adapter là để khi model TTS của Tony xong thì **đổi một dòng t
 
 ---
 
-### [ ] P3.S3 — Khối visual
+### [x] P3.S3 — Khối visual — ✅ **PASS** (2026-08-14, SDXL-Lightning 8,2s/ảnh · VRAM đỉnh 624 MiB, `research/probes/p3s3-sdxl.md`)
 
 **Mục tiêu:** shot list → ảnh/clip cho từng shot.
 
@@ -666,7 +668,13 @@ ngẫu nhiên nên rất khó truy. Viết test nạp lần lượt cả ba back
 
 ---
 
-### [ ] P3.S4 — Nối một lệnh đầu-cuối
+### [x] P3.S4 — Nối một lệnh đầu-cuối — ✅ **xong** (2026-08-14, ~7 phút/video, T1 11/11, `research/probes/p3s4-pipeline.md`)
+
+> **Đã chạy 2 vòng phản hồi với Tony** (2026-08-14, `research/06-nhip-va-font.md`):
+> font → **Anton**, giọng → **Thanh Bình** (nam, Bắc) — cả hai giữ.
+> Nhịp nhanh (shot 2-4s, video 35s, câu 4-12 từ) đã **hoàn về cũ** (3-8s, 45s, 5-16 từ)
+> vì làm giọng đọc nghe máy móc. T1 thêm kiểm thứ 11 "shot có ảnh" sau khi một video
+> lọt qua 10/10 với 12 giây cuối không có hình.
 
 **Mục tiêu:** một lệnh, một chủ đề, ra một mp4.
 
@@ -686,6 +694,347 @@ Giết tiến trình giữa chừng rồi chạy lại → tiếp đúng chỗ d
 state trên đĩa là lý do tồn tại của cả khối `queue/`.
 
 **Song song:** ❌ phụ thuộc mọi step trên.
+
+---
+
+### [x] P3.S5 — Metadata cho TikTok: caption, hashtag, nhãn AI — ✅ **xong** (2026-08-21, `out/test-p3s5/post.json`)
+
+**Mục tiêu:** mỗi video kèm caption có từ khoá, 3–5 hashtag ngách, và cờ "cần bật nhãn AI".
+
+**Ngữ cảnh:** TikTok index **caption, hashtag, chữ trên hình VÀ lời nói** (hơn 3 tỉ lượt
+tìm/ngày, `research/07-len-xu-huong.md`). Pipeline hiện sinh video nhưng **không sinh
+caption, không sinh hashtag** — bỏ trắng một nửa tín hiệu tìm kiếm. Đây là việc có tỉ lệ
+lợi/công cao nhất trong mọi việc còn lại: agent đã viết kịch bản thì viết thêm caption
+gần như miễn phí.
+
+**Đọc trước:** `research/07-len-xu-huong.md` (mục 4 và 5) · `src/create_video/agents/scriptwriter.py`
+
+**Việc:**
+1. `Script` có thêm `caption` (≤ 150 ký tự cho câu đầu — TikTok cắt ở đó), `hashtags`
+   (3–5, ngách, **không** `#fyp` `#viral`), `keywords` (để nhét vào caption và overlay)
+2. Ghi vào `video-spec.json` ở `meta` (schema phải nới) và ra `out/<id>/post.json`
+3. `post.json` có cờ `requires_ai_label: true` — **luôn true** với pipeline này vì có
+   giọng tổng hợp và ảnh AI
+4. Bot Telegram (P5.S2) hiện caption + hashtag để Tony copy, kèm **một dòng nhắc bật
+   nhãn AI trong app**
+
+**Xong khi:** một video ra kèm `post.json` dán được thẳng vào app; caption chứa từ khoá
+chính trong 100 ký tự đầu.
+
+**Bẫy:** tự bật nhãn AI **không** làm giảm phân phối (TikTok nói rõ), nhưng bị hệ thống
+tự gắn nhãn thì **không gỡ được** và nội dung AI không nhãn có thể mất suất For You.
+Rủi ro lệch hẳn về một phía — đừng để Tony phải nhớ, phải in ra màn hình mỗi lần.
+
+**Song song:** ✅ chạy độc lập, không đụng khối render.
+
+> **Đã chạy 2026-08-21:** `Script` có thêm `caption`/`hashtags`/`keywords`,
+> scriptwriter tự kiểm bằng code (`_check_metadata` — caption ≤150 ký tự, từ
+> khoá chính trong 100 ký tự đầu, 3-5 hashtag, cấm `#fyp`/`#viral`), y hệt tinh
+> thần `_check` sẵn có. `spec/schema.json` nới thêm 3 trường optional ở `meta`.
+> `spec/post.py` (module riêng — post.json không phải ranh giới Remotion) đọc
+> `spec["meta"]` ra `out/<id>/post.json` kèm `requires_ai_label: true` luôn
+> `true` và `paste_text` dán thẳng. Test thật: `out/test-p3s5/` (T1 11/11, caption
+> 76 ký tự, 4 hashtag). Nhắc bật nhãn AI in ra console mỗi lần chạy pipeline —
+> bot Telegram (P5.S2) sẽ lặp lại nhắc này khi gửi Tony duyệt.
+
+---
+
+# P3b — Nâng chất lượng ⭐ CHÈN TRƯỚC P4 *(thêm 2026-10-01)*
+
+**Ngữ cảnh phase:** audit + quét lại thị trường ngày 2026-10-01
+(`research/08-nang-cap-chat-luong.md`) cho thấy trần chất lượng hiện tại **không nằm ở
+model** mà ở: lỗi dựng nhìn thấy được (khung đen khi chuyển cảnh, overlay sai số), giọng
+ghép từng câu (27% thời lượng là lặng), và hình ảnh không mang thông tin. Cả ba sửa được
+**không thêm VRAM**. Làm phase này trước P4 vì chấm QC 4 tầng trên video đã biết hỏng
+là tốn công vô ích.
+
+**Cách đo chung cho cả phase:** sau mỗi step đổi khối render, render lại 3 fixture
+`eval/scripts/` → `eval/results/<ngày>-p3b-sN.md` (không ghi đè) + một video thật cùng
+chủ đề với `out/demo-02` để Tony xem/nghe so trước-sau. Ngưỡng mới viết sẵn ở
+`research/08` §6 — **đã viết trước khi chạy**.
+
+### 📋 Prompt mở phiên — P3b
+
+```
+Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
+Repo: /mnt/data1tb/exp-create-video  (symlink: ~/DTG/exp-create-video)
+
+ĐỌC TRƯỚC KHI LÀM, theo đúng thứ tự:
+  1. todos.md  — mục "Ngữ cảnh chung" ở đầu file
+  2. research/08-nang-cap-chat-luong.md — audit + quét thị trường 2026-10-01,
+     lý do của cả phase này
+  3. research/05-decision.md — lựa chọn kiến trúc gốc
+
+RÀNG BUỘC KHÔNG ĐƯỢC PHÁ:
+  - Máy: tony, RTX 2060 6GB (Turing, fp16, KHÔNG FP8/bf16), RAM 31GB. GPU dùng
+    chung với dự án khác — chạy nvidia-smi trước mọi bước GPU, không kill job lạ.
+  - Chi phí 0đ. Chỉ model open-weight chạy local. Không API trả tiền.
+  - video-spec.json là ranh giới DUY NHẤT giữa Python và Remotion. Thêm kind/trường
+    mới thì sửa CẢ schema.json lẫn remotion/src/types.ts.
+  - Ngưỡng ở configs/thresholds.yaml viết TRƯỚC, không sửa sau khi thấy kết quả.
+    Kiểm mới thì ngưỡng phải có trong research/ trước khi chạy.
+  - QC tầng 1 KHÔNG dùng LLM.
+  - Đổi khối render → render lại 3 fixture eval/scripts/, ghi
+    eval/results/<ngày>-<tên>.md, KHÔNG ghi đè, KHÔNG sửa fixture.
+  - Agent SDK là `claude-agent-sdk` (gọi query()), KHÔNG phải tool_runner của `anthropic`.
+  - Tony tự quản git. KHÔNG commit hộ.
+  - Trả lời tiếng Việt, giữ nguyên thuật ngữ tiếng Anh.
+
+VIỆC LẦN NÀY: Phase 3b — nâng chất lượng video.
+
+Mục tiêu phase: video Tony muốn bấm Đăng. Trần chất lượng nằm ở dựng, giọng và
+hình không mang thông tin — không ở model (research/08).
+
+Làm step: P3b.S<n>. Mở todos.md, đọc đúng khối step đó.
+
+QUY TẮC RIÊNG CỦA P3b:
+  - Giọng tự nhiên > nhịp nhanh (Tony đã bác nhịp nhanh 2026-08-14). Mọi thay đổi
+    làm TĂNG số mối ghép audio đều phải hỏi lại.
+  - Phán xử thẩm mỹ là việc của Tony: luôn dựng mẫu thật để Tony xem/nghe, so với
+    out/demo-02 (bản "trước"). Nghe so thì làm mù (xem out/p3b-nghe-mu/).
+  - Kết đợt: cập nhật todos.md, liệt kê 2-3 hướng tiếp kèm khuyến nghị, rồi DỪNG.
+
+RÀNG BUỘC GPU: S8 (model ảnh) chiếm GPU, chạy MỘT MÌNH. S1/S4/S5/S7 không GPU.
+```
+
+**Đã cắt khỏi lộ trình (2026-10-01, Tony chốt "bỏ phase không cần thiết"):**
+- **P6 cả phase** — luồng 2 (footage của Tony) là sản phẩm khác, không phục vụ "tự tạo
+  video"; audit direct-post chỉ bỏ một chạm tay, không thêm chất lượng. Đăng giữ **draft**.
+  Bản cũ: `git show HEAD:todos.md` hoặc backup ngày 2026-10-01.
+- **P3b.S9 (LTX offload)** — cơ hội thấp (`research/08` §4); video local đóng hẳn.
+
+### [x] P3b.S1 — Sửa lỗi dựng hiển nhiên — ✅ **xong** (2026-10-01, `eval/results/2026-10-01-p3b-s1.md`)
+
+> Pixel đen trong transition 58% → **4%**; viền đen 24–32px → **0** trên cả 3 fixture
+> (không sửa fixture); overlay đúng câu 5/5 (demo-02: 3/5 sai/mất). T1 thêm 3 kiểm
+> (loudness, viền đen, đứng hình) — đã chạy trên video cũ để chắc nó **bắt được**
+> lỗi đã biết, và hiệu chỉnh detector viền sau một lần báo nhầm mặt bàn tối (độ lệch
+> < 1,0 thay vì < 3). Overlay giờ là `overlays[]` có thời gian riêng (schema 1.1),
+> scriptwriter gắn overlay theo **câu**. Còn sót: từ karaoke tô sáng ăn mất khoảng
+> trắng → P3b.S5.
+
+**Mục tiêu:** không còn frame đen, overlay đúng chỗ, frame 0 dùng được làm thumbnail.
+
+**Đọc trước:** `research/08-nang-cap-chat-luong.md` §1 · `remotion/src/Video.tsx` ·
+`components/{KenBurns,Transition,Hook,Overlay}.tsx` · `spec/build.py` · `pipeline.py`
+
+**Việc:**
+1. Ken Burns: scale tối thiểu ≥ `1 + 2·|x_pct|/100` (`build.py:139-143`); thêm easing
+   (`KenBurns.tsx:29`); đa dạng chuyển động (push-in, pull-out, pan dọc) thay xoay vòng
+2. Transition: cho Sequence **chồng nhau** `duration_frames` để shot cũ còn nằm dưới
+   (`Video.tsx:43`, `Transition.tsx`)
+3. Overlay: script gắn `line_idx` cho mỗi overlay; map theo **thời điểm câu chứa con số**,
+   không theo chỉ số shot; cho nhiều overlay/shot (`pipeline.py:176-179`, `build.py:239-245`)
+4. Hook: frame 0 opacity = 1, có band tương phản sau chữ, punch-zoom nhẹ (`Hook.tsx`)
+5. Lặt vặt: `Overlay.tsx:49` weight 800→400 (Anton chỉ có 400); `remotion.config.ts`
+   JPEG quality 95 + đặt CRF; `pyproject.toml` `testpaths=["tests"]`; chạy lại `_check`
+   khi dùng lại `script.json` cache (`pipeline.py:85`); dọn chữ "Be Vietnam Pro" sót
+6. T1 thêm 2 kiểm (code, không LLM): **dải viền đen > 4px** ngoài transition, và **đoạn
+   tĩnh > 2,0s**. Ngưỡng ở `research/08` §6 → thêm vào `thresholds.yaml` kèm comment ngày
+
+**Xong khi:** 3 fixture + demo render lại: 0 frame có viền đen (kiểm mới), overlay đúng
+câu ở 100% trường hợp trên demo, T1 pass. Test đơn vị cho mapping overlay.
+
+**Bẫy:** chồng Sequence làm tổng frame dài ra nếu cộng duration ngây thơ — tổng thời
+lượng phải vẫn bằng audio. T1 `check_caption_timing` sẽ báo nếu lệch.
+
+**Song song:** ✅ không GPU.
+
+---
+
+### [~] P3b.S2 — Giọng: đọc cả đoạn, nghỉ theo dấu câu, chuẩn loudness — *code xong, chờ Tony nghe mù (2026-10-01)*
+
+> Ba biến thể dựng xong: `out/p3b-{a,b,c}/video.mp4`; nghe mù `out/p3b-nghe-mu/X,Y,Z.wav`.
+> Loudnorm −14 LUFS chạy trong pipeline (demo-02: −20). B (`grouped`) ít lặng nhất
+> (7,4s so với 9,5s) và nhanh nhất. **Phát hiện phụ:** TTS lặp nguyên câu ở seed 7 →
+> thêm chốt đọc lại tự động. Số đo: `research/probes/p3b-s2-giong.md`. Tony chọn xong
+> thì đặt `tts.echo.join.mode` trong `configs/models.yaml` và đóng step.
+
+**Mục tiêu:** đóng nợ "giọng chưa tự nhiên" (ưu tiên cao từ 2026-08-14).
+
+**Ngữ cảnh:** đo demo-02: 21 khoảng lặng, 9,9s/36,2s. VieNeu v3 Turbo vẫn ngang nhóm đầu
+các model dùng thương mại được (WER 3,3% [ViTTS-Bench, 2026-09]) → **đổi cách gọi trước,
+chưa đổi model**.
+
+**Đọc trước:** `voice/echo.py` · `spec/captions.py` · `research/06-nhip-va-font.md` ·
+memory "giọng tự nhiên > nhịp nhanh"
+
+**Việc:** dựng 3 biến thể cùng kịch bản trên 3 fixture:
+- **A** hiện tại (từng câu + 0,28s)
+- **B** gộp 2–3 câu / một lần gọi (hoặc cả đoạn), cắt lại span câu từ timestamp aligner
+- **C** từng câu, trim đệm đầu/đuôi, nghỉ theo dấu câu (phẩy 0,12s · chấm 0,35s) + crossfade 30ms
+Sau đó: `loudnorm` 2-pass `I=-14:TP=-1.5` lên voice; T1 thêm kiểm LUFS (ngưỡng `research/08` §6);
+`split_spoken_by_lines` phải chịu được aligner tách token khác (fallback, không raise).
+
+**Xong khi (viết trước):** Tony nghe mù chọn B hoặc C hơn A ở ≥ 2/3 fixture; aligner khớp
+100% từ trên biến thể thắng; wall-time TTS ≤ 1,5× A. Fail = Tony không nghe ra khác →
+vấn đề ở model/giọng, mở probe VoxCPM2 Q8. Ghi `research/probes/p3b-s2-giong.md`.
+
+**Bẫy:** gộp câu làm câu TTS dài → nhớ memory: kiểm số mối ghép **giảm**, không tăng.
+`seed=None` → cố định seed để so công bằng.
+
+**Song song:** ✅ CPU (VieNeu ONNX) — nhưng aligner chiếm ~1,9GB GPU.
+
+---
+
+### [~] P3b.S3 — Phát âm thuật ngữ tiếng Anh — *máy đo xong, chờ Tony nghe 12 từ (2026-10-01)*
+
+> Đọc thô tốt nhất (ASR 18/30), phiên âm Việt 8/30, `<en>` vô dụng/hại. Đã có
+> `configs/pronounce.yaml` (thay chuỗi đọc, chữ hiển thị giữ gốc) + danh sách `avoid`
+> đưa vào prompt scriptwriter. Tony nghe `out/p3b-phat-am/NGHE.md`. Số đo:
+> `research/probes/p3b-s3-phat-am.md`.
+
+**Mục tiêu:** "model", "fine-tune", "benchmark"… đọc đúng (rủi ro mở #6 của `05-decision`).
+
+**Việc:** 30 thuật ngữ trong câu tiếng Việt × 3 biến thể: chữ thô · `<en>…</en>` (sea-g2p) ·
+respelling từ `configs/pronounce.csv` (định dạng kiểu VietNormalizer). Tony duyệt từng mục
+CSV; tiền xử lý chạy trong `voice/` trước khi gọi TTS, **caption vẫn hiện chữ gốc**.
+
+**Xong khi (viết trước):** ≥ 25/30 Tony chấp nhận ở ít nhất một biến thể, không làm sai âm
+tiết Việt liền kề (bug sea-g2p #23). Ghi `research/probes/p3b-s3-phat-am.md`.
+
+**Bẫy:** respelling làm lệch aligner (lời đọc ≠ chữ hiển thị) — align theo **chữ đã
+respell**, rồi map ngược về chữ gốc theo vị trí.
+
+**Song song:** ✅ sau S2 (cùng file `echo.py`).
+
+---
+
+### [ ] P3b.S4 — Shot "bằng chứng": stat / chart / screenshot / code
+
+**Mục tiêu:** hình ảnh mang thông tin thật thay ảnh AI chung chung — trả nợ việc 4–5 của
+P3.S3 (đánh PASS nhưng `screencast.py`, `router.py` chưa từng được viết).
+
+**Ngữ cảnh:** Relevance + Density là predictor "slop" mạnh nhất [Shaib, 2026-01]; chữ-khác-
+lời là factor 9,1% [Gupta, 2025-12]. 0 VRAM.
+
+**Việc:**
+1. `schema.json` + `types.ts`: `asset.kind` thêm `stat` (`{value, unit, label}` — số đếm lên,
+   scale-pop) · `chart` (bar benchmark từ dữ liệu) · `screenshot` · `code`
+2. Component Remotion cho từng kind (theo ranh giới spec — Python không gọi Remotion)
+3. `visual/screenshot.py` — Playwright chụp **element** trên trang model card HF, README
+   GitHub, abs arXiv; cache theo URL
+4. `visual/router.py` — chọn backend theo `shot.kind` do scriptwriter chỉ định; SDXL thành
+   nền/b-roll, không còn là mặc định cho mọi shot
+5. Scriptwriter: mỗi shot khai `kind` + dữ liệu; luật: ≥ 1/3 shot là kind "bằng chứng"
+
+**Xong khi (viết trước):** Playwright chụp ≥ 18/20 URL thật, < 10s/URL, không dính cookie
+banner/login wall, chữ đọc được ở bề rộng 1080px. Một video demo có ≥ 3 kind khác nhau,
+Tony xem so với demo-02. Ghi `research/probes/p3b-s4-bang-chung.md`.
+
+**Bẫy:** pháp lý — figure arXiv mặc định **không** được dùng lại (chỉ bài CC); logo là
+trademark, chỉ để nhận diện. Chụp trang abs/metadata thì an toàn hơn.
+
+**Song song:** ✅ không GPU.
+
+---
+
+### [ ] P3b.S5 — Caption theo cụm + nhấn từ khoá
+
+**Việc:** chia `captions[]` theo cụm 1–3 từ (xem `createTikTokStyleCaptions` của
+`@remotion/captions`, `breakOnSilenceAfterMilliseconds`), cụm lớn giữa khung, pop-in, bỏ
+làm mờ từ đã đọc; trường `emphasis[]` do scriptwriter gắn (con số, tên model) → đổi màu.
+
+**Xong khi:** 3 fixture T1 pass (vùng an toàn cả hai kiểm); render không chậm hơn mốc
+2026-08-14 quá 30% (mốc ghi nhận chi phí nằm ở số phần tử chữ). Tony xem so.
+
+**Bẫy:** cụm ngắn đổi nhanh có thể vượt 10 từ/s ở đoạn đọc nhanh — giữ mỗi cụm ≥ 0,3s.
+
+**Song song:** ✅ không GPU, nhưng đụng `KaraokeCaption.tsx` + `build.py` như S1 → làm sau S1.
+
+---
+
+### [ ] P3b.S6 — Sound design: SFX + nhạc + ducking
+
+**Ngữ cảnh:** audio energy là factor số 1 (12,4%) [Gupta, 2025-12]. Nợ "nhạc nền" chưa
+quyết — **Tony chọn**: (a) ACE-Step 1.5 sinh tại chỗ (MIT, output thương mại được),
+(b) thư viện tĩnh CC0, (c) để trống, Tony thêm nhạc trend trong app (draft cho phép).
+
+**Việc:** SFX CC0 (Kenney) vào `assets/sfx/` (có trong repo); spec thêm `sfx[]`
+`{at_ms, kind}` — whoosh ở transition, pop ở stat; nhạc theo lựa chọn trên; ducking theo
+`words[]` (gain theo frame) hoặc `sidechaincompress` phía Python.
+
+**Xong khi (viết trước):** mix cuối −14 ±1,5 LUFS, TP ≤ −1,0 dBTP; Tony không thấy nhạc
+lấn giọng ở cả 3 fixture. Nếu chọn (a): VRAM đỉnh ≤ 5,5GB, ≤ 180s cho 45s nhạc (lần 2–3);
+fail thì lùi về (b). Ghi `research/probes/p3b-s6-am-thanh.md`.
+
+**Song song:** (a) ❌ chiếm GPU · (b)(c) ✅
+
+---
+
+### [ ] P3b.S7 — Kịch bản có nguồn + cấu trúc beat
+
+**Mục tiêu:** kịch bản cụ thể, đúng, không giọng "AI" — đòn bẩy lớn nhất cho `approve_rate`.
+
+**Việc:**
+1. "Source pack": trước khi viết, gom trích dẫn thô (model card, README, abs) vào
+   `out/<id>/sources/` — cùng Playwright của S4; scriptwriter chỉ được dùng số có trong pack
+2. Luật cứng (code-checked trong `_check`): ≥ 1 câu quan sát trực tiếp lấy từ
+   `research/probes/` (`research/07` §3); mọi con số trên màn hình có nguồn trong pack
+3. Script xuất `beats[]` có `role` (hook/setup/reveal/twist/loop); câu cuối nối về hook
+4. Danh sách cụm "tic" tiếng Việt cấm dùng (kiểu Antislop), sinh trong context mới
+
+**Xong khi:** 5 chủ đề thật, Tony đọc kịch bản (chưa cần render) và chấm ≥ 4/5 "đăng được
+về nội dung". Không phải T4 — T4 vẫn ở P4.S3.
+
+**Bẫy:** đừng cho scriptwriter WebSearch tự do — nguồn không kiểm soát là đúng thứ T4 phải bắt.
+
+**Song song:** ✅
+
+---
+
+### [~] P3b.S10 — Ảnh "sống": parallax 2.5D + nhấn chuyển động theo từ khoá *(thêm 2026-10-01)* — *parallax xong, chờ Tony so p3b-d với p3b-b*
+
+> Depth 0,48s/ảnh · 211 MiB · render +34% · T1 14/14 — mọi ngưỡng máy đo PASS.
+> Bật mặc định (`style.yaml motion.parallax: true`). Phần zoom-punch/light leak chưa
+> làm — chờ Tony xem parallax trước. `research/probes/p3b-s10-chuyen-dong.md`.
+
+**Mục tiêu:** Tony: "ảnh chưa sinh động". Ken Burns trên ảnh tĩnh là toàn bộ chuyển
+động hiện có; S4/S8 làm ảnh *đúng* và *đẹp* hơn nhưng không làm ảnh *động*.
+
+**Ngữ cảnh:** research `research/09-chuyen-dong.md`. Sinh video vẫn ngoài tầm 6GB.
+Rẻ nhất mà "sống" nhất: depth map (Depth Anything V2-**Small**, Apache — Base/Large là
+NC, cấm) + shader dịch pixel theo độ sâu ngay trong Remotion. Cộng nhấn theo word
+timestamp đã có (zoom-punch vào con số/tên riêng) và light leak ở chỗ chuyển shot.
+Bằng chứng: motion/frame variance 10,7% SHAP [Gupta, 2025-12] — tương quan, không nhân quả.
+
+**Việc:**
+1. `visual/depth.py` — DA-V2-Small, ảnh → `depth/NN.png` (16-bit gray), nhả VRAM sau
+2. Spec: `asset.depth_path` (optional), `motion.type: "parallax"` (đã có trong enum)
+3. `components/DepthParallax.tsx` — WebGL canvas: dịch uv theo (depth − focus) × biên độ
+   nhỏ, quỹ đạo dolly/orbit; lùi về Ken Burns nếu không có depth
+4. Nhấn: zoom-punch ảnh 0,25s tại từ có trong `overlays`/số/tên riêng; light leak ở cut
+
+**Xong khi (VIẾT TRƯỚC KHI CHẠY, 2026-10-01):**
+- depth ≤ 10s/ảnh, VRAM đỉnh ≤ 1,5GB (lần 2–3)
+- render 3 fixture ≤ +50% so với `eval/results/2026-10-01-p3b-s1.md`, T1 không fail thêm
+- shot có rách/kéo giãn mép thấy rõ khi xem 1× ≤ 1/3 (Tony hoặc soi frame)
+- Tony chọn bản mới hơn Ken Burns ở ≥ 2/3 cặp so sánh
+Ghi `research/probes/p3b-s10-chuyen-dong.md`.
+
+**Bẫy:** biên độ lớn → mép vật bị kéo như kẹo; giữ ≤ 2–3% bề rộng. WebGL trong Chrome
+headless cần `--gl` đúng (angle/swangle). Shake/punch chỉ áp lên lớp ảnh, KHÔNG lên phụ đề.
+
+**Song song:** depth chiếm GPU (nhỏ); phần Remotion không GPU.
+
+---
+
+### [ ] P3b.S8 — Probe model ảnh: Nunchaku INT4 (FLUX.1-schnell / Z-Image-Turbo)
+
+**Mục tiêu:** ảnh nền nét hơn, đúng chủ đề hơn SDXL-Lightning. **Làm sau S4** — khi shot
+"bằng chứng" đã gánh phần thông tin, ảnh AI chỉ còn là nền.
+
+**Ngữ cảnh:** Nunchaku hỗ trợ Turing chính thức (FLUX chạy trên 2080S, issue #801).
+Z-Image-Turbo có báo NaN fp16 trên 2060 (issue #15, đang mở). Qwen-Image INT4 crash sm_75 → loại.
+
+**Xong khi (viết trước):** 0/10 ảnh đen/NaN ở 768×1344; VRAM đỉnh < 5,6GB, RAM < 24GB;
+≤ 30s/ảnh (lần 2–3); Tony so mù với SDXL trên 3 fixture và chọn model mới ở ≥ 2/3.
+Fail: > 60s/ảnh hoặc NaN. Kèm: seed ngẫu nhiên theo video (ghi vào spec), style theo
+"archetype" thay `STYLE_SUFFIX` cố định. Ghi `research/probes/p3b-s8-anh.md`.
+
+**Bẫy:** kiểm `nvidia-smi` trước khi chạy — GPU dùng chung với dự án khác.
+
+**Song song:** ❌ chiếm GPU.
 
 ---
 
@@ -810,6 +1159,17 @@ trên 5 shot **tốt** đã biết, xem có bị chê oan không.
 **Xong khi:** cho một script cố tình dở (mở đầu bằng "Hôm nay chúng ta sẽ tìm hiểu về…")
 → T3 bắt đúng lỗi hook.
 
+**Hai luật cần thêm vào `configs/rubric.md` khi làm step này** (rút từ
+`research/07-len-xu-huong.md`, 2026-08-14):
+
+1. **CTA phải xin LƯU hoặc CHIA SẺ, không xin like.** 2026 TikTok ưu tiên save/share;
+   like vô thức gần như không còn giá trị. Rubric hiện chỉ đòi "hành động cụ thể".
+2. **Mỗi video phải có ít nhất một câu quan sát TRỰC TIẾP** — "tôi chạy thử", "tôi đo
+   được" — và nguồn phải là `research/probes/`, không phải web. Đây là thứ duy nhất
+   phân biệt kênh này với AI slop, mà AI slop thì đang bị người xem phản ứng thật
+   (90% người nghe muốn nội dung do người làm). Dự án này có lợi thế hiếm: nó **thật sự**
+   có số đo của chính Tony trên con 2060.
+
 **Bẫy:** đừng để T3 tự viết lại script — đó là việc của producer. Critic vừa chấm vừa
 sửa thì mất luôn tính độc lập, và đó chính là thiên lệch có cấu trúc mà nguyên tắc 1
 muốn tránh.
@@ -893,6 +1253,35 @@ minh 4 tầng hiện có đều đang tương quan với quyết định của T
 
 ---
 
+### [ ] P4.S6 — Đo độ dài video nào giữ chân tốt nhất
+
+**Mục tiêu:** trả lời bằng số: 20s, 30s hay 45s?
+
+**Ngữ cảnh:** ngưỡng completion 2026 (reported) là **70%** mới được đẩy mạnh. Video 45
+giây phải giữ người xem **31,5 giây**; cắt còn 25 giây thì chỉ cần 17,5 giây. Nhưng ngắn
+quá thì không nói đủ ý, và Tony đã bác nhịp nhanh vì nó làm giọng đọc nghe máy móc
+(`research/06-nhip-va-font.md`). **Độ dài video** và **nhịp cắt shot** là hai tham số
+KHÁC NHAU — có thể cắt ngắn video mà vẫn giữ nhịp thong thả.
+
+**Đọc trước:** `research/07-len-xu-huong.md` (mục 1 và 2) · `.claude/rules/eval-discipline.md`
+
+**Việc:**
+1. Cùng **một chủ đề**, dựng 3 bản: `target_duration_sec` = 20 / 30 / 45, nhịp giữ nguyên
+2. Đăng cả ba (cách nhau vài ngày, cùng khung giờ) và ghi lại từ TikTok Analytics:
+   completion rate, average watch time, save, share, rewatch
+3. Ghi vào `eval/results/<ngày>-do-dai.md` — **số thật của TikTok**, không phải cảm nhận
+
+**Xong khi:** có bảng 3 dòng với completion rate thật, và `configs/style.yaml` được đặt
+theo bản thắng — kèm lý do ghi vào `research/`.
+
+**Bẫy:** n=3 video **không** đủ để kết luận chắc chắn; TikTok phân phối rất nhiễu. Coi
+đây là tín hiệu định hướng, và chỉ đổi khi chênh lệch rõ rệt (>15 điểm completion). Đừng
+đổi độ dài mỗi tuần theo video mới nhất — đó là đuổi theo nhiễu.
+
+**Song số phụ thuộc:** cần P5.S3 (đăng được) mới lấy được số.
+
+---
+
 # P5 — Tự động hoá
 
 **Phase song song hoá tốt nhất** — ba step đầu độc lập hoàn toàn, không đụng GPU.
@@ -939,7 +1328,7 @@ QUY TẮC RIÊNG CỦA P5:
     tầng 4; mất nó thì T4 thành "LLM tự nhớ" — đúng thứ thiết kế QC muốn tránh.
   - Đăng ở chế độ draft (configs/schedule.yaml, publish.mode). Client chưa qua audit
     thì direct post bị ép SELF_ONLY — "thành công" nhưng không ai xem được.
-    Đổi sang direct CHỈ sau khi audit pass ở P6.S2.
+    Giữ draft — audit direct-post đã bỏ khỏi lộ trình (2026-10-01).
   - Cron phải có lock file. Render mất hàng chục phút; hai job cùng lúc trên 6GB
     VRAM là OOM chắc chắn.
   - Token TikTok hết hạn IM LẶNG. Phải có cảnh báo Telegram, nếu không một sáng nào
@@ -1020,6 +1409,12 @@ vượt — kiểm sớm, nếu vượt thì gửi bản nén để xem duyệt,
 
 **Xong khi:** bấm `[Đăng]` trên Telegram → video vào draft TikTok trong 2 phút.
 
+**Bắt buộc — nhãn AI:** video của pipeline này có giọng tổng hợp và ảnh do AI sinh, nên
+phải bật "AI-generated content". Ở chế độ draft thao tác nằm trong app, do Tony bấm →
+**bot Telegram phải in dòng nhắc này mỗi lần gửi duyệt** (P3.S5). Tự bật nhãn KHÔNG giảm
+phân phối; bị hệ thống tự gắn thì không gỡ được và có thể mất suất For You.
+Chi tiết: `research/07-len-xu-huong.md` mục 4.
+
 **Bẫy:** access token TikTok hết hạn im lặng. Không có cảnh báo thì một sáng nào đó
 pipeline chạy xong nhưng không đăng được, mà không ai biết.
 
@@ -1050,110 +1445,6 @@ tay bước nào khác.
 
 ---
 
-# P6 — Luồng 2 và audit
-
-### 📋 Prompt mở phiên — P6
-
-```
-Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
-Repo: /mnt/data1tb/exp-create-video  (symlink: ~/DTG/exp-create-video)
-
-ĐỌC TRƯỚC KHI LÀM, theo đúng thứ tự:
-  1. todos.md  — mục "Ngữ cảnh chung" ở đầu file
-  2. research/05-decision.md — mọi lựa chọn kiến trúc và lý do
-  3. research/00-problem.md  — metric và "đủ tốt" bằng số
-
-RÀNG BUỘC KHÔNG ĐƯỢC PHÁ:
-  - Máy: tony, RTX 2060 6GB, 12 core, RAM 31GB. tris mặc định TẮT.
-  - 6GB không cho nạp visual (~5-6GB) và VLM (~4GB) cùng lúc. Phải
-    torch.cuda.empty_cache() trước khi sang bước sau.
-  - Chi phí 0đ. Chỉ model open-weight chạy local. Không API trả tiền.
-  - video-spec.json là ranh giới DUY NHẤT giữa Python và Remotion.
-    Không viết code Python gọi thẳng Remotion hay ngược lại.
-  - Ngưỡng ở configs/thresholds.yaml viết TRƯỚC, không sửa sau khi thấy kết quả.
-  - Agent SDK là `claude-agent-sdk` (pip install claude-agent-sdk, gọi query()).
-    KHÔNG phải client.beta.messages.tool_runner của SDK `anthropic` — hay bị lẫn.
-  - Tony tự quản git. KHÔNG commit hộ, kể cả khi thấy tiện.
-  - Trả lời tiếng Việt, giữ nguyên thuật ngữ tiếng Anh.
-
-VIỆC LẦN NÀY: Phase 6 — luồng 2 (footage Tony tự quay) và audit TikTok.
-
-Bối cảnh luồng 2: Tony gửi nhiều clip tự quay kèm một prompt mô tả video muốn có.
-Hệ thống transcribe, hiểu nội dung từng clip, dựng timeline theo prompt, và SINH THÊM
-cảnh còn thiếu để thành video hoàn chỉnh.
-
-Vì sao luồng 2 hoãn tới đây: nó DÙNG LẠI toàn bộ khối render và QC của luồng 1. Làm
-song song từ đầu thì dễ thành hai pipeline rời rạc, sau phải gộp lại. Điểm gặp nhau
-là video-spec.json — từ đó trở đi hai luồng đi chung một đường.
-
-Làm step: P6.S<n>. Mở todos.md, đọc đúng khối step đó.
-
-QUY TẮC RIÊNG CỦA P6:
-  - ASR: dùng Qwen3-ASR ở repo /mnt/data1tb/voice và ÉP CỨNG language="Vietnamese".
-    Repo voice đo được: để tự nhận thì ~2% số đoạn ra chữ Thái/Quảng Đông/Bồ Đào Nha;
-    ép ngôn ngữ sửa 9/9 đoạn hỏng. Đây là số đo thật, không phải phỏng đoán.
-  - Audit TikTok cần "sản phẩm hoàn chỉnh" — chỉ nộp sau khi P5 chạy ổn. Mất 2-4
-    tuần và nhiều vòng phản hồi.
-  - Audit CÓ THỂ BỊ TỪ CHỐI. Giữ nguyên đường draft chạy song song; ĐỪNG xoá code
-    draft sau khi qua audit — nó là đường lui.
-
-SONG SONG: P6.S1 (luồng 2) và P6.S2 (hồ sơ audit) khác hẳn nhau, chạy song song được.
-```
-
----
-
-### [ ] P6.S1 — Luồng 2: footage của Tony
-
-**Mục tiêu:** Tony gửi clip + prompt → video hoàn chỉnh, sinh thêm cảnh còn thiếu.
-
-**Ngữ cảnh:** **dùng lại toàn bộ khối render và QC của luồng 1.** Chỉ thêm phần đầu vào.
-Đây là lý do luồng 2 hoãn tới đây — làm song song từ đầu thì dễ thành hai pipeline rời
-rạc, sau phải gộp.
-
-**Đọc trước:** `/mnt/data1tb/voice/research/05-decision.md` (Qwen3-ASR đã chốt) ·
-`src/create_video/spec/schema.json`
-
-**Việc:**
-1. `src/create_video/agents/ingest.py` — nhận footage qua Telegram hoặc `data/footage/`
-2. `transcribe.py` — Qwen3-ASR ở repo `voice`; ⚠️ **ép `language="Vietnamese"`**
-3. `understand.py` — VLM mô tả nội dung từng clip, cắt thành segment dùng được
-4. `timeline_planner.py` — khớp prompt của Tony với clip có sẵn, **đánh dấu cảnh thiếu**
-5. Cảnh thiếu → gọi `visual/` sinh bổ sung
-6. Xuất `video-spec.json` — từ đây trở đi dùng chung đường với luồng 1
-
-**Xong khi:** gửi 3 clip + 1 prompt → video ghép có cả footage thật lẫn cảnh sinh thêm.
-
-**Bẫy:** ép `language="Vietnamese"` cho ASR. Repo `voice` đo được: để tự nhận thì ~2%
-số đoạn ra chữ Thái/Quảng Đông. Ép ngôn ngữ sửa 9/9 đoạn hỏng.
-
-**Song song:** ✅ chạy cùng P6.S2 được.
-
----
-
-### [ ] P6.S2 — Hồ sơ audit TikTok direct-post
-
-**Mục tiêu:** đăng công khai tự động, bỏ nốt chạm tay cuối.
-
-**Ngữ cảnh:** audit cần **sản phẩm hoàn chỉnh** — vì vậy làm sau khi P5 chạy ổn. Mất
-2–4 tuần và nhiều vòng phản hồi.
-
-**Đọc trước:** `research/02-sources.md` (mục TikTok API) · `research/probes/p1s1-tiktok.md`
-
-**Việc:**
-1. Viết privacy policy, đưa lên URL công khai
-2. Quay video demo toàn luồng: trend → chọn → render → duyệt → đăng
-3. Nộp hồ sơ audit, ghi ngày nộp vào `research/probes/p1s1-tiktok.md`
-4. Qua audit → đổi `mode: draft` thành `mode: direct` trong `configs/schedule.yaml`
-
-**Xong khi:** audit pass, video đăng công khai được mà không cần mở app.
-
-**Bẫy:** audit có thể **bị từ chối**. Giữ nguyên đường draft chạy song song; đừng bỏ
-code draft đi sau khi qua audit — nó là đường lui.
-
-**Song song:** ✅ chạy cùng P6.S1 được.
-
----
-
 ## Nợ kỹ thuật đã biết
 
 Ghi ở đây để không quên, chưa lên lịch:
@@ -1166,4 +1457,58 @@ Ghi ở đây để không quên, chưa lên lịch:
       render qua đêm không.
 - [ ] **Remotion license** — theo dõi ở `research/repo-cards/remotion.md`. Nếu thành vấn
       đề thì chuyển Revideo (MIT); `video-spec.json` giữ nguyên nên đổi được.
-- [ ] **`eval/scripts/`** — mới có 1 spec mẫu, cần đủ 3 để so trước/sau khi đổi khối render.
+- [x] **`eval/scripts/`** — đã có 3 fixture (`scripts/make_eval_fixtures.py` suy ra từ
+      một video thật). Cách dùng ở `eval/README.md`.
+- [ ] **Font phụ đề không nằm trong repo** *(mới 2026-08-14)* — đang dùng **Anton**
+      (`~/.fonts/tiktok/`). Máy khác render sẽ rơi về font hệ thống mà **không báo lỗi**
+      — chữ vẫn đủ dấu nên chỉ so hai frame mới thấy. `scripts/setup.sh` tải hộ nhưng
+      vẫn phụ thuộc mạng. (Bảng so 5 font `out/font-compare.png` đã chuyển vào thùng
+      rác ngày 2026-10-01 — xem mục dọn repo bên dưới.)
+      Bebas Neue và Archivo Black **không có** subset vietnamese — đừng thử lại.
+- [x] **Ràng buộc "visual chiếm 5-6GB" rộng hơn thực tế** *(đóng 2026-10-01: `machines.yaml`
+      và `models.yaml` ghi số đo thật 624 MiB; CLAUDE.md vẫn giữ câu cảnh báo chung)*
+      *(mới 2026-08-14)* — đo thật
+      P3.S3: SDXL sequential offload chỉ đỉnh **624 MiB**. `configs/machines.yaml` và
+      `CLAUDE.md` vẫn ghi theo giả định cũ. Chưa sửa vì con số đó gắn với đúng một cấu
+      hình; để P4.S1 (VLM) quyết dựa trên số đo của chính nó.
+- [ ] **Giọng đọc nghe chưa tự nhiên** *(mới 2026-08-14, ưu tiên cao)* — Tony nghe
+      `out/demo-02`: "không tự nhiên như người nói". Nghi phạm số một là **cách ghép**,
+      không phải model: mỗi câu là một lần gọi TTS riêng rồi nối lại kèm 0,28s lặng
+      (`voice/echo.py: synth_lines`), nên mọi chỗ nối đều là một lần "lấy hơi" giả và
+      ngữ điệu không chảy qua được ranh giới câu. Ba đường thử, theo thứ tự rẻ→đắt:
+      1. Gộp 2-3 câu liền nhau thành MỘT lần gọi TTS, rồi cắt caption lại theo kết quả
+         align (aligner vốn đã trả timestamp từng từ nên cắt lại không mất gì).
+      2. Thử `style: doc_truyen` thay `tu_nhien` — kể chuyện có ngữ điệu mềm hơn.
+      3. Chỉnh `gap_sec` theo dấu câu: dấu chấm nghỉ dài, dấu phẩy nghỉ ngắn, thay vì
+         một hằng số 0,28s cho mọi chỗ.
+      **Cách đo:** đường 1 và 2 làm được mà không đụng phần còn lại của pipeline; dựng
+      3 bản cùng kịch bản rồi nghe so — đây là loại chỉ tai người phân xử được.
+- [ ] **Kịch bản chưa được kiểm sự thật** *(mới 2026-08-14)* — scriptwriter tự khai
+      `sources` nhưng chưa ai đối chiếu. Đây đúng là việc của T4 (P4.S3); tới đó mới
+      đóng được.
+- [ ] **License giọng VieNeu có thể đã đổi** *(mới 2026-10-01)* — card HF hôm nay ghi
+      **Apache-2.0 cho cả preset voice**, cho phép nội dung kiếm tiền (commit 2026-06-30,
+      23 preset); `exp-echo` local ghi CC-BY-NC-4.0, 14 preset → nhiều khả năng revision
+      cũ. Tony kiểm revision trong exp-echo trước khi kênh kiếm tiền. `research/08` §3.
+- [ ] **Tài liệu nói nhiều hơn code** *(mới 2026-10-01, audit)* — P3.S3 đánh PASS nhưng
+      `visual/flux.py`, `screencast.py`, `router.py` chưa có (→ P3b.S4/S8); P3.S4 hứa
+      `queue/state.json` + `scripts/make_video.py` chưa có; `qc/t2_vlm.py` đã viết nhưng
+      không ai gọi, và `research/probes/p4s1-vlm.md` được 3 nơi trỏ tới nhưng không tồn
+      tại; `models.yaml: tts.backend` bị bỏ qua (pipeline hardcode `EchoBackend`).
+- [x] **Dọn repo** *(2026-10-01, Tony yêu cầu)* — chuyển (KHÔNG `rm`) sang
+      `/mnt/data1tb/_trash-exp-create-video-2026-10-01/` (8,2GB, giữ nguyên đường dẫn
+      tương đối): `exp/ltx` (LTX đã loại), `exp/tts` (service VieNeu-v2 của P1.S2, đã
+      thay bằng exp-echo), `exp/visual` (probe P3.S3 xong), bản trùng Qwen3-ForcedAligner
+      trong `exp/hf-cache`, `voice/vieneu.py` (+ DummyBackend chưa từng chạy được),
+      package rỗng `queue/` `publish/`, `remotion/src/ProbeVideo.tsx` (mốc đo giờ là 3
+      fixture eval), `data/footage` + `notebooks` (P6 đã bỏ), và output cũ trong `out/`:
+      `demo-01 p1s2 p1s3 p1s4 p3s3 p4s1 test-p3s5 test-p4s1-sdxl tts voice-compare
+      font-compare.png`. Một số probe cũ (`p1s2-tts.md`, `p1-summary.md`, `06-nhip-va-font.md`)
+      còn trỏ tới các file đó — đường dẫn vẫn đúng **trong thư mục rác**. Giữ lại:
+      `out/demo-02` (mốc "trước"), `out/p3b-*` (chờ nghe), `out/eval-*` (output thô của
+      eval), `out/smoke-01` (test dùng), `exp/hf-cache` (trọng số SDXL đang dùng),
+      `exp/probes` (`tiktok_draft.py` cho P1.S1), `exp/qc` (probe P4.S1), `exp/tiktok-legal`.
+      Tony xem lại rồi tự `rm -rf` thư mục rác khi chắc.
+- [x] **HF cache của SDXL không được khai báo ở đâu** *(sửa 2026-10-01)* — trọng số 6,8GB
+      ở `exp/hf-cache` nhưng không chỗ nào trong repo trỏ tới; chạy từ terminal mới thì
+      tải lại về `~/.cache`. `visual/sdxl.py` và `qc/t2_vlm.py` giờ `setdefault(HF_HOME)`.

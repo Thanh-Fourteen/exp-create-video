@@ -1,0 +1,25 @@
+# Từ điển phát âm cho TTS (P3b.S3, 2026-10-01). Chữ TRÊN MÀN HÌNH giữ nguyên —
+# chỉ chuỗi gửi cho TTS bị thay. Khớp nguyên từ, không phân biệt hoa thường.
+#
+# Mặc định KHÔNG thay gì: VieNeu (qua sea-g2p) tự đọc từ tiếng Anh kiểu Anh, và
+# probe cho thấy đó là cách tốt nhất — ASR nghe ra đúng 18/30 thuật ngữ khi đọc
+# thô, 8/30 khi phiên âm kiểu Việt. Tag `<en>…</en>` KHÔNG có tác dụng với từ
+# thường (wav giống hệt từng byte) và làm HỎNG chữ viết tắt ("API" → "ip").
+# Số đo: research/probes/p3b-s3-phat-am.md.
+#
+# Chỉ thêm mục khi có bằng chứng (ASR hoặc tai Tony) rằng bản thay tốt hơn bản thô.
+# Tony duyệt từng mục — file nghe ở out/p3b-phat-am/.
+replace:
+  dataset: "đa ta sét"     # thô: ASR nghe "đã tô xét" · thay: "data set" ✓
+  context: "con tếch"      # thô: ASR nghe "còn tách" · thay: "con tech" (gần đúng)
+
+# Từ TTS đọc hỏng mà tiếng Việt có từ tự nhiên thay được → scriptwriter được dặn
+# TRÁNH (agents/scriptwriter.py đọc mục này vào prompt). Không đụng các thuật ngữ
+# CLAUDE.md bảo giữ nguyên (model, benchmark, fine-tune, inference, prompt, open-source).
+avoid:
+  weights: "trọng số"            # thô: ASR nghe "quay"
+  open-weight: "trọng số mở"     # thô: ASR nghe "open wiz"
+  dataset: "bộ dữ liệu"
+  context: "ngữ cảnh"
+  agent: "agent"                 # thô: ASR nghe "i gen", nhưng "tác tử" lạ tai — giữ, chờ Tony nghe
+  token: "token"                 # chưa có từ Việt quen tai — giữ, chờ Tony nghe
