@@ -129,7 +129,10 @@ worktree.
 | **P2** | S1 (schema) ∥ S3 (T1 QC) | không | S2 phụ thuộc S1 |
 | **P3** | S1 (scriptwriter) ∥ S2 (voice adapter) | không | S3 (visual) cần GPU, chạy riêng |
 | **P4** | S2 (T3 sức hút) ∥ S3 (T4 sự thật) | không | S1 (T2 VLM) cần GPU, chạy riêng |
-| **P5** | S1 (trend-scout) ∥ S2 (Telegram) ∥ S3 (TikTok publish) | không | ✅ ba worktree cùng lúc |
+| **P4** | S0 (xương sống team) trước, rồi S2 ∥ S3 | không | S1 (T2 VLM) cần GPU |
+| **P5** | S1 (trend scout) → S2 (showrunner); S3 cần P4.S0 | S1 nhẹ | phòng tin |
+| **P6** | S1 (caption) ∥ S2 (Telegram) ∥ S3 (publisher) | không | ✅ ba worktree cùng lúc; S4 sau |
+| **P7** | S1 (analyst) → S2, S3 | không | cần video đã đăng |
 | **P3b** | S1 (lỗi dựng) ∥ S2 (giọng) ∥ S4 (shot bằng chứng) | không* | *S8 (model ảnh) chiếm GPU, chạy riêng |
 
 **Nhịp gợi ý:** P1 mở 2 worktree (S1, S3) + làm S2→S4 tuần tự ở worktree chính.
@@ -787,6 +790,20 @@ hình không mang thông tin — không ở model (research/08).
 
 Làm step: P3b.S<n>. Mở todos.md, đọc đúng khối step đó.
 
+BƯỚC 0 — RESEARCH TRƯỚC KHI CODE (bắt buộc, Tony yêu cầu 2026-10-01):
+  1. Đọc research/ liên quan (08 chất lượng, 09 chuyển động, 10 team) và probe cũ
+     của step này trong research/probes/.
+  2. Quét lại cho ĐÚNG step này — cái gì mới nhất, tốt nhất, chạy được ở đây:
+     model / thư viện / API / kỹ thuật / bằng chứng. Dùng agent paper-scout hoặc
+     skill /research-topic; repo sắp phụ thuộc thì /repo-audit; dataset thì
+     /dataset-hunt. Kiểm license (kênh có kiếm tiền → cấm NC), VRAM trên 2060 6GB
+     Turing (fp16, không FP8/bf16), và link còn sống.
+  3. Ghi research/probes/<mã-step>-research.md: ứng viên · nguồn [nguồn, YYYY-MM] ·
+     verified/reported/assumed · lựa chọn + lý do · cái đã loại và vì sao.
+  4. Research đổi tiêu chí "Xong khi"? Ghi lý do + ngày vào todos TRƯỚC khi code.
+     Sửa tiêu chí sau khi thấy kết quả = không còn là tiêu chí.
+  5. Research không thay được đo: chọn xong vẫn phải probe trên máy tony.
+
 QUY TẮC RIÊNG CỦA P3b:
   - Giọng tự nhiên > nhịp nhanh (Tony đã bác nhịp nhanh 2026-08-14). Mọi thay đổi
     làm TĂNG số mối ghép audio đều phải hỏi lại.
@@ -962,7 +979,10 @@ fail thì lùi về (b). Ghi `research/probes/p3b-s6-am-thanh.md`.
 
 ---
 
-### [ ] P3b.S7 — Kịch bản có nguồn + cấu trúc beat
+### [ ] P3b.S7 — Kịch bản có nguồn + cấu trúc beat — ➜ **gộp vào P5.S3** (2026-10-01)
+
+> Làm cùng P5.S3 (brief → scriptwriter có nguồn), vì cả hai cùng sửa scriptwriter và
+> cùng cần snapshot nguồn của trend scout. Nội dung dưới giữ làm yêu cầu cho P5.S3.
 
 **Mục tiêu:** kịch bản cụ thể, đúng, không giọng "AI" — đòn bẩy lớn nhất cho `approve_rate`.
 
@@ -1100,7 +1120,25 @@ QUYỀN CỦA TỪNG TẦNG (đừng nhầm):
 Hết 2 vòng mà chưa đạt thì VẪN gửi Tony kèm danh sách lỗi còn lại.
 Critic đề xuất, không quyết định.
 
+KIẾN TRÚC TEAM (research/10-team.md §1): mỗi vai = một lần query() context mới +
+output_format JSON schema, ghi artifact ra file; cổng giữa các vai là CODE. Không để
+một LLM tự sinh subagent điều phối. Làm P4.S0 (xương sống team) TRƯỚC các step khác.
+
 Làm step: P4.S<n>. Mở todos.md, đọc đúng khối step đó.
+
+BƯỚC 0 — RESEARCH TRƯỚC KHI CODE (bắt buộc, Tony yêu cầu 2026-10-01):
+  1. Đọc research/ liên quan (08 chất lượng, 09 chuyển động, 10 team) và probe cũ
+     của step này trong research/probes/.
+  2. Quét lại cho ĐÚNG step này — cái gì mới nhất, tốt nhất, chạy được ở đây:
+     model / thư viện / API / kỹ thuật / bằng chứng. Dùng agent paper-scout hoặc
+     skill /research-topic; repo sắp phụ thuộc thì /repo-audit; dataset thì
+     /dataset-hunt. Kiểm license (kênh có kiếm tiền → cấm NC), VRAM trên 2060 6GB
+     Turing (fp16, không FP8/bf16), và link còn sống.
+  3. Ghi research/probes/<mã-step>-research.md: ứng viên · nguồn [nguồn, YYYY-MM] ·
+     verified/reported/assumed · lựa chọn + lý do · cái đã loại và vì sao.
+  4. Research đổi tiêu chí "Xong khi"? Ghi lý do + ngày vào todos TRƯỚC khi code.
+     Sửa tiêu chí sau khi thấy kết quả = không còn là tiêu chí.
+  5. Research không thay được đo: chọn xong vẫn phải probe trên máy tony.
 
 BẪY LỚN NHẤT: VLM và LLM đều hay "chê lấy lệ" — chấm gì cũng tìm ra lỗi. Ngưỡng ở
 configs/thresholds.yaml đặt CAO có chủ ý. Chỉnh ngưỡng bằng cách chạy trên mẫu TỐT
@@ -1109,6 +1147,37 @@ configs/thresholds.yaml đặt CAO có chủ ý. Chỉnh ngưỡng bằng cách 
 RÀNG BUỘC GPU: P4.S1 (T2 VLM) chiếm GPU, chạy một mình.
 P4.S2 (T3) và P4.S3 (T4) không đụng GPU, song song được.
 ```
+
+---
+
+### [ ] P4.S0 — Xương sống team: `state.json` + bộ chạy vai *(thêm 2026-10-01)*
+
+**Mục tiêu:** một khung chung để MỌI vai (trend scout, showrunner, scriptwriter,
+fact-checker, critic, caption writer, analyst) chạy giống nhau, ghi vết giống nhau, và
+chạy lại được từ đúng chỗ hỏng.
+
+**Ngữ cảnh:** `research/10-team.md` §1–2. P3.S4 từng hứa `queue/state.json` mà chưa
+làm. MAST: 43,9% lỗi hệ multi-agent nằm ở thiết kế hệ, 23,7% ở thiếu kiểm chứng — khung
+chung là chỗ chặn cả hai.
+
+**Việc:**
+1. `src/create_video/team/role.py` — `run_role(name, prompt, schema: type[BaseModel],
+   tools=[], max_turns, max_budget_usd) -> BaseModel`: gọi `query()` context mới,
+   `output_format` json_schema, `structured_output is None` → raise; ghi
+   `<artifact>.json` + log lần gọi (token, thời gian, cost) vào `state.json`
+2. `src/create_video/team/state.py` — `out/<id>/state.json`: `stage`, `round`, hash đầu
+   vào từng stage, `llm_calls[]`, `errors[]`. Stage nào hash đầu vào không đổi thì bỏ qua
+3. `scriptwriter.py` chuyển sang `run_role` (giữ `_check` bằng code)
+4. Hook `PreToolUse` chặn Write/Edit ngoài `out/<id>/` và `team/`
+
+**Xong khi (viết trước):** giết pipeline giữa TTS → chạy lại tiếp đúng từ TTS, không gọi
+lại scriptwriter (kiểm `llm_calls`); 100% lần gọi LLM có token + thời gian trong
+`state.json`; test giả `structured_output=None` → raise.
+
+**Bẫy:** đừng viết "framework". Một hàm + một file state là đủ — research/10 cho thấy
+càng nhiều tầng điều phối càng nhiều chỗ lệch.
+
+**Song song:** ❌ làm đầu tiên — mọi vai sau dùng nó.
 
 ---
 
@@ -1139,6 +1208,12 @@ trên 5 shot **tốt** đã biết, xem có bị chê oan không.
 ---
 
 ### [ ] P4.S2 — T3: sức hút nội dung
+
+> **Cập nhật research 2026-10-01** (`research/10-team.md` §5): LLM chấm "hay/sáng tạo"
+> tương quan ~0 với chuyên gia và ưu ái output của chính nó. → T3 là **checklist nhị
+> phân cụ thể** (hook có con số/xung đột trong 3s đầu? có câu "Hôm nay chúng ta…"?…),
+> chấm **pointwise** trong context mới, không chấm điểm "sáng tạo". Sau 20 video không
+> tương quan với approve của Tony → bỏ (P7.S3).
 
 **Mục tiêu:** chấm hook, nhịp, chất lượng tiếng Việt, CTA.
 
@@ -1178,7 +1253,15 @@ muốn tránh.
 
 ---
 
-### [ ] P4.S3 — T4: độ chính xác sự thật
+### [ ] P4.S3 — T4: độ chính xác sự thật (vai **fact-checker**)
+
+> **Cập nhật research 2026-10-01** (`research/10-team.md` §5): thiết kế kiểu
+> **VeriScore** — chỉ rút claim kiểm chứng được (tên model, số, ngày, tổ chức), phán
+> `supported / contradicted / inconclusive` kèm url + trích nguyên văn. Nguồn ưu tiên:
+> snapshot của trend scout (`team/snapshots/`) → trang gốc (model card, abs arXiv, blog
+> chính chủ) qua WebFetch **allowlist**. `trends.jsonl`/`raw_quote` ở dưới đổi thành
+> snapshot sha256 của P5.S1. Bộ đối chứng: ~20 claim gài sai, recall contradicted ≥ 0,9,
+> precision ≥ 0,8 (viết trước).
 
 **Mục tiêu:** không để video sai tên model, sai con số, sai ngày.
 
@@ -1232,28 +1315,421 @@ production. Trần phải là **hằng số cứng trong code**, không phải c
 
 ---
 
-### [ ] P4.S5 — Xem lại QC sau 20 video
+# P5 — Phòng tin: tìm topic, lên series, giao việc *(tổ chức lại 2026-10-01)*
 
-**Mục tiêu:** biết tầng nào đáng giữ.
+**Ngữ cảnh phase:** đầu vào của team. Tony muốn "tool research các topic hot, series
+nên làm, tool plan". Ba vai: **trend scout** (hàng ngày) → **showrunner** (hàng tuần:
+series + lịch) → **brief** cho scriptwriter. Cơ sở: `research/10-team.md` §3.
 
-**Ngữ cảnh:** đây là step **có chủ ý hoãn** — chỉ làm được sau khi đã có 20 video thật.
-Ghi ở đây để không quên.
+### 📋 Prompt mở phiên — P5
 
-**Việc:**
-1. Chạy `scripts/qc_report.py` trên toàn bộ video đã làm
-2. Với mỗi tầng: bao nhiêu lần bắt được lỗi mà Tony cũng thấy là lỗi? Bao nhiêu lần chê oan?
-3. Đối chiếu điểm QC với quyết định thật của Tony (`approve_rate`)
-4. Tầng nào không tương quan với quyết định của Tony → **bỏ hoặc sửa rubric**
+```
+Dự án: exp-create-video — team nhiều agent tự tạo video TikTok tiếng Việt về AI.
+Repo: /mnt/data1tb/exp-create-video  (symlink: ~/DTG/exp-create-video)
 
-**Xong khi:** `research/04-qc-review.md` có bảng: tầng · số lần bắt đúng · số lần chê oan
-· tương quan với `approve_rate` · giữ hay bỏ.
+ĐỌC TRƯỚC KHI LÀM, theo đúng thứ tự:
+  1. todos.md  — mục "Ngữ cảnh chung" ở đầu file
+  2. research/10-team.md — vai, cách nối, bằng chứng (đọc §1 trước)
+  3. research/05-decision.md — lựa chọn kiến trúc gốc
 
-**Bẫy:** cám dỗ lớn nhất là thêm tầng thứ 5 khi thấy chưa đủ. Trước khi thêm, phải chứng
-minh 4 tầng hiện có đều đang tương quan với quyết định của Tony.
+RÀNG BUỘC KHÔNG ĐƯỢC PHÁ:
+  - Máy: tony, RTX 2060 6GB (Turing, fp16, KHÔNG FP8/bf16), RAM 31GB. GPU dùng
+    chung với dự án khác — nvidia-smi trước mọi bước GPU, không kill job lạ.
+  - Chi phí 0đ. Model open-weight local + Claude qua claude-agent-sdk (query()),
+    KHÔNG phải tool_runner của `anthropic`. Không API trả tiền (X API, v.v.).
+  - Trend KHÔNG lấy từ TikTok (Research API chỉ cho học thuật, Creative Center cấm
+    scrape). Đăng ở chế độ DRAFT.
+  - Ngưỡng ở configs/thresholds.yaml / "Xong khi" viết TRƯỚC, không sửa sau khi
+    thấy kết quả. QC tầng 1 không LLM. Vòng QC trần cứng 2.
+  - video-spec.json là ranh giới DUY NHẤT Python ↔ Remotion.
+  - Tony tự quản git — chỉ commit/push khi Tony bảo.
+  - Trả lời tiếng Việt, giữ nguyên thuật ngữ tiếng Anh.
+
+KIẾN TRÚC TEAM (research/10-team.md §1 — đừng phá):
+  - Mỗi VAI = một hàm Python gọi query() với context MỚI + output_format JSON
+    schema, ghi artifact ra file (out/<id>/ hoặc team/). Cổng giữa các vai là CODE.
+  - KHÔNG để một LLM tự sinh subagent điều phối cả chuỗi (multi-agent tự do tốn
+    ~15× token và kém trên việc tuần tự — bằng chứng ở research/10).
+  - Mọi lần gọi LLM: max_turns + max_budget_usd; ghi số lần gọi/token vào state.json.
+  - structured_output == None là FAIL, kể cả khi subtype "success".
+
+VIỆC LẦN NÀY: Phase 5 — phòng tin (trend scout, showrunner, brief).
+
+Mục tiêu phase: mỗi ngày có danh sách chủ đề AI đáng làm, có nguồn snapshot; mỗi tuần có lịch
+video theo series/pillar; mỗi video bắt đầu từ một brief.json rõ ràng.
+
+Làm step: P5.S<n>. Mở todos.md, đọc đúng khối step đó.
+
+BƯỚC 0 — RESEARCH TRƯỚC KHI CODE (bắt buộc, Tony yêu cầu 2026-10-01):
+  1. Đọc research/ liên quan (08 chất lượng, 09 chuyển động, 10 team) và probe cũ
+     của step này trong research/probes/.
+  2. Quét lại cho ĐÚNG step này — cái gì mới nhất, tốt nhất, chạy được ở đây:
+     model / thư viện / API / kỹ thuật / bằng chứng. Dùng agent paper-scout hoặc
+     skill /research-topic; repo sắp phụ thuộc thì /repo-audit; dataset thì
+     /dataset-hunt. Kiểm license (kênh có kiếm tiền → cấm NC), VRAM trên 2060 6GB
+     Turing (fp16, không FP8/bf16), ToS/rate limit của API, và link còn sống.
+  3. Ghi research/probes/<mã-step>-research.md: ứng viên · nguồn [nguồn, YYYY-MM] ·
+     verified/reported/assumed · lựa chọn + lý do · cái đã loại và vì sao.
+  4. Research đổi tiêu chí "Xong khi"? Ghi lý do + ngày vào todos TRƯỚC khi code.
+     Sửa tiêu chí sau khi thấy kết quả = không còn là tiêu chí.
+  5. Research không thay được đo: chọn xong vẫn phải probe trên máy tony.
+
+QUY TẮC RIÊNG CỦA P5:
+  - Nguồn đã kiểm 2026-10-01 ở research/10 §3. ĐÃ LOẠI: TikTok, X API (trả
+    tiền), Reddit (phải xin duyệt), Product Hunt (cấm thương mại), scrape
+    github.com/trending (Acceptable Use), OSS Insight (rỗng từ 2026-03).
+  - Velocity/điểm tính bằng CODE. LLM chỉ chấm cái code không chấm được
+    ("hợp khán giả VN?", "giải thích được trong 40s?").
+  - Mọi claim phải trỏ về snapshot (sha256) — fact-checker (P4.S3) cần nó.
+
+RÀNG BUỘC GPU: embedding bge-m3 (S1) nhỏ nhưng chạm GPU — tuần tự với khối khác.
+```
 
 ---
 
-### [ ] P4.S6 — Đo độ dài video nào giữ chân tốt nhất
+### [ ] P5.S1 — Trend scout: topic hot hôm nay
+
+**Mục tiêu:** 2 lần/ngày có `team/trends/<ngày>.json` — cụm chủ đề AI xếp hạng, mỗi
+cụm có nguồn, điểm, và snapshot nguồn.
+
+**Ngữ cảnh:** `research/10-team.md` §3 có danh sách nguồn đã kiểm (HF trending/daily
+papers, HN Algolia, arXiv RSS, RSS hãng AI, GenK/VnExpress, Google Trends RSS geo=VN,
+GitHub Search + chụp stars). `configs/sources.yaml` viết từ 2026-08 — cập nhật theo đó.
+
+**Việc:**
+1. `src/create_video/team/trend_scout.py` — thu thập bằng code (httpx/feedparser),
+   tôn trọng rate limit (arXiv 1 req/3s, HF 500/5 phút)
+2. Dedupe URL → gom cụm bằng embedding đa ngôn ngữ (bge-m3 hoặc nhỏ hơn — research)
+3. Điểm: velocity × suy giảm theo giờ + số nguồn khác loại xác nhận + `vn_fit` −
+   trùng với video đã làm. LLM (qua `run_role`) chỉ chấm `vn_fit_reason`, `explainable_40s`
+4. Snapshot mỗi URL: HTML + text (trafilatura) → `team/snapshots/<sha256>.json`
+
+**Xong khi (viết trước):** chạy thử 7 ngày: 100% item có url sống + ngày ≤ 14 ngày;
+≥ 80% top-5 mỗi ngày có ≥ 2 nguồn khác loại; 100% `claims[].quote` tìm thấy nguyên văn
+trong snapshot (code kiểm); Tony chấm mù top-10 → ≥ 50% "đáng làm video".
+
+**Bẫy:** thấy top-10 dở thì **đổi trọng số, đừng thêm nguồn**. Google Trends VN toàn
+chủ đề đại chúng — dùng đo "phổ thông", không dùng làm nguồn topic AI.
+
+**Song song:** ✅ với P5.S2 khi đã có dữ liệu mẫu.
+
+---
+
+### [ ] P5.S2 — Showrunner: series + lịch tuần
+
+**Mục tiêu:** mỗi tuần một `team/plan/<YYYY-Www>.json`: các slot video (ngày, pillar,
+series + số tập, cụm trend, template, hook nháp, lý do "vì sao bây giờ").
+
+**Ngữ cảnh:** `research/10-team.md` §3. 6 pillar khởi đầu (tin nhanh · demo tool · đập
+tin đồn · so sánh · "chạy trên 2060" ngôi thứ nhất · tổng kết tuần). Series = tên + số
+tập trong text/caption — **không** dựa vào TikTok Playlists. Nhịp khởi đầu 3–5 video/tuần
+(vendor, R) — thực tế giới hạn bởi Tony duyệt và 5 bài chờ inbox/24h.
+
+**Việc:**
+1. `configs/pillars.yaml` — pillar → template (hook mẫu, beat, độ dài)
+2. `src/create_video/team/showrunner.py` — `run_role` đọc trends tuần + analytics (P7)
+   + 20 video gần nhất → plan; điểm kiểu ICE
+3. Ràng buộc bằng CODE: ≤ 2 video cùng pillar liên tiếp; không trùng chủ đề (cosine) 14
+   ngày; mỗi slot `why_now` trỏ snapshot ≤ 72h
+4. Tony duyệt plan tuần qua Telegram (P6.S2) — sửa/bỏ slot
+
+**Xong khi (viết trước):** plan đúng schema 10/10 lần; trong 20 video đầu không pillar
+nào > 40%; `approve_rate` của slot showrunner ≥ slot chọn ngẫu nhiên từ top-10 trend
+(xen kẽ A/B, đủ 20 video mới kết luận).
+
+**Bẫy:** showrunner không được bịa trend — chỉ chọn trong `team/trends/`.
+
+**Song song:** ✅ sau khi P5.S1 có dữ liệu.
+
+---
+
+### [ ] P5.S3 — Brief → scriptwriter có nguồn
+
+**Mục tiêu:** scriptwriter nhận `out/<id>/brief.json` (cụm trend + snapshot + pillar +
+template + hook nháp) thay vì một dòng chủ đề; mỗi câu có số/tên riêng khai `claims[]`
+trỏ về snapshot.
+
+**Ngữ cảnh:** gộp với P3b.S7 (kịch bản có nguồn + beat) — làm một lần. Bằng chứng: viết
+từ nguồn cho trước giảm bịa; fact-checker (P4.S3) cần `claims[]`.
+
+**Việc:** schema `Brief`, `Script.claims[]`; `pipeline.py` nhận `--brief`; `_check` bằng
+code: mọi con số trên màn hình có claim; ≥ 1 câu quan sát trực tiếp từ `research/probes/`.
+
+**Xong khi (viết trước):** 5 brief thật → 5 script; 100% câu có số/tên riêng có claim
+trỏ snapshot tồn tại; Tony đọc chấm ≥ 4/5 "đăng được về nội dung".
+
+**Song song:** ❌ cần P5.S1 + P4.S0.
+
+---
+
+# P6 — Phân phối: caption, duyệt, đăng *(tổ chức lại 2026-10-01)*
+
+**Ngữ cảnh phase:** đầu ra của team. ⚠️ Sự thật API đã kiểm (research/10 §4): chế độ
+draft **không nhận** caption/hashtag/cover/nhãn AI qua API → Tony dán trong app; tối đa
+**5 bài chờ inbox/24h**; không có lên lịch native.
+
+(P6 cũ "luồng 2 + audit" đã bỏ 2026-10-01 — số phase được dùng lại cho việc này.)
+
+### 📋 Prompt mở phiên — P6
+
+```
+Dự án: exp-create-video — team nhiều agent tự tạo video TikTok tiếng Việt về AI.
+Repo: /mnt/data1tb/exp-create-video  (symlink: ~/DTG/exp-create-video)
+
+ĐỌC TRƯỚC KHI LÀM, theo đúng thứ tự:
+  1. todos.md  — mục "Ngữ cảnh chung" ở đầu file
+  2. research/10-team.md — vai, cách nối, bằng chứng (đọc §1 trước)
+  3. research/05-decision.md — lựa chọn kiến trúc gốc
+
+RÀNG BUỘC KHÔNG ĐƯỢC PHÁ:
+  - Máy: tony, RTX 2060 6GB (Turing, fp16, KHÔNG FP8/bf16), RAM 31GB. GPU dùng
+    chung với dự án khác — nvidia-smi trước mọi bước GPU, không kill job lạ.
+  - Chi phí 0đ. Model open-weight local + Claude qua claude-agent-sdk (query()),
+    KHÔNG phải tool_runner của `anthropic`. Không API trả tiền (X API, v.v.).
+  - Trend KHÔNG lấy từ TikTok (Research API chỉ cho học thuật, Creative Center cấm
+    scrape). Đăng ở chế độ DRAFT.
+  - Ngưỡng ở configs/thresholds.yaml / "Xong khi" viết TRƯỚC, không sửa sau khi
+    thấy kết quả. QC tầng 1 không LLM. Vòng QC trần cứng 2.
+  - video-spec.json là ranh giới DUY NHẤT Python ↔ Remotion.
+  - Tony tự quản git — chỉ commit/push khi Tony bảo.
+  - Trả lời tiếng Việt, giữ nguyên thuật ngữ tiếng Anh.
+
+KIẾN TRÚC TEAM (research/10-team.md §1 — đừng phá):
+  - Mỗi VAI = một hàm Python gọi query() với context MỚI + output_format JSON
+    schema, ghi artifact ra file (out/<id>/ hoặc team/). Cổng giữa các vai là CODE.
+  - KHÔNG để một LLM tự sinh subagent điều phối cả chuỗi (multi-agent tự do tốn
+    ~15× token và kém trên việc tuần tự — bằng chứng ở research/10).
+  - Mọi lần gọi LLM: max_turns + max_budget_usd; ghi số lần gọi/token vào state.json.
+  - structured_output == None là FAIL, kể cả khi subtype "success".
+
+VIỆC LẦN NÀY: Phase 6 — phân phối (caption/SEO, Telegram, publisher, cron).
+
+Mục tiêu phase: video đã qua QC → Tony nhận trên Telegram kèm gói caption copy-dán → bấm duyệt
+→ video vào inbox TikTok → Tony dán caption, bật nhãn AI, bấm đăng.
+
+Làm step: P6.S<n>. Mở todos.md, đọc đúng khối step đó.
+
+BƯỚC 0 — RESEARCH TRƯỚC KHI CODE (bắt buộc, Tony yêu cầu 2026-10-01):
+  1. Đọc research/ liên quan (08 chất lượng, 09 chuyển động, 10 team) và probe cũ
+     của step này trong research/probes/.
+  2. Quét lại cho ĐÚNG step này — cái gì mới nhất, tốt nhất, chạy được ở đây:
+     model / thư viện / API / kỹ thuật / bằng chứng. Dùng agent paper-scout hoặc
+     skill /research-topic; repo sắp phụ thuộc thì /repo-audit; dataset thì
+     /dataset-hunt. Kiểm license (kênh có kiếm tiền → cấm NC), VRAM trên 2060 6GB
+     Turing (fp16, không FP8/bf16), ToS/rate limit của API, và link còn sống.
+  3. Ghi research/probes/<mã-step>-research.md: ứng viên · nguồn [nguồn, YYYY-MM] ·
+     verified/reported/assumed · lựa chọn + lý do · cái đã loại và vì sao.
+  4. Research đổi tiêu chí "Xong khi"? Ghi lý do + ngày vào todos TRƯỚC khi code.
+     Sửa tiêu chí sau khi thấy kết quả = không còn là tiêu chí.
+  5. Research không thay được đo: chọn xong vẫn phải probe trên máy tony.
+
+QUY TẮC RIÊNG CỦA P6:
+  - Mọi nút bấm của Tony ghi ra file (approval.json) — bot chết bật lại vẫn nhớ.
+  - Kiểm bằng code trước khi gửi: video ≤ 50 MB (giới hạn Bot API), ≤ 5 bài chờ
+    inbox/24h, token TikTok còn hạn.
+  - Nhãn AI bật cho MỌI video (ảnh diffusion + giọng TTS) — nhắc mỗi lần gửi duyệt.
+
+RÀNG BUỘC GPU: không step nào của P6 dùng GPU. S1–S3 song song được; S4 làm sau cùng.
+```
+
+---
+
+### [ ] P6.S1 — Caption/SEO writer: gói copy-dán
+
+**Mục tiêu:** mỗi video có `out/<id>/publish/`: `caption.txt` · `hashtags.txt` ·
+`cover_title.txt` (đốt vào frame 0 bằng Remotion) · `pinned_comment.txt` · `aigc.json`.
+
+**Ngữ cảnh:** P3.S5 đã có `post.json` (caption ≤ 150, 3–5 hashtag, keyword chính trong
+100 ký tự đầu). Research/10 §4: TikTok dùng caption + lời nói + chữ trên hình để search;
+nhồi keyword = spam; số hashtag/giờ đăng chỉ có vendor, mâu thuẫn. Có dấu/không dấu khi
+search: **không có số liệu** → probe tay.
+
+**Việc:** nâng `spec/post.py` thành vai (`run_role`) + kiểm bằng code; keyword chính phải
+có trong cả lời đọc 3s đầu, chữ trên hình, caption; không claim nào ngoài
+`factcheck.json`; probe tay 5 keyword có dấu vs không dấu trên app.
+
+**Xong khi (viết trước):** 20/20 caption qua kiểm code; Tony sửa caption ≤ 1 lần ở
+≥ 70% video (đo bằng diff với `video_description` từ Display API, lưu ý API cắt 150 ký tự).
+
+---
+
+### [ ] P6.S2 — Bot Telegram (chuyển từ P5.S2)
+
+**Mục tiêu:** hai điểm duyệt của Tony.
+
+**Ngữ cảnh:** Tony duyệt **hai chỗ**: chọn chủ đề (sáng) và duyệt video (tối). Bot phải
+gửi được video và nhận nút bấm.
+
+**Đọc trước:** `research/00-problem.md` (mục ràng buộc "Người duyệt")
+
+**Việc:**
+1. `src/create_video/publish/telegram_bot.py` — `python-telegram-bot`
+2. Điểm duyệt 1: gửi 5 chủ đề kèm lý do → inline keyboard chọn 1
+3. Điểm duyệt 2: gửi video + điểm QC + lỗi còn lại → nút
+   `[Đăng]` `[Hẹn giờ]` `[Làm lại]` `[Lưu]`
+4. `[Làm lại]` cho phép Tony nhắn thêm chỉ dẫn, đẩy lại vào vòng QC
+5. Trạng thái lưu trên đĩa — bot chết rồi bật lại vẫn nhớ đang chờ duyệt cái gì
+
+**Xong khi:** gửi được video 1080×1920 qua Telegram, bấm nút đổi được `state.json`.
+
+**Bẫy:** Telegram giới hạn kích thước file bot gửi (~50MB). Video 60s 1080×1920 có thể
+vượt — kiểm sớm, nếu vượt thì gửi bản nén để xem duyệt, giữ bản gốc để đăng.
+
+> **Cập nhật research 2026-10-01:** python-telegram-bot 22.8 (LGPL) hoặc aiogram 3.31
+> (MIT); **long polling** (máy nhà, không cần HTTPS); `callback_data` ≤ 64 byte → chỉ
+> chứa id + hành động; update giữ tối đa 24h. Thêm điểm duyệt **plan tuần** (P5.S2) và
+> gửi kèm **gói caption** (P6.S1) để Tony copy.
+
+**Song song:** ✅
+
+---
+
+### [ ] P6.S3 — Publisher TikTok (chuyển từ P5.S3)
+
+**Mục tiêu:** đẩy video đã duyệt vào draft TikTok, hoặc hẹn lịch.
+
+**Đọc trước:** `research/probes/p1s1-tiktok.md` (kết quả probe)
+
+**Việc:**
+1. `src/create_video/publish/tiktok.py` — dùng lại code probe P1.S1
+2. Caption/hashtag lấy từ gói P6.S1 — API upload không nhận, Tony dán trong app
+3. `[Hẹn giờ]` → ghi vào `out/scheduled.jsonl`, cron kiểm mỗi giờ
+4. Refresh token tự động, báo Telegram khi hết hạn
+
+**Xong khi:** bấm `[Đăng]` trên Telegram → video vào draft TikTok trong 2 phút.
+
+**Bắt buộc — nhãn AI:** video của pipeline này có giọng tổng hợp và ảnh do AI sinh, nên
+phải bật "AI-generated content". Ở chế độ draft thao tác nằm trong app, do Tony bấm →
+**bot Telegram phải in dòng nhắc này mỗi lần gửi duyệt** (P3.S5). Tự bật nhãn KHÔNG giảm
+phân phối; bị hệ thống tự gắn thì không gỡ được và có thể mất suất For You.
+Chi tiết: `research/07-len-xu-huong.md` mục 4.
+
+**Bẫy:** access token TikTok hết hạn im lặng. Không có cảnh báo thì một sáng nào đó
+pipeline chạy xong nhưng không đăng được, mà không ai biết.
+
+> **Cập nhật research 2026-10-01** (developers.tiktok.com, V): `POST
+> /v2/post/publish/inbox/video/init/` (scope `video.upload`, 6 req/phút) → PUT upload →
+> `status/fetch` tới `SEND_TO_USER_INBOX`. ≤ 5 bài chờ/24h (assert trong code). Access
+> token 24h, refresh 365 ngày → tự refresh, báo Telegram khi refresh còn < 30 ngày.
+> **Xong khi (viết trước):** 10/10 upload tới inbox ≤ 5 phút, 0 lỗi 429; ép hết hạn
+> access token → tự refresh không cần Tony; gửi lại cùng id không tạo bài trùng.
+
+**Song song:** ✅
+
+---
+
+### [ ] P6.S4 — Cron và nhịp chạy (chuyển từ P5.S4)
+
+**Mục tiêu:** hệ tự chạy mỗi ngày, Tony chỉ bấm hai nút.
+
+**Đọc trước:** `configs/schedule.yaml` · mọi step P5, P6 trên
+
+**Việc:**
+1. Cron 07:00 → trend-scout → topic-picker → Telegram đề xuất
+2. Tony chọn → hàng đợi render nền (chạy ban ngày, không cần vội)
+3. Render + QC xong → Telegram gửi duyệt
+4. Sổ ghi `out/journal.jsonl`: chủ đề, thời gian render, số vòng QC, quyết định của Tony
+5. Cảnh báo Telegram khi job chết
+
+**Xong khi:** chạy cron thủ công một lần → nhận đề xuất → chọn → nhận video, không đụng
+tay bước nào khác.
+
+**Bẫy:** đừng để cron chạy chồng job. Render mất hàng chục phút; hai job cùng lúc trên
+6GB VRAM là OOM chắc chắn. Dùng lock file.
+
+**Song song:** ❌ phụ thuộc P5, P6.S1–S3.
+
+---
+
+# P7 — Vòng phản hồi: analyst *(mới 2026-10-01)*
+
+**Ngữ cảnh phase:** team học từ kết quả. Metric chính vẫn `approve_rate`. ⚠️ Display API
+chỉ có view/like/comment/share của video **public**; không có watch time/completion
+(chỉ Business API hoặc Tony export CSV từ TikTok Studio). View TikTok đuôi rất dày →
+so log(view+1) tại mốc cố định, không so trung bình (research/10 §4).
+
+### 📋 Prompt mở phiên — P7
+
+```
+Dự án: exp-create-video — team nhiều agent tự tạo video TikTok tiếng Việt về AI.
+Repo: /mnt/data1tb/exp-create-video  (symlink: ~/DTG/exp-create-video)
+
+ĐỌC TRƯỚC KHI LÀM, theo đúng thứ tự:
+  1. todos.md  — mục "Ngữ cảnh chung" ở đầu file
+  2. research/10-team.md — vai, cách nối, bằng chứng (đọc §1 trước)
+  3. research/05-decision.md — lựa chọn kiến trúc gốc
+
+RÀNG BUỘC KHÔNG ĐƯỢC PHÁ:
+  - Máy: tony, RTX 2060 6GB (Turing, fp16, KHÔNG FP8/bf16), RAM 31GB. GPU dùng
+    chung với dự án khác — nvidia-smi trước mọi bước GPU, không kill job lạ.
+  - Chi phí 0đ. Model open-weight local + Claude qua claude-agent-sdk (query()),
+    KHÔNG phải tool_runner của `anthropic`. Không API trả tiền (X API, v.v.).
+  - Trend KHÔNG lấy từ TikTok (Research API chỉ cho học thuật, Creative Center cấm
+    scrape). Đăng ở chế độ DRAFT.
+  - Ngưỡng ở configs/thresholds.yaml / "Xong khi" viết TRƯỚC, không sửa sau khi
+    thấy kết quả. QC tầng 1 không LLM. Vòng QC trần cứng 2.
+  - video-spec.json là ranh giới DUY NHẤT Python ↔ Remotion.
+  - Tony tự quản git — chỉ commit/push khi Tony bảo.
+  - Trả lời tiếng Việt, giữ nguyên thuật ngữ tiếng Anh.
+
+KIẾN TRÚC TEAM (research/10-team.md §1 — đừng phá):
+  - Mỗi VAI = một hàm Python gọi query() với context MỚI + output_format JSON
+    schema, ghi artifact ra file (out/<id>/ hoặc team/). Cổng giữa các vai là CODE.
+  - KHÔNG để một LLM tự sinh subagent điều phối cả chuỗi (multi-agent tự do tốn
+    ~15× token và kém trên việc tuần tự — bằng chứng ở research/10).
+  - Mọi lần gọi LLM: max_turns + max_budget_usd; ghi số lần gọi/token vào state.json.
+  - structured_output == None là FAIL, kể cả khi subtype "success".
+
+VIỆC LẦN NÀY: Phase 7 — vòng phản hồi (analyst, thử format, xem lại QC).
+
+Mục tiêu phase: số liệu thật quay về showrunner và rubric QC — team biết cái gì Tony duyệt và
+cái gì người xem giữ lại, và bỏ những tầng/vai không giúp gì.
+
+Làm step: P7.S<n>. Mở todos.md, đọc đúng khối step đó.
+
+BƯỚC 0 — RESEARCH TRƯỚC KHI CODE (bắt buộc, Tony yêu cầu 2026-10-01):
+  1. Đọc research/ liên quan (08 chất lượng, 09 chuyển động, 10 team) và probe cũ
+     của step này trong research/probes/.
+  2. Quét lại cho ĐÚNG step này — cái gì mới nhất, tốt nhất, chạy được ở đây:
+     model / thư viện / API / kỹ thuật / bằng chứng. Dùng agent paper-scout hoặc
+     skill /research-topic; repo sắp phụ thuộc thì /repo-audit; dataset thì
+     /dataset-hunt. Kiểm license (kênh có kiếm tiền → cấm NC), VRAM trên 2060 6GB
+     Turing (fp16, không FP8/bf16), ToS/rate limit của API, và link còn sống.
+  3. Ghi research/probes/<mã-step>-research.md: ứng viên · nguồn [nguồn, YYYY-MM] ·
+     verified/reported/assumed · lựa chọn + lý do · cái đã loại và vì sao.
+  4. Research đổi tiêu chí "Xong khi"? Ghi lý do + ngày vào todos TRƯỚC khi code.
+     Sửa tiêu chí sau khi thấy kết quả = không còn là tiêu chí.
+  5. Research không thay được đo: chọn xong vẫn phải probe trên máy tony.
+
+QUY TẮC RIÊNG CỦA P7:
+  - Không kết luận từ ít mẫu: một nhánh chỉ "thắng" khi mỗi nhánh ≥ 10 video và
+    P(tốt hơn) ≥ 0,9 (Thompson sampling Beta-Bernoulli trên approve). Trước đó
+    báo cáo ghi "chưa đủ dữ liệu".
+  - Lưu số thô append-only (t+24h/72h/7d), không ghi đè.
+  - Mọi đề xuất đổi rubric/format phải dẫn ≥ 3 video cụ thể.
+
+RÀNG BUỘC GPU: không dùng GPU.
+```
+
+---
+
+### [ ] P7.S1 — Analyst: thu số + báo cáo tuần
+
+**Mục tiêu:** `team/analytics/<ngày>.jsonl` (snapshot số mỗi video tại t+24h/72h/7d) +
+báo cáo tuần `team/analytics/<tuần>.md` → đầu vào cho showrunner (P5.S2).
+
+**Ngữ cảnh:** Display API `video.list`/`video.query` (scope `video.list`, 600 req/phút,
+chỉ video public). Ghép `out/<id>` ↔ video TikTok: `publicaly_available_post_id` chưa rõ
+có trả cho upload mode → dự phòng khớp `create_time` + `title` (probe). Watch time:
+Tony thả CSV export từ TikTok Studio vào `team/analytics/inbox/`.
+
+**Xong khi (viết trước):** ≥ 95% video đã public có đủ 3 snapshot; 100% ghép được với
+`out/<id>`; báo cáo tuần có `approve_rate`, `qc_rounds`, `wall_time`, `fact_error_rate`,
+mỗi số kèm ngày.
+
+---
+
+### [ ] P7.S2 — Thử format và độ dài (chuyển từ P4.S6)
 
 **Mục tiêu:** trả lời bằng số: 20s, 30s hay 45s?
 
@@ -1278,170 +1754,33 @@ theo bản thắng — kèm lý do ghi vào `research/`.
 đây là tín hiệu định hướng, và chỉ đổi khi chênh lệch rõ rệt (>15 điểm completion). Đừng
 đổi độ dài mỗi tuần theo video mới nhất — đó là đuổi theo nhiễu.
 
-**Song số phụ thuộc:** cần P5.S3 (đăng được) mới lấy được số.
+> **Cập nhật 2026-10-01:** mở rộng từ "độ dài" sang mọi biến format (pillar, độ dài,
+> parallax hay không…) bằng Thompson sampling trên approve (P7 quy tắc); completion lấy
+> từ CSV TikTok Studio vì API không có.
+
+**Phụ thuộc:** cần P6.S3 (đăng được) + P7.S1 (thu số).
 
 ---
 
-# P5 — Tự động hoá
+### [ ] P7.S3 — Xem lại QC + các vai sau 20 video (chuyển từ P4.S5)
 
-**Phase song song hoá tốt nhất** — ba step đầu độc lập hoàn toàn, không đụng GPU.
-Mở 3 worktree cùng lúc.
+**Mục tiêu:** biết tầng QC nào — và **vai nào của team** — đáng giữ. Vai/tầng không tương
+quan với approve của Tony → bỏ hoặc sửa (research/10: thêm agent không tự làm tốt hơn).
 
-### 📋 Prompt mở phiên — P5
-
-```
-Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
-Repo: /mnt/data1tb/exp-create-video  (symlink: ~/DTG/exp-create-video)
-
-ĐỌC TRƯỚC KHI LÀM, theo đúng thứ tự:
-  1. todos.md  — mục "Ngữ cảnh chung" ở đầu file
-  2. research/05-decision.md — mọi lựa chọn kiến trúc và lý do
-  3. research/00-problem.md  — metric và "đủ tốt" bằng số
-
-RÀNG BUỘC KHÔNG ĐƯỢC PHÁ:
-  - Máy: tony, RTX 2060 6GB, 12 core, RAM 31GB. tris mặc định TẮT.
-  - 6GB không cho nạp visual (~5-6GB) và VLM (~4GB) cùng lúc. Phải
-    torch.cuda.empty_cache() trước khi sang bước sau.
-  - Chi phí 0đ. Chỉ model open-weight chạy local. Không API trả tiền.
-  - video-spec.json là ranh giới DUY NHẤT giữa Python và Remotion.
-    Không viết code Python gọi thẳng Remotion hay ngược lại.
-  - Ngưỡng ở configs/thresholds.yaml viết TRƯỚC, không sửa sau khi thấy kết quả.
-  - Agent SDK là `claude-agent-sdk` (pip install claude-agent-sdk, gọi query()).
-    KHÔNG phải client.beta.messages.tool_runner của SDK `anthropic` — hay bị lẫn.
-  - Tony tự quản git. KHÔNG commit hộ, kể cả khi thấy tiện.
-  - Trả lời tiếng Việt, giữ nguyên thuật ngữ tiếng Anh.
-
-VIỆC LẦN NÀY: Phase 5 — tự động hoá.
-
-Mục tiêu phase: hệ tự chạy mỗi ngày, Tony chỉ bấm hai nút — chọn chủ đề (sáng) và
-duyệt video (tối). P3 đã ra được video bằng một lệnh tay; P5 thay lệnh tay bằng cron
-và hai điểm duyệt qua Telegram.
-
-Làm step: P5.S<n>. Mở todos.md, đọc đúng khối step đó.
-
-QUY TẮC RIÊNG CỦA P5:
-  - KHÔNG ĐỤNG TIKTOK làm nguồn trend. Research API của TikTok đã siết còn tổ chức
-    học thuật, và Creative Center CẤM harvest tự động trong ToS. Trend cần ở đây là
-    trend LĨNH VỰC AI (arXiv/HN/GitHub/HF/Reddit — xem configs/sources.yaml),
-    không phải trend TikTok.
-  - trend-scout PHẢI lưu raw_quote + url cho mỗi mục. Đó là tín hiệu ngoài cho QC
-    tầng 4; mất nó thì T4 thành "LLM tự nhớ" — đúng thứ thiết kế QC muốn tránh.
-  - Đăng ở chế độ draft (configs/schedule.yaml, publish.mode). Client chưa qua audit
-    thì direct post bị ép SELF_ONLY — "thành công" nhưng không ai xem được.
-    Giữ draft — audit direct-post đã bỏ khỏi lộ trình (2026-10-01).
-  - Cron phải có lock file. Render mất hàng chục phút; hai job cùng lúc trên 6GB
-    VRAM là OOM chắc chắn.
-  - Token TikTok hết hạn IM LẶNG. Phải có cảnh báo Telegram, nếu không một sáng nào
-    đó pipeline chạy xong mà không đăng được, và không ai biết.
-
-SONG SONG: P5.S1 (trend-scout), P5.S2 (Telegram), P5.S3 (TikTok publisher) độc lập
-hoàn toàn, không đụng GPU — mở 3 worktree cùng lúc, xem mục "Chạy song song bằng git
-worktree" ở đầu todos.md. P5.S4 (cron) phụ thuộc cả ba, làm sau cùng.
-```
-
----
-
-### [ ] P5.S1 — Agent trend-scout
-
-**Mục tiêu:** mỗi sáng có danh sách chủ đề AI đáng làm video.
-
-**Ngữ cảnh:** ⚠️ **Không đụng TikTok.** Research API của TikTok đã siết còn tổ chức học
-thuật, và Creative Center **cấm harvest tự động** trong ToS. Trend cần ở đây là trend
-**lĩnh vực AI**, không phải trend TikTok — nguồn arXiv/HN/GitHub/HF/Reddit vừa hợp lệ
-vừa giàu hơn.
-
-**Đọc trước:** `configs/sources.yaml` · `research/02-sources.md` (mục TikTok API)
+**Ngữ cảnh:** đây là step **có chủ ý hoãn** — chỉ làm được sau khi đã có 20 video thật.
+Ghi ở đây để không quên.
 
 **Việc:**
-1. `src/create_video/agents/trend_scout.py` — dùng WebSearch/WebFetch của `claude-agent-sdk`
-2. Nguồn (đã liệt kê ở `configs/sources.yaml`): arXiv cs.AI/cs.CL mới, HN front page,
-   GitHub Trending (Python/AI topic), HuggingFace Papers, r/LocalLLaMA, X từ vài tài khoản
-3. Output `out/trends/<date>.jsonl`, mỗi dòng: `{title, url, source, date, summary,
-   why_interesting, raw_quote}`
-4. **`raw_quote` bắt buộc** — T4 sẽ đối chiếu với nó, không có thì T4 vô dụng
+1. Chạy `scripts/qc_report.py` trên toàn bộ video đã làm
+2. Với mỗi tầng: bao nhiêu lần bắt được lỗi mà Tony cũng thấy là lỗi? Bao nhiêu lần chê oan?
+3. Đối chiếu điểm QC với quyết định thật của Tony (`approve_rate`)
+4. Tầng nào không tương quan với quyết định của Tony → **bỏ hoặc sửa rubric**
 
-**Xong khi:** chạy một lần → ≥ 20 mục có URL sống, ngày trong 7 ngày gần nhất.
+**Xong khi:** `research/04-qc-review.md` có bảng: tầng · số lần bắt đúng · số lần chê oan
+· tương quan với `approve_rate` · giữ hay bỏ.
 
-**Bẫy:** đừng để agent tóm tắt rồi vứt nguồn gốc. `raw_quote` + `url` là **tín hiệu ngoài**
-cho T4; mất nó thì T4 thành LLM tự nhớ, đúng thứ mà thiết kế QC muốn tránh.
-
-**Song song:** ✅ worktree riêng.
-
----
-
-### [ ] P5.S2 — Bot Telegram
-
-**Mục tiêu:** hai điểm duyệt của Tony.
-
-**Ngữ cảnh:** Tony duyệt **hai chỗ**: chọn chủ đề (sáng) và duyệt video (tối). Bot phải
-gửi được video và nhận nút bấm.
-
-**Đọc trước:** `research/00-problem.md` (mục ràng buộc "Người duyệt")
-
-**Việc:**
-1. `src/create_video/publish/telegram_bot.py` — `python-telegram-bot`
-2. Điểm duyệt 1: gửi 5 chủ đề kèm lý do → inline keyboard chọn 1
-3. Điểm duyệt 2: gửi video + điểm QC + lỗi còn lại → nút
-   `[Đăng]` `[Hẹn giờ]` `[Làm lại]` `[Lưu]`
-4. `[Làm lại]` cho phép Tony nhắn thêm chỉ dẫn, đẩy lại vào vòng QC
-5. Trạng thái lưu trên đĩa — bot chết rồi bật lại vẫn nhớ đang chờ duyệt cái gì
-
-**Xong khi:** gửi được video 1080×1920 qua Telegram, bấm nút đổi được `state.json`.
-
-**Bẫy:** Telegram giới hạn kích thước file bot gửi (~50MB). Video 60s 1080×1920 có thể
-vượt — kiểm sớm, nếu vượt thì gửi bản nén để xem duyệt, giữ bản gốc để đăng.
-
-**Song song:** ✅ worktree riêng.
-
----
-
-### [ ] P5.S3 — Publisher TikTok
-
-**Mục tiêu:** đẩy video đã duyệt vào draft TikTok, hoặc hẹn lịch.
-
-**Đọc trước:** `research/probes/p1s1-tiktok.md` (kết quả probe)
-
-**Việc:**
-1. `src/create_video/publish/tiktok.py` — dùng lại code probe P1.S1
-2. Sinh caption + hashtag từ `script.json`
-3. `[Hẹn giờ]` → ghi vào `out/scheduled.jsonl`, cron kiểm mỗi giờ
-4. Refresh token tự động, báo Telegram khi hết hạn
-
-**Xong khi:** bấm `[Đăng]` trên Telegram → video vào draft TikTok trong 2 phút.
-
-**Bắt buộc — nhãn AI:** video của pipeline này có giọng tổng hợp và ảnh do AI sinh, nên
-phải bật "AI-generated content". Ở chế độ draft thao tác nằm trong app, do Tony bấm →
-**bot Telegram phải in dòng nhắc này mỗi lần gửi duyệt** (P3.S5). Tự bật nhãn KHÔNG giảm
-phân phối; bị hệ thống tự gắn thì không gỡ được và có thể mất suất For You.
-Chi tiết: `research/07-len-xu-huong.md` mục 4.
-
-**Bẫy:** access token TikTok hết hạn im lặng. Không có cảnh báo thì một sáng nào đó
-pipeline chạy xong nhưng không đăng được, mà không ai biết.
-
-**Song song:** ✅ worktree riêng.
-
----
-
-### [ ] P5.S4 — Cron và nhịp chạy
-
-**Mục tiêu:** hệ tự chạy mỗi ngày, Tony chỉ bấm hai nút.
-
-**Đọc trước:** `configs/schedule.yaml` · mọi step P5 trên
-
-**Việc:**
-1. Cron 07:00 → trend-scout → topic-picker → Telegram đề xuất
-2. Tony chọn → hàng đợi render nền (chạy ban ngày, không cần vội)
-3. Render + QC xong → Telegram gửi duyệt
-4. Sổ ghi `out/journal.jsonl`: chủ đề, thời gian render, số vòng QC, quyết định của Tony
-5. Cảnh báo Telegram khi job chết
-
-**Xong khi:** chạy cron thủ công một lần → nhận đề xuất → chọn → nhận video, không đụng
-tay bước nào khác.
-
-**Bẫy:** đừng để cron chạy chồng job. Render mất hàng chục phút; hai job cùng lúc trên
-6GB VRAM là OOM chắc chắn. Dùng lock file.
-
-**Song song:** ❌ phụ thuộc P5.S1–S3.
+**Bẫy:** cám dỗ lớn nhất là thêm tầng thứ 5 khi thấy chưa đủ. Trước khi thêm, phải chứng
+minh 4 tầng hiện có đều đang tương quan với quyết định của Tony.
 
 ---
 

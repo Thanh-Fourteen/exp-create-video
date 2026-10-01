@@ -1,13 +1,15 @@
 # exp-create-video
 
 Hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI: quét trend → kịch bản →
-dựng video → tự chấm QC 2 vòng → Tony duyệt qua Telegram → đăng TikTok.
+dựng video → tự chấm QC 2 vòng → Tony duyệt qua Telegram → đăng TikTok. Tổ chức như
+một team: mỗi vai là một lần gọi Claude riêng, Python điều phối, bàn giao qua file.
 
 **Trạng thái (2026-10-01): pipeline chạy được đầu-cuối** — một lệnh ra mp4 có giọng
 đọc (loudnorm −14 LUFS), phụ đề karaoke, overlay số liệu đúng câu, ảnh sinh tại chỗ và
 QC tầng 1 (14 kiểm). Đang ở **P3b — nâng chất lượng** (`research/08-nang-cap-chat-luong.md`),
-chen trước P4. Chưa có: QC tầng 2-4, trend-scout, bot Telegram, publisher TikTok.
-P6 đã bỏ. Việc tiếp theo ở `todos.md`.
+chen trước P4. Sau đó là **team** (`research/10-team.md`): P4 QC + xương sống team
+(`state.json`, fact-checker), P5 phòng tin (trend scout, showrunner), P6 phân phối
+(caption/SEO, Telegram, publisher), P7 analyst. Việc tiếp theo ở `todos.md`.
 
 ```bash
 # cần service exp-echo đang chạy ở cổng 8000 (xem "Phụ thuộc ngoài" bên dưới)
@@ -75,6 +77,9 @@ Ngưỡng đầy đủ: `configs/thresholds.yaml` · Cơ sở: `research/05-deci
 
 ## Nguyên tắc
 
+- **Research trước khi code, ở MỌI step** (Tony, 2026-10-01): quét cái mới nhất/tốt
+  nhất cho đúng step, ghi `research/probes/<step>-research.md`, rồi mới làm. Chi tiết:
+  "BƯỚC 0" trong prompt mở phiên mỗi phase ở `todos.md`.
 - **Ngưỡng viết trước khi chạy.** Sửa sau khi thấy kết quả = không còn là ngưỡng.
 - Mọi con số kèm **ngày và nguồn**. Phân rõ verified / reported / assumed.
 - Kết quả probe ghi vào `research/probes/`, **không ghi đè** file cũ.

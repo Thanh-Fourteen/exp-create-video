@@ -32,16 +32,17 @@ Một lệnh: chủ đề → mp4 1080×1920 có giọng đọc, phụ đề kar
 .venv/bin/python -m pytest -q
 ```
 
-| Phase | Trạng thái |
-|---|---|
-| P1 probe giết-hoặc-sống | ✅ (S1 TikTok chờ Tony làm phần tay; S4 LTX fail → bỏ video local) |
-| P2 khối dựng + QC tầng 1 | ✅ |
-| P3 nội dung: ra video hoàn chỉnh | ✅ |
-| **P3b nâng chất lượng** | 🔶 S1 xong · S2 chờ Tony nghe mù · S3–S8 chưa |
-| P4 QC tầng 2-4 | ⬜ (`qc/t2_vlm.py` đã viết, chưa nối) |
-| P5 trend-scout, Telegram, đăng TikTok | ⬜ |
+| Phase | Vai trong team | Trạng thái |
+|---|---|---|
+| P1–P3 | probe, khối dựng, video đầu-cuối | ✅ |
+| **P3b** nâng chất lượng | dựng · giọng · phát âm · parallax | 🔶 S1 xong · S2/S3/S10 chờ Tony xem-nghe |
+| P4 QC + xương sống team | `state.json` · T2 VLM · T3 critic · **fact-checker** · vòng 2 lần | ⬜ |
+| P5 phòng tin | **trend scout** · **showrunner** (series + lịch) · brief → scriptwriter | ⬜ |
+| P6 phân phối | **caption/SEO** · Telegram duyệt · publisher draft · cron | ⬜ |
+| P7 vòng phản hồi | **analyst** · thử format · xem lại QC/vai sau 20 video | ⬜ |
 
-P6 (luồng footage của Tony, audit direct-post) **đã bỏ** 2026-10-01 — đăng giữ chế độ draft.
+Thiết kế team và bằng chứng: `research/10-team.md`. Mọi step bắt research trước khi code.
+P6 cũ (luồng footage, audit direct-post) **đã bỏ** 2026-10-01 — số P6 giờ là "phân phối"; đăng giữ draft.
 
 ## Đọc gì
 
@@ -49,6 +50,7 @@ P6 (luồng footage của Tony, audit direct-post) **đã bỏ** 2026-10-01 — 
 |---|---|
 | Việc phải làm, mỗi step tự chứa | `todos.md` |
 | Vì sao P3b, trần chất lượng nằm đâu, quét thị trường 2026-10 | `research/08-nang-cap-chat-luong.md` |
+| Team: vai, cách nối, nguồn trend, API TikTok, giới hạn LLM-judge | `research/10-team.md` |
 | Quyết định kiến trúc gốc | `research/05-decision.md` |
 | Số đo thật từng probe | `research/probes/` |
 | So trước/sau khối render | `eval/results/` (3 fixture cố định ở `eval/scripts/`) |

@@ -12,19 +12,23 @@ TARGET = Path(__file__).resolve().parent.parent / "plan-autoclick.md"
 
 # Step còn lại chạy được bằng máy, theo đúng thứ tự phụ thuộc.
 STEPS = [
-    # P3b chen trước P4 (2026-10-01, research/08). S2/S3/S6/S8 cần tai/mắt Tony
-    # hoặc một lựa chọn của Tony nên không nằm ở đây — xem cuối file sinh ra.
+    # Lộ trình team (2026-10-01, research/10-team.md). Step cần tai/mắt/lựa chọn của
+    # Tony hoặc cần video đã đăng nằm ở cuối file sinh ra, không ở đây.
     ("P3b.S4", 'Shot "bằng chứng": stat / chart / screenshot / code'),
     ("P3b.S5", "Caption theo cụm + nhấn từ khoá"),
-    ("P3b.S7", "Kịch bản có nguồn + cấu trúc beat"),
+    ("P4.S0", "Xương sống team: `state.json` + bộ chạy vai *(thêm 2026-10-01)*"),
     ("P4.S1", "T2: chất lượng hình ảnh bằng VLM"),
     ("P4.S2", "T3: sức hút nội dung"),
-    ("P4.S3", "T4: độ chính xác sự thật"),
+    ("P4.S3", "T4: độ chính xác sự thật (vai **fact-checker**)"),
     ("P4.S4", "Vòng lặp và ghi vết"),
-    ("P5.S1", "Agent trend-scout"),
-    ("P5.S2", "Bot Telegram"),
-    ("P5.S3", "Publisher TikTok"),
-    ("P5.S4", "Cron và nhịp chạy"),
+    ("P5.S1", "Trend scout: topic hot hôm nay"),
+    ("P5.S2", "Showrunner: series + lịch tuần"),
+    ("P5.S3", "Brief → scriptwriter có nguồn"),
+    ("P6.S1", "Caption/SEO writer: gói copy-dán"),
+    ("P6.S2", "Bot Telegram (chuyển từ P5.S2)"),
+    ("P6.S3", "Publisher TikTok (chuyển từ P5.S3)"),
+    ("P6.S4", "Cron và nhịp chạy (chuyển từ P5.S4)"),
+    ("P7.S1", "Analyst: thu số + báo cáo tuần"),
 ]
 
 RUN_MODE = """CÁCH CHẠY LẦN NÀY: một phiên Claude Code duy nhất, làm TUẦN TỰ từng step, do
@@ -70,7 +74,7 @@ def build(prompt: str, phase: str, step: str, title: str) -> str:
 
 def main() -> None:
     text = SOURCE.read_text(encoding="utf-8")
-    prompts = {p: session_prompt(text, p) for p in ("P3b", "P4", "P5")}
+    prompts = {p: session_prompt(text, p) for p in ("P3b", "P4", "P5", "P6", "P7")}
 
     out = [
         "# plan-autoclick.md — file cho tool autoclick đọc",
@@ -113,9 +117,9 @@ def main() -> None:
         "- **P3b.S3** — Phát âm thuật ngữ: Tony duyệt từng mục từ điển respelling.",
         "- **P3b.S6** — Nhạc nền: Tony chọn ACE-Step / thư viện CC0 / để trống.",
         "- **P3b.S8** — Model ảnh: so mù với SDXL, Tony chấm.",
-        "- **P4.S5** — Xem lại QC sau 20 video: phải có 20 video thật đã.",
-        "- **P4.S6** — Đo độ dài giữ chân: cần số thật từ TikTok Analytics, tức cần P5.S3 chạy",
-        "  và video đã đăng vài ngày.",
+        "- **P3b.S10** — Parallax: Tony so p3b-d với p3b-b (phần zoom-punch làm sau khi Tony chọn).",
+        "- **P7.S2** — Thử format/độ dài: cần video đã đăng + số thật.",
+        "- **P7.S3** — Xem lại QC + các vai sau 20 video: phải có 20 video thật đã.",
         "",
         "Mục **Nợ kỹ thuật đã biết** ở cuối todos.md cũng để nguyên đó — phần lớn là câu hỏi",
         "chưa quyết, không phải việc giao được.",
