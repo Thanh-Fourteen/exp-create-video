@@ -89,6 +89,36 @@ Mỗi step: research trước (đã gộp ở `research/11`), làm, đo, ghi `re
 
 ---
 
+# Phase W — Web app "xưởng video" qua tailnet *(2026-10-02, CHỜ TONY DUYỆT)*
+
+Thiết kế + research: `research/12-web-app.md`. URL dự kiến `https://tony.tailfcdcfc.ts.net:8443` (cổng riêng —
+`tailscale serve` cổng 443 đang phục vụ app khác, KHÔNG đụng). FastAPI + htmx + Alpine + Tailwind/daisyUI,
+worker riêng 1 job/lần, SQLite.
+
+### [ ] W1 — Pipeline sẵn cho web
+- `--voice-profile tony|preset:<tên>` · `--stop-after script` (cổng duyệt) · `--auto-approve` · tiến độ đọc từ
+  `state.json` · thumbnail `ffmpeg` frame 0 → `out/<id>/thumb.webp` · 25 file nghe thử giọng.
+- **Xong khi:** chạy CLI dừng đúng sau kịch bản, chạy tiếp từ đó ra mp4; đổi giọng chỉ chạy lại TTS→render.
+
+### [ ] W2 — Worker + DB
+- Bảng `jobs`/`videos`/`voices` (SQLite WAL) · worker `Popen(start_new_session=True)`, huỷ = `killpg`, heartbeat,
+  khởi động lại thì nối tiếp job dở · kiểm `nvidia-smi` + RAM trước job · systemd user service + linger.
+- **Xong khi:** kill worker giữa job → bật lại → job chạy tiếp và ra mp4; huỷ job → GPU nhả sạch.
+
+### [ ] W3 — Web MVP
+- 4 tab Tạo · Hàng đợi · Thư viện · Cài đặt; gợi ý topic (trend scout); chọn giọng có nghe thử; stepper % + ETA
+  (SSE + snapshot khi trang hiện lại); trang video: xem, tải, chia sẻ, copy caption+hashtag, QC, nguồn.
+- Xác thực: chỉ 127.0.0.1 + header `Tailscale-User-Login` allowlist + kiểm `Origin`.
+- **Xong khi:** từ điện thoại Redmi tạo 1 video, khoá máy, mở lại thấy đúng tiến độ, tải được mp4.
+
+### [ ] W4 — Thông báo + PWA
+- Web Push (VAPID, Chrome Android) khi chờ duyệt / xong / lỗi; Telegram dự phòng. Manifest + icon + offline shell.
+
+### [ ] W5 — Vòng phản hồi
+- Chấm 4 ô + Đăng/Bỏ → `approval.json` → `approve_rate` · đổi giọng không viết lại · hàng đợi đêm · ghi chú đã đăng.
+
+---
+
 ## Đã xong trước Phase V (tóm tắt — chi tiết trong `research/probes/` và bản todos cũ)
 
 - P0 nền quyết định · P1 probe (TikTok draft API code xong chờ phần tay, TTS PASS, Remotion PASS,
