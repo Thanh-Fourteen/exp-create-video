@@ -29,6 +29,11 @@ dependencies = [
   "pygments>=2.17",                # tô màu shot code ở phía Python (P3b.S4)
   "httpx>=0.27",                   # snapshot nguồn + trend scout (P4.S3, P5.S1)
   "trafilatura>=2.2",              # text bài viết cho snapshot (P5.S1); Apache-2.0 từ 1.8
+  # Phase W (2026-10-02) — website qua tailnet: research/12-web-app.md
+  "fastapi>=0.135",                # SSE gốc (fastapi.sse) từ 0.135
+  "uvicorn>=0.30",
+  "jinja2>=3.1",
+  "psutil>=5.9",                   # kiểm RAM trước job
 ]
 
 [build-system]

@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% from "_macros.html" import poster %}
+{% block title %}Thư viện · Xưởng video{% endblock %}
+{% block main %}
+{% set posted = videos|selectattr('review.decision', 'equalto', 'post')|list|length %}
+<p class="eyebrow mb-2.5">{{ videos|length }} video · {{ posted }} đã đăng</p>
+<div class="flex items-end justify-between gap-4"><h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Thư <i class="h-italic">viện</i></h1>
+  <a href="/stats" class="btn btn-sm btn-ghost border border-base-300">Thống kê →</a></div>
+<form class="mt-7 flex flex-wrap items-center gap-2" hx-get="/library" hx-trigger="change, keyup changed delay:400ms from:#q" hx-target="body" hx-push-url="true">
+  {% for key, label in [("all","Tất cả"),("pass","Đạt QC"),("warn","Có cảnh báo"),("posted","Đã đăng")] %}
+  <label class="btn btn-sm rounded-full {{ 'btn-primary btn-outline' if f == key else 'btn-ghost border border-base-300' }}">
+    <input type="radio" name="f" value="{{ key }}" class="hidden" {{ 'checked' if f == key }}>{{ label }}</label>
+  {% endfor %}
+  <input id="q" name="q" value="{{ q }}" type="search" placeholder="Tìm theo tiêu đề, chủ đề" class="input input-sm input-bordered rounded-full ml-auto w-full sm:w-64">
+</form>
+{% if videos %}
+<div class="mt-6 grid gap-x-4 gap-y-6 grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
+  {% for v in videos %}
+  <a href="/library/{{ v.id }}" class="group flex flex-col gap-2">
+    <div class="transition-transform duration-300 group-hover:-translate-y-0.5">{{ poster(v) }}</div>
+    <span class="text-[13.5px] font-medium leading-snug line-clamp-2">{{ v.title }}</span>
+    <small class="flex justify-between text-[12px] text-muted"><span>{{ v.created_at[8:10] }}/{{ v.created_at[5:7] }} · {{ v.created_at[11:16] }}</span>
+      <span class="num">{{ '%d:%02d'|format((v.duration_sec or 0)//60, (v.duration_sec or 0)%60) }}{{ ' · đã đăng' if v.review.decision == 'post' }}</span></small>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="mt-10 card-x p-8 max-w-[560px] flex flex-col gap-3">
+  <h2 class="text-[22px] m-0">Chưa có video nào ở mục này</h2>
+  <p class="text-muted m-0">Video xong sẽ hiện ở đây, kèm bìa, caption và kết quả kiểm tra.</p>
+  <a href="/" class="btn btn-primary self-start">Tạo video đầu tiên</a>
+</div>
+{% endif %}
+{% endblock %}

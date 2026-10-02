@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Thống kê · Xưởng video{% endblock %}
+{% macro bars(rows) -%}
+<div class="flex flex-col gap-2.5">
+{% for r in rows %}
+  <div class="grid grid-cols-[minmax(90px,160px)_1fr_auto] items-center gap-3 text-[13.5px] {{ 'opacity-50' if r.weak }}" title="{{ 'Dưới 5 video — chưa đủ để kết luận' if r.weak }}">
+    <span class="truncate">{{ r.name }}</span>
+    <div class="h-2.5 rounded-full bg-base-300 overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: {{ ((r.rate or 0) * 100)|round }}%"></div></div>
+    <span class="num text-muted">{{ r.post }}/{{ r.n }}</span>
+  </div>
+{% else %}<p class="text-muted text-[13.5px] m-0">Chưa có video nào được chấm Đăng/Bỏ.</p>{% endfor %}
+</div>
+{%- endmacro %}
+{% block main %}
+{% set o = s.overall %}
+<p class="eyebrow mb-2.5">Metric chính · Đăng / (Đăng + Bỏ) · mục tiêu ≥ 50% sau 20 video</p>
+<h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Thống <i class="h-italic">kê</i></h1>
+<div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] max-w-[1100px]">
+  <section class="card-x p-6 flex flex-col gap-4">
+    <div class="flex items-end gap-4">
+      <span class="font-display text-[64px] leading-none {{ 'text-success' if o.rate is not none and o.rate >= s.target else 'text-error' if o.rate is not none and o.n >= 20 and o.rate < s.abort else '' }}">{{ ((o.rate or 0)*100)|round|int if o.rate is not none else '–' }}<span class="text-[28px]">%</span></span>
+      <span class="text-muted text-[14px] pb-2">approve rate · <span class="num">{{ o.post }}/{{ o.n }}</span> video đã quyết · {{ s.total }} video tổng</span>
+    </div>
+    {% if s.rolling|length >= 2 %}
+    {% set w = 520 %}{% set h = 90 %}{% set step = w / (s.rolling|length - 1) %}
+    <svg viewBox="-8 -8 {{ w + 16 }} {{ h + 26 }}" class="w-full h-auto" role="img" aria-label="Approve rate trượt 5 video">
+      <line x1="0" x2="{{ w }}" y1="{{ h * 0.5 }}" y2="{{ h * 0.5 }}" stroke="var(--color-base-300)" stroke-dasharray="4 4"/>
+      <text x="{{ w }}" y="{{ h * 0.5 - 4 }}" text-anchor="end" font-size="11" fill="var(--color-muted)">mục tiêu 50%</text>
+      <polyline fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linejoin="round"
+        points="{% for r in s.rolling %}{{ (loop.index0 * step)|round(1) }},{{ (h - r * h)|round(1) }} {% endfor %}"/>
+      {% set last = s.rolling[-1] %}<circle cx="{{ w }}" cy="{{ (h - last * h)|round(1) }}" r="4.5" fill="var(--color-primary)"/>
+      <text x="0" y="{{ h + 18 }}" font-size="11" fill="var(--color-muted)">video đầu</text>
+      <text x="{{ w }}" y="{{ h + 18 }}" text-anchor="end" font-size="11" fill="var(--color-muted)">mới nhất · trượt 5 video</text>
+    </svg>
+    {% else %}<p class="text-muted text-[13.5px] m-0">Cần ít nhất 2 video đã chấm Đăng/Bỏ để vẽ đường.</p>{% endif %}
+    {% if o.n >= 20 and o.rate is not none and o.rate < s.abort %}<p class="m-0 text-error text-[13.5px]">Dưới 30% sau 20 video: vấn đề ở nội dung, không ở pipeline — xem lại rubric và format, đừng thêm agent.</p>{% endif %}
+  </section>
+
+  <section class="card-x p-6 flex flex-col gap-4">
+    <h2 class="text-[21px] m-0">Điểm trung bình anh chấm</h2>
+    {% for k, c in s.criteria.items() %}
+    <div class="grid grid-cols-[90px_1fr_auto] items-center gap-3 text-[13.5px]">
+      <span>{{ c.label }}</span>
+      <div class="h-2.5 rounded-full bg-base-300 overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: {{ (((c.mean or 0) / 5) * 100)|round }}%"></div></div>
+      <span class="num text-muted">{{ '%.1f'|format(c.mean) if c.mean else '–' }} · n={{ c.n }}</span>
+    </div>
+    {% endfor %}
+    <p class="m-0 text-[12.5px] text-muted">
+      {% if s.corr_t3 %}QC sức hút (T3) ↔ điểm anh: ρ = <span class="num">{{ '%.2f'|format(s.corr_t3[0]) }}</span> (95% CI {{ '%.2f'|format(s.corr_t3[1]) }}…{{ '%.2f'|format(s.corr_t3[2]) }}, n={{ s.corr_n }}).
+        {% if s.corr_t3[1] <= 0 %}CI chứa 0 — T3 chưa chứng minh được là đoán đúng gu anh.{% endif %}
+      {% else %}Tương quan QC ↔ điểm anh cần ≥ 20 video chấm đủ 4 tiêu chí (đang có {{ s.corr_n }}).{% endif %}
+    </p>
+  </section>
+
+  <section class="card-x p-6 flex flex-col gap-4"><h2 class="text-[21px] m-0">Theo pillar</h2>{{ bars(s.by_pillar) }}</section>
+  <section class="card-x p-6 flex flex-col gap-4"><h2 class="text-[21px] m-0">Theo giọng</h2>{{ bars(s.by_voice) }}</section>
+  <section class="card-x p-6 flex flex-col gap-4"><h2 class="text-[21px] m-0">Theo kiểu hook</h2>{{ bars(s.by_hook) }}</section>
+  <section class="card-x p-6 flex flex-col gap-3"><h2 class="text-[21px] m-0">Lý do bỏ</h2>
+    {% set rs = {'hook':'Hook yếu','voice':'Giọng','visual':'Hình','content':'Nội dung','fact':'Sai sự thật','other':'Khác'} %}
+    {% for k, n in s.reasons.items() %}<div class="flex justify-between text-[13.5px] border-b border-base-300 pb-2"><span>{{ rs.get(k, k) }}</span><span class="num">{{ n }}</span></div>
+    {% else %}<p class="text-muted text-[13.5px] m-0">Chưa bỏ video nào.</p>{% endfor %}
+  </section>
+</div>
+<p class="mt-6 text-[12.5px] text-muted max-w-[70ch]">Nhóm mờ = dưới 5 video, chưa đủ để kết luận. Không có biểu đồ tròn: thanh ngang đọc chính xác hơn (NN/g).</p>
+{% endblock %}

@@ -1,0 +1,18 @@
+# Website "Xưởng video" (Phase W) — research/probes/w2-research.md, w3-research.md
+# Cài: cp deploy/systemd/xuong-*.service ~/.config/systemd/user/ && systemctl --user daemon-reload
+#      systemctl --user enable --now xuong-web xuong-worker && loginctl enable-linger tony
+# Mở ra tailnet (một lần, sống qua reboot): tailscale serve --bg --https=8443 http://127.0.0.1:8770
+[Unit]
+Description=Xưởng video — web (127.0.0.1:8770, chỉ qua tailscale serve)
+After=network-online.target
+
+[Service]
+WorkingDirectory=/mnt/data1tb/exp-create-video
+Environment=PATH=/mnt/data1tb/exp-create-video/.venv/bin:/home/tony/.local/bin:/home/tony/miniconda3/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/mnt/data1tb/exp-create-video/.venv/bin/uvicorn create_video.web.app:app --host 127.0.0.1 --port 8770 --proxy-headers
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

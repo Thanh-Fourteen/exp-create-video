@@ -89,32 +89,35 @@ Mỗi step: research trước (đã gộp ở `research/11`), làm, đo, ghi `re
 
 ---
 
-# Phase W — Web app "xưởng video" qua tailnet *(2026-10-02, CHỜ TONY DUYỆT)*
+# Phase W — Website "xưởng video" qua tailnet *(2026-10-02 — Tony duyệt làm W1→W5; mỗi bước research lại trước)*
+
+Mockup chuẩn: `web/design/mockup.html` · thiết kế: `research/12-web-app.md` §8 (website responsive, không app).
 
 Thiết kế + research: `research/12-web-app.md`. URL dự kiến `https://tony.tailfcdcfc.ts.net:8443` (cổng riêng —
-`tailscale serve` cổng 443 đang phục vụ app khác, KHÔNG đụng). FastAPI + htmx + Alpine + Tailwind/daisyUI,
+`tailscale serve` cổng 443 đang phục vụ app khác, KHÔNG đụng). FastAPI + htmx + Alpine + Tailwind/daisyUI, font Noto Serif Display + Be Vietnam Pro,
 worker riêng 1 job/lần, SQLite.
 
-### [ ] W1 — Pipeline sẵn cho web
+### [x] W1 — Pipeline sẵn cho web — ✅ (2026-10-02, `research/probes/w1-research.md`; sửa 2 lỗi thật: giọng mất khi QC dựng lại, BWE chạy cả preset)
 - `--voice-profile tony|preset:<tên>` · `--stop-after script` (cổng duyệt) · `--auto-approve` · tiến độ đọc từ
   `state.json` · thumbnail `ffmpeg` frame 0 → `out/<id>/thumb.webp` · 25 file nghe thử giọng.
 - **Xong khi:** chạy CLI dừng đúng sau kịch bản, chạy tiếp từ đó ra mp4; đổi giọng chỉ chạy lại TTS→render.
 
-### [ ] W2 — Worker + DB
+### [x] W2 — Worker + DB — ✅ (2026-10-02, `research/probes/w2-research.md`; kill -9 giữa job → tự nối tiếp, SIGTERM → trả về hàng đợi)
 - Bảng `jobs`/`videos`/`voices` (SQLite WAL) · worker `Popen(start_new_session=True)`, huỷ = `killpg`, heartbeat,
   khởi động lại thì nối tiếp job dở · kiểm `nvidia-smi` + RAM trước job · systemd user service + linger.
 - **Xong khi:** kill worker giữa job → bật lại → job chạy tiếp và ra mp4; huỷ job → GPU nhả sạch.
 
-### [ ] W3 — Web MVP
+### [x] W3 — Web MVP — ✅ (2026-10-02, `research/probes/w3-research.md`; chạy qua tailnet `https://tony.tailfcdcfc.ts.net:8443`)
 - 4 tab Tạo · Hàng đợi · Thư viện · Cài đặt; gợi ý topic (trend scout); chọn giọng có nghe thử; stepper % + ETA
   (SSE + snapshot khi trang hiện lại); trang video: xem, tải, chia sẻ, copy caption+hashtag, QC, nguồn.
 - Xác thực: chỉ 127.0.0.1 + header `Tailscale-User-Login` allowlist + kiểm `Origin`.
 - **Xong khi:** từ điện thoại Redmi tạo 1 video, khoá máy, mở lại thấy đúng tiến độ, tải được mp4.
 
-### [ ] W4 — Thông báo + PWA
-- Web Push (VAPID, Chrome Android) khi chờ duyệt / xong / lỗi; Telegram dự phòng. Manifest + icon + offline shell.
+### [x] W4 — Thông báo (KHÔNG app/PWA — Tony 2026-10-02) — ✅ code (`research/probes/w4-research.md`); còn: Tony tạo bot @BotFather + bấm Start
+- Telegram bot báo chờ duyệt / xong / lỗi kèm link · trong tab: SSE + tiêu đề tab "(1)…" + toast. Responsive hoàn
+  chỉnh theo `research/12` §8 (menu trái ≥1024px, list–detail ≥1280px, thanh đáy trên điện thoại).
 
-### [ ] W5 — Vòng phản hồi
+### [x] W5 — Vòng phản hồi — ✅ (2026-10-02, `research/probes/w5-research.md`; trang /stats, chạy đêm, số TikTok 72h)
 - Chấm 4 ô + Đăng/Bỏ → `approval.json` → `approve_rate` · đổi giọng không viết lại · hàng đợi đêm · ghi chú đã đăng.
 
 ---

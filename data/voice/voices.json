@@ -1,0 +1,262 @@
+[
+ {
+  "id": "tony",
+  "name": "Giọng Tony",
+  "slug": "tony",
+  "preview": "previews/tony.m4a",
+  "description": "Clone từ giọng anh · nam · Bắc",
+  "gender": "male",
+  "featured": 1,
+  "license": "riêng — consent 2026-08-04"
+ },
+ {
+  "id": "Adam bựa",
+  "name": "Adam bựa",
+  "slug": "adam-bua",
+  "preview": "previews/adam-bua.m4a",
+  "description": "Nam · Bắc · Phong cách tự nhiên",
+  "gender": "male",
+  "featured": 1,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Trúc Ly",
+  "name": "Trúc Ly",
+  "slug": "truc-ly",
+  "preview": "previews/truc-ly.m4a",
+  "description": "Nữ · Bắc · Phong cách tự nhiên",
+  "gender": "female",
+  "featured": 2,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Thiện Minh",
+  "name": "Thiện Minh",
+  "slug": "thien-minh",
+  "preview": "previews/thien-minh.m4a",
+  "description": "Nam · Bắc · Phong cách kể chuyện",
+  "gender": "male",
+  "featured": 3,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Mai Anh",
+  "name": "Mai Anh",
+  "slug": "mai-anh",
+  "preview": "previews/mai-anh.m4a",
+  "description": "Nữ · Bắc · Phong cách tin tức",
+  "gender": "female",
+  "featured": 4,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Hải Đăng",
+  "name": "Hải Đăng",
+  "slug": "hai-dang",
+  "preview": "previews/hai-dang.m4a",
+  "description": "Nam · Bắc · Phong cách tự nhiên",
+  "gender": "male",
+  "featured": 5,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Thùy Dung",
+  "name": "Thùy Dung",
+  "slug": "thuy-dung",
+  "preview": "previews/thuy-dung.m4a",
+  "description": "Nữ · Nam · Phong cách tin tức",
+  "gender": "female",
+  "featured": 6,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Thiền Tâm Đức",
+  "name": "Thiền Tâm Đức",
+  "slug": "thien-tam-duc",
+  "preview": "previews/thien-tam-duc.m4a",
+  "description": "Nam · Bắc · Phong cách kể chuyện",
+  "gender": "male",
+  "featured": 7,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Ngọc Huyền",
+  "name": "Ngọc Huyền",
+  "slug": "ngoc-huyen",
+  "preview": "previews/ngoc-huyen.m4a",
+  "description": "Nữ · Bắc · Giọng đọc tự nhiên",
+  "gender": "female",
+  "featured": 8,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Quang Sơn",
+  "name": "Quang Sơn",
+  "slug": "quang-son",
+  "preview": "previews/quang-son.m4a",
+  "description": "Nam · Trung · Phong cách tự nhiên",
+  "gender": "male",
+  "featured": 9,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Ngọc Trân",
+  "name": "Ngọc Trân",
+  "slug": "ngoc-tran",
+  "preview": "previews/ngoc-tran.m4a",
+  "description": "Nữ · Trung · Phong cách tự nhiên",
+  "gender": "female",
+  "featured": 10,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Minh Đức",
+  "name": "Minh Đức",
+  "slug": "minh-duc",
+  "preview": "previews/minh-duc.m4a",
+  "description": "Nam · Bắc · Phong cách tin tức",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Phạm Tuyên",
+  "name": "Phạm Tuyên",
+  "slug": "pham-tuyen",
+  "preview": "previews/pham-tuyen.m4a",
+  "description": "Nam · Bắc · Phong cách tự nhiên",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Thái Sơn",
+  "name": "Thái Sơn",
+  "slug": "thai-son",
+  "preview": "previews/thai-son.m4a",
+  "description": "Nam · Nam · Phong cách kể chuyện",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Xuân Vĩnh",
+  "name": "Xuân Vĩnh",
+  "slug": "xuan-vinh",
+  "preview": "previews/xuan-vinh.m4a",
+  "description": "Nam · Bắc · Phong cách tự nhiên",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Thanh Bình",
+  "name": "Thanh Bình",
+  "slug": "thanh-binh",
+  "preview": "previews/thanh-binh.m4a",
+  "description": "Nam · Bắc · Phong cách kể chuyện",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Ngọc Linh",
+  "name": "Ngọc Linh",
+  "slug": "ngoc-linh",
+  "preview": "previews/ngoc-linh.m4a",
+  "description": "Nữ · Bắc · Phong cách kể chuyện",
+  "gender": "female",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Đoan Trang",
+  "name": "Đoan Trang",
+  "slug": "doan-trang",
+  "preview": "previews/doan-trang.m4a",
+  "description": "Nữ · Bắc · Phong cách tự nhiên",
+  "gender": "female",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Thục Đoan",
+  "name": "Thục Đoan",
+  "slug": "thuc-doan",
+  "preview": "previews/thuc-doan.m4a",
+  "description": "Nữ · Nam · Phong cách kể chuyện",
+  "gender": "female",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Minh Triết",
+  "name": "Minh Triết",
+  "slug": "minh-triet",
+  "preview": "previews/minh-triet.m4a",
+  "description": "Nam · Nam · Phong cách tin tức",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Mỹ Duyên",
+  "name": "Mỹ Duyên",
+  "slug": "my-duyen",
+  "preview": "previews/my-duyen.m4a",
+  "description": "Nữ · Nam · Phong cách đọc truyện",
+  "gender": "female",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Quỳnh Anh",
+  "name": "Quỳnh Anh",
+  "slug": "quynh-anh",
+  "preview": "previews/quynh-anh.m4a",
+  "description": "Nữ · Bắc · Phong cách đọc truyện",
+  "gender": "female",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Đức Trí",
+  "name": "Đức Trí",
+  "slug": "duc-tri",
+  "preview": "previews/duc-tri.m4a",
+  "description": "Nam · Nam · Phong cách đọc truyện",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Kim Thanh",
+  "name": "Kim Thanh",
+  "slug": "kim-thanh",
+  "preview": "previews/kim-thanh.m4a",
+  "description": "Nữ · Nam · Phong cách đọc truyện",
+  "gender": "female",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Adam",
+  "name": "Adam",
+  "slug": "adam",
+  "preview": "previews/adam.m4a",
+  "description": "Nam · Nam · Giọng đọc tự nhiên",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ },
+ {
+  "id": "Quốc Tuấn",
+  "name": "Quốc Tuấn",
+  "slug": "quoc-tuan",
+  "preview": "previews/quoc-tuan.m4a",
+  "description": "Nam · Bắc · Phong cách tự nhiên",
+  "gender": "male",
+  "featured": 0,
+  "license": "Apache-2.0 (VieNeu 3.8.3)"
+ }
+]

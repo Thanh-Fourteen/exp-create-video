@@ -53,3 +53,11 @@ remotion/out/
 # dữ liệu runtime của team: bản sao trang web bên thứ ba (fact-check) + kết quả trend scout — không phải mã nguồn
 team/snapshots/
 team/trends/
+
+# file nghe thử giọng sinh lại được (scripts/make_voice_previews.py); giọng Tony là riêng tư
+data/voice/previews/
+
+# binary Tailwind standalone 111MB — tải lại bằng scripts/setup_web.sh
+web/tools/tailwindcss-linux-x64
+web/tools/sha256sums.txt
+exp/web/

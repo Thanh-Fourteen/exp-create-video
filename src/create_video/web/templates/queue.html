@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Hàng đợi · Xưởng video{% endblock %}
+{% block main %}
+<p class="eyebrow mb-2.5">Mỗi lúc một video · máy chỉ có một GPU</p>
+<h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Hàng <i class="h-italic">đợi</i></h1>
+<p class="text-muted mt-2 max-w-[62ch]">Tắt trang thoải mái. Máy nhắn Telegram khi kịch bản chờ duyệt, khi video xong hoặc khi lỗi.</p>
+<div class="mt-8 grid gap-10 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)] xl:items-start">
+  <section class="flex flex-col gap-3 max-w-[860px]">{% with compact=False %}{% include "_jobs.html" %}{% endwith %}</section>
+  <section class="flex flex-col gap-3">
+    <h2 class="text-[21px] m-0">Đã xong gần đây</h2>
+    {% for j in history %}
+    <div class="flex items-center justify-between gap-3 border-b border-base-300 py-2.5 text-[14px]">
+      <div class="min-w-0">
+        {% if j.state == 'done' %}<a href="/library/{{ j.video_id }}" class="link link-hover line-clamp-1">{{ j.topic }}</a>{% else %}<span class="line-clamp-1">{{ j.topic }}</span>{% endif %}
+        {% if j.error and j.state == 'failed' %}<small class="block text-error text-[12px] line-clamp-2">{{ j.error }}</small>{% endif %}
+      </div>
+      {% if j.state == 'done' %}<span class="badge badge-success badge-soft badge-sm">Xong</span>
+      {% elif j.state == 'failed' %}<button class="btn btn-xs" hx-post="/jobs/{{ j.id }}/retry">Chạy lại</button>
+      {% else %}<span class="badge badge-ghost badge-sm">Đã huỷ</span>{% endif %}
+    </div>
+    {% else %}<p class="text-muted text-[14px]">Chưa có gì.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

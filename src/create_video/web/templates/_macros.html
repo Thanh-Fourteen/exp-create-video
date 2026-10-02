@@ -1,0 +1,20 @@
+{# Poster 9:16: ảnh thumbnail thật nếu có, không thì dựng bằng CSS từ hook #}
+{% macro poster(v, cls='') -%}
+<div class="poster relative w-full overflow-hidden rounded-[10px] border border-base-300 bg-[#0D0D0F] {{ cls }}">
+  {% if v.thumb %}<img src="/v/{{ v.id }}/thumb.webp" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">
+  {% else %}<div class="absolute inset-0 p-[9%] font-poster text-white text-center text-[9cqi] leading-tight">{{ v.title }}</div>{% endif %}
+  {% set st = (v.qc or {}).get('status') %}
+  {% if st %}<span class="absolute right-[5%] bottom-[3.5%] badge badge-xs {{ 'badge-success' if st == 'pass' else 'badge-warning' }} badge-soft">{{ 'Đạt QC' if st == 'pass' else 'Cảnh báo' }}</span>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro steps(snap) -%}
+<div class="steps8" aria-hidden="true">{% for s in snap.steps %}<i class="{{ s.status }}"></i>{% endfor %}</div>
+<div class="hidden sm:grid grid-cols-8 gap-1 text-[10.5px] text-muted mt-1">
+  {% for s in snap.steps %}<span class="truncate {{ 'text-base-content' if s.status == 'running' }}">{{ s.label }}</span>{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro eta(snap) -%}
+{% if snap.awaiting_approval %}chờ anh duyệt kịch bản{% elif snap.eta_sec is not none %}{{ snap.percent }}% · còn ~{{ (snap.eta_sec / 60)|round|int }} phút{% endif %}
+{%- endmacro %}

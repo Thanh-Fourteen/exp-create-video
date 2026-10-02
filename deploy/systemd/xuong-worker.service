@@ -1,0 +1,20 @@
+# Worker "Xưởng video" — MỘT job một lúc (GPU 6GB dùng chung). research/probes/w2-research.md
+[Unit]
+Description=Xưởng video — worker (pipeline, 1 job/lần)
+After=network-online.target
+
+[Service]
+WorkingDirectory=/mnt/data1tb/exp-create-video
+# PATH: ffmpeg/node (miniconda), claude CLI (~/.local/bin), nvidia-smi (/usr/bin). KHÔNG đặt ANTHROPIC_API_KEY ở đây —
+# nó lấn quyền phiên đăng nhập Claude (code.claude.com/docs/en/authentication).
+Environment=PATH=/mnt/data1tb/exp-create-video/.venv/bin:/home/tony/.local/bin:/home/tony/miniconda3/bin:/usr/local/bin:/usr/bin:/bin
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/mnt/data1tb/exp-create-video/.venv/bin/python -m create_video.web.worker
+# mixed: SIGTERM tới worker trước (nó giết job và trả về hàng đợi), phần còn lại trong cgroup bị SIGKILL sau timeout.
+KillMode=mixed
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -76,6 +76,7 @@ def run(
     render: bool = True,
     voice_join: str | None = None,
     research: bool = True,
+    stop_after: str | None = None,
 ) -> dict:
     t_start = time.time()
     video_id = video_id or f"{slugify(topic)}"
@@ -87,10 +88,19 @@ def run(
     # còn trên đĩa thì bỏ qua. Bị giết giữa chừng → stage đó còn "running" →
     # lần sau chạy lại đúng từ nó, không gọi lại scriptwriter.
     state = State.load(out_dir, video_id)
+    # W1 (2026-10-02): lựa chọn của job (giọng, độ dài, visual) lưu ở job.json — mọi lần chạy lại (vòng QC
+    # sửa, web bấm "tiếp tục") dùng ĐÚNG lựa chọn đó. Trước đây loop.rebuild gọi run() không truyền giọng
+    # → video giọng preset bị đọc lại bằng giọng mặc định.
+    job_path = out_dir / "job.json"
+    job = json.loads(job_path.read_text(encoding="utf-8")) if job_path.exists() else {}
+    voice = voice if voice is not None else job.get("voice")
+    job.update({"topic": topic, "voice": voice, "duration_sec": duration_sec, "visual": visual})
+    job_path.write_text(json.dumps(job, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     try:
         return _run(topic, state=state, out_dir=out_dir, video_id=video_id, t_start=t_start,
                     duration_sec=duration_sec, visual=visual, voice=voice, style=style,
-                    force=force, render=render, voice_join=voice_join, research=research)
+                    force=force, render=render, voice_join=voice_join, research=research,
+                    stop_after=stop_after)
     except BaseException as e:  # cả KeyboardInterrupt: ghi lại rồi ném tiếp
         if state.stage:
             state.fail(state.stage, e)
@@ -101,6 +111,7 @@ def _run(
     topic: str, *, state: State, out_dir: Path, video_id: str, t_start: float,
     duration_sec: int, visual: str, voice: str | None, style: str | None,
     force: bool, render: bool, voice_join: str | None, research: bool = True,
+    stop_after: str | None = None,
 ) -> dict:
     # ── 0. researcher (Phase V2): chủ đề → sự thật đã kiểm ─────────────────
     t = time.time()
@@ -140,6 +151,16 @@ def _run(
         state.done("script", [script_path])
     print(f"  hook: {script.hook}", flush=True)
     t = _stamp(t, "kịch bản")
+    if stop_after == "script":
+        # W1: cổng duyệt kịch bản — dừng TRƯỚC mọi bước GPU. Chạy lại không có cờ này là tiếp tục
+        # (script.json đã có → dùng lại, qua đúng cổng `_check`; web có thể sửa script.json trước đó).
+        print("  ⏸ dừng sau kịch bản — chờ duyệt", flush=True)
+        # Trạng thái chờ duyệt TƯỜNG MINH (kiểu Airflow `awaiting_input`, Argo suspend — w1-research.md):
+        # process THOÁT, không giữ worker; tiếp tục = chạy lại không có --stop-after.
+        state.stage = "awaiting_approval"
+        state.save()
+        return {"id": video_id, "topic": topic, "stopped_after": "script",
+                "script": str(script_path), "wall_sec": round(time.time() - t_start, 1)}
 
     lines = [
         Line(text=l, is_hook=(i == 0))
@@ -160,9 +181,11 @@ def _run(
         from .voice.vieneu_local import VieneuLocalBackend
 
         _vl = _tts_cfg.get("vieneu_local", {})
-        be = VieneuLocalBackend(voice=voice or _vl.get("voice"), seed=_vl.get("seed"),
+        # `voice` None/"tony" = giọng Tony clone (models.yaml ref_audio); tên khác = preset Apache.
+        clone = (voice in (None, "tony", _vl.get("voice"))) and bool(_vl.get("ref_audio"))
+        be = VieneuLocalBackend(voice=_vl.get("voice") if clone else voice, seed=_vl.get("seed"),
                                 out_dir=out_dir / "tts",
-                                ref_audio=None if voice else _vl.get("ref_audio"))
+                                ref_audio=_vl.get("ref_audio") if clone else None)
         _echo = {**_echo, "voice": be.voice, "seed": be.seed, "style": "vieneu-3.8.3"}
     else:
         be = EchoBackend(
@@ -203,7 +226,10 @@ def _run(
             [l.text for l in lines], out_name="voice.wav",
             mode=join_mode, group_size=int(_join.get("group_size", 3)),
         )
-        _bwe = _tts_cfg.get("vieneu_local", {}).get("bwe") if _tts_cfg.get("backend") == "vieneu_local" else None
+        # BWE CHỈ cho giọng clone (mẫu ~4 kHz) — preset đã đủ băng thông, LavaSR thay dải > cutoff
+        # bằng phần tự sinh sẽ làm preset kém đi.
+        _bwe = (_tts_cfg.get("vieneu_local", {}).get("bwe")
+                if _tts_cfg.get("backend") == "vieneu_local" and getattr(be, "ref_audio", None) else None)
         if _bwe:
             # Phase V1: mở rộng băng thông giọng clone (mẫu Tony ~4 kHz) — TRƯỚC loudnorm.
             from .voice import bwe as _bwe_mod
@@ -459,7 +485,12 @@ def _brief(topic: str, out_dir: Path, state: State, *, force: bool, research: bo
     else:
         return None
     screenshot.allow([v.url for v in b.visuals] + [f.url for f in b.facts])
-    return brief_for_script(b)
+    txt = brief_for_script(b)
+    note = out_dir / "rewrite-note.txt"
+    if note.exists() and note.read_text(encoding="utf-8").strip():
+        # Web (W3): Tony bấm "Viết lại" kèm ghi chú → scriptwriter nhận đúng yêu cầu đó.
+        txt += "\n\nYÊU CẦU CỦA TONY KHI VIẾT LẠI (ưu tiên cao nhất): " + note.read_text(encoding="utf-8").strip()
+    return txt
 
 
 def _tts_reusable(path: Path, lines: list[str]) -> bool:
@@ -619,6 +650,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--voice-join", choices=["per_line", "tight", "grouped"], default=None,
                     help="cách ghép câu TTS (P3b.S2); mặc định: configs/models.yaml")
+    ap.add_argument("--stop-after", choices=["script"], default=None,
+                    help="dừng sau bước kịch bản (cổng duyệt); chạy lại không có cờ này để tiếp tục")
     ap.add_argument("--no-research", action="store_true",
                     help="bỏ vai researcher (viết từ chủ đề trần — chủ đề phải tự chứa sự thật)")
     ap.add_argument("--qc", action="store_true",
@@ -628,15 +661,24 @@ def main(argv: list[str] | None = None) -> int:
     res = run(
         a.topic, video_id=a.video_id, duration_sec=a.duration, visual=a.visual,
         voice=a.voice, style=a.style, force=a.force, render=not a.no_render,
-        voice_join=a.voice_join, research=not a.no_research,
+        voice_join=a.voice_join, research=not a.no_research, stop_after=a.stop_after,
     )
+    if res.get("stopped_after"):
+        return 0
     if a.qc and not a.no_render:
         from .qc import loop
 
         d = loop.run_loop(res["id"], topic=a.topic, duration_sec=a.duration, visual=a.visual)
+        from .publish import write_result
+
+        write_result(REPO_ROOT / "out" / res["id"], d)
         print(f"\nQC {d['status'].upper()} · {d['qc_rounds']} vòng sửa · bản gửi Tony: "
               f"{d['final_mp4']} · {d['stop_reason']}", flush=True)
         return 0 if d["publishable"] else 1
+    if res.get("mp4"):
+        from .publish import write_result
+
+        write_result(REPO_ROOT / "out" / res["id"])
     return 1 if res.get("t1_failed") else 0
 
 

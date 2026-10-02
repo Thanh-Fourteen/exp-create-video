@@ -1,0 +1,85 @@
+{% extends "base.html" %}{% from "_macros.html" import poster %}
+{% block main %}
+<div class="aurora">
+  <p class="eyebrow mb-2.5">Xưởng video TikTok · tiếng Việt</p>
+  <h1 class="text-[clamp(30px,5.4vw,48px)] leading-[1.06] m-0">Hôm nay làm video <i class="h-italic">về điều gì?</i></h1>
+  <p class="text-muted mt-2 max-w-[62ch]">Gõ một chủ đề hoặc chọn gợi ý. Máy tự tìm nguồn, viết kịch bản, đọc bằng giọng đã chọn và dựng video dọc 9:16.</p>
+</div>
+
+<div class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.9fr)_minmax(300px,1fr)] lg:items-start">
+  <form method="post" action="/jobs" class="flex flex-col gap-7" x-data="{voice:'tony', dur:45, more:false, adv:false}">
+    <div class="flex flex-col gap-2">
+      <label for="topic" class="eyebrow">Chủ đề</label>
+      <textarea id="topic" name="topic" required minlength="6" maxlength="400" rows="3"
+        class="textarea textarea-bordered w-full text-[16.5px] leading-relaxed bg-base-200 focus:border-primary"
+        placeholder="Ví dụ: Gemini miễn phí cho sinh viên Việt Nam dùng được những gì"></textarea>
+      <span class="hidden lg:inline text-[12px] text-muted">Phím tắt: <kbd class="kbd kbd-xs">/</kbd> để gõ chủ đề</span>
+    </div>
+
+    {% if topics %}
+    <div class="flex flex-col gap-3">
+      <p class="eyebrow m-0">Gợi ý hôm nay · trend scout {{ topics[0].as_of[:10] if topics[0].as_of }}</p>
+      <div class="grid gap-2 sm:grid-cols-2">
+        {% for t in topics[:6] %}
+        <button type="button" class="text-left rounded-box border border-base-300 px-4 py-3 hover:border-primary/50 grid grid-cols-[1fr_auto] gap-x-3"
+                @click="document.getElementById('topic').value = {{ t.title|tojson|forceescape }}; $el.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('border-primary')); $el.classList.add('border-primary')"
+                title="{{ t.why }}">
+          <b class="font-medium text-[14.5px] leading-snug">{{ t.title }}</b>
+          <span class="num text-[12px] text-primary row-span-2 self-center">{{ '%.2f'|format(t.hot) }}</span>
+          <small class="text-muted text-[12px] line-clamp-1">{{ t.why }}</small>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="flex flex-col gap-3">
+      <p class="eyebrow m-0">Giọng đọc</p>
+      <input type="hidden" name="voice" :value="voice">
+      <div class="grid gap-2.5 grid-cols-[repeat(auto-fill,minmax(180px,1fr))]">
+        {% for v in voices %}
+        <div x-show="{{ 'true' if loop.index <= 4 else 'more' }}" {% if loop.index > 4 %}x-cloak{% endif %}
+             role="radio" tabindex="0" :aria-checked="voice === {{ v.id|tojson|forceescape }}" @click="voice = {{ v.id|tojson|forceescape }}" @keydown.enter="voice = {{ v.id|tojson|forceescape }}"
+             :class="voice === {{ v.id|tojson|forceescape }} ? 'border-primary' : 'border-base-300'"
+             class="cursor-pointer rounded-box border bg-base-200 pl-4 pr-2.5 py-2.5 grid grid-cols-[1fr_auto] gap-x-2 items-center min-h-16">
+          <b class="font-medium {{ 'text-primary' if v.id == 'tony' }}">{{ v.name }}</b>
+          <button type="button" class="btn btn-circle btn-sm btn-ghost border border-base-300 row-span-2" aria-label="Nghe thử {{ v.name }}"
+                  @click.stop="const a = $refs['a{{ loop.index }}']; document.querySelectorAll('audio').forEach(x => x !== a && x.pause()); a.currentTime = 0; a.play()">
+            <svg viewBox="0 0 24 24" class="w-3 h-3 fill-current"><path d="M7 4v16l13-8z"/></svg></button>
+          <small class="text-muted text-[12px] truncate">{{ v.description }}</small>
+          <audio x-ref="a{{ loop.index }}" preload="none" src="/voice/{{ v.slug }}.m4a"></audio>
+        </div>
+        {% endfor %}
+      </div>
+      {% if voices|length > 4 %}<button type="button" class="btn btn-ghost btn-sm self-start" @click="more = !more" x-text="more ? 'Thu gọn' : 'Thêm {{ voices|length - 4 }} giọng free'"></button>{% endif %}
+    </div>
+
+    <details class="rounded-box border border-base-300 px-4 py-3" :open="adv">
+      <summary class="cursor-pointer text-[14px] font-medium">Tuỳ chỉnh <span class="text-muted font-normal">· <span x-text="dur"></span>s · duyệt kịch bản</span></summary>
+      <div class="mt-4 flex flex-col gap-4">
+        <div class="flex flex-wrap items-center gap-3"><span class="text-[14px] w-20">Độ dài</span>
+          <div class="join">{% for d in (30,45,60) %}<button type="button" class="btn join-item" :class="dur==={{ d }} && 'btn-active'" @click="dur={{ d }}">{{ d }}s</button>{% endfor %}</div>
+          <input type="hidden" name="duration" :value="dur"></div>
+        <label class="flex items-start justify-between gap-4 cursor-pointer">
+          <span><span class="text-[14px] font-medium">Duyệt kịch bản trước khi dựng</span>
+            <small class="block text-muted text-[12.5px]">Máy dừng sau ~5 phút để anh đọc kịch bản và nguồn, rồi mới chạy GPU ~20 phút.</small></span>
+          <input type="checkbox" name="gate" checked class="toggle toggle-primary mt-1"></label>
+      </div>
+    </details>
+
+    <button class="btn btn-primary btn-lg self-end sm:self-start px-8 rounded-full lg:rounded-field sticky bottom-[calc(76px+env(safe-area-inset-bottom,0px))] lg:static shadow-lg shadow-primary/20">
+      Tạo video <span class="font-normal text-[13px] opacity-75">· ~25 phút</span></button>
+  </form>
+
+  <aside class="flex flex-col gap-6 lg:sticky lg:top-10">
+    <section class="flex flex-col gap-3"><h2 class="text-[21px] m-0">Đang chạy</h2>
+      {% with jobs=jobs, compact=True %}{% include "_jobs.html" %}{% endwith %}
+      <a href="/queue" class="btn btn-sm btn-ghost self-start">Xem hàng đợi →</a></section>
+    {% if recent %}
+    <section class="flex flex-col gap-3"><h2 class="text-[21px] m-0">Gần đây</h2>
+      <div class="grid grid-cols-3 gap-3">{% for v in recent[:3] %}<a href="/library/{{ v.id }}" class="flex flex-col gap-1.5">{{ poster(v) }}<span class="text-[12px] line-clamp-2">{{ v.title }}</span></a>{% endfor %}</div>
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

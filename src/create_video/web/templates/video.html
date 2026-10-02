@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ v.title }} · Xưởng video{% endblock %}
+{% block main %}
+{% set r = v.review %}
+<a href="/library" class="btn btn-ghost btn-sm -ml-3 mb-4">← Thư viện</a>
+<div class="grid gap-8 lg:grid-cols-[minmax(260px,380px)_minmax(0,1fr)] lg:items-start">
+  <div class="lg:sticky lg:top-10 flex flex-col gap-3">
+    <video class="w-full aspect-[9/16] rounded-[14px] border border-base-300 bg-black" controls playsinline preload="metadata"
+           poster="/v/{{ v.id }}/cover.jpg" src="/v/{{ v.id }}/video.mp4"></video>
+    <div class="hidden lg:flex gap-2">
+      <a href="/v/{{ v.id }}/download" class="btn btn-primary flex-1" hx-boost="false">Tải video</a>
+      <a href="/v/{{ v.id }}/cover.jpg" class="btn" hx-boost="false" download>Tải bìa</a>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-7 min-w-0">
+    <div>
+      <p class="eyebrow mb-2">{{ v.pillar_vi or 'Video' }} · {{ v.voice_name }} · <span class="num">{{ '%d:%02d'|format((v.duration_sec or 0)//60, (v.duration_sec or 0)%60) }}</span></p>
+      <h1 class="text-[clamp(26px,4vw,38px)] leading-[1.12] m-0">{{ v.title }}</h1>
+      <p class="text-muted mt-2 max-w-[62ch]">{{ v.topic }}</p>
+    </div>
+
+    <section class="card-x p-4 flex flex-col gap-3 max-w-[70ch]">
+      <p class="eyebrow m-0">Caption · hashtag gợi ý</p>
+      <p class="m-0 text-[14.5px]">{{ v.caption }}</p>
+      <p class="m-0 text-primary text-[14px]">{% for h in v.hashtags %}#{{ h }} {% endfor %}</p>
+      <button class="btn btn-primary self-start" onclick="copyText({{ (v.caption ~ '\n\n' ~ ('#' ~ v.hashtags|join(' #')))|tojson|forceescape }})">Copy caption + hashtag</button>
+      <p class="m-0 text-[12px] text-muted">TikTok lấy frame đầu làm bìa — frame đầu của video này đã thiết kế làm bìa. Nhớ bật nhãn "Nội dung do AI tạo" khi đăng.</p>
+    </section>
+
+    <section class="flex flex-col gap-3">
+      <p class="eyebrow m-0">Anh chấm</p>
+      <div class="grid grid-cols-[84px_1fr] gap-x-3 gap-y-2 items-center text-[14px]">
+        {% set labs = ['Bỏ','Yếu','Tạm','Tốt','Xuất sắc'] %}
+        {% for key, label in [("hook","Hook"),("voice","Giọng"),("visual","Hình"),("content","Nội dung")] %}
+        <span>{{ label }}</span>
+        <div class="flex gap-1.5 flex-wrap">{% for n in range(1,6) %}
+          <button class="btn btn-sm min-w-11 px-2 flex-col gap-0 h-auto py-1 {{ 'btn-primary' if r[key] == n else 'btn-ghost border border-base-300' }}"
+                  hx-post="/videos/{{ v.id }}/review" hx-vals='{"field":"{{ key }}","value":"{{ n }}"}' hx-target="body" aria-label="{{ label }} {{ n }} — {{ labs[n-1] }}">
+            <span class="num text-[13px]">{{ n }}</span><span class="text-[9.5px] font-normal opacity-80">{{ labs[n-1] }}</span></button>{% endfor %}</div>
+        {% endfor %}
+      </div>
+      <div class="flex flex-wrap gap-2 mt-1">
+        <button class="btn {{ 'btn-success' if r.decision == 'post' else '' }}" hx-post="/videos/{{ v.id }}/review" hx-vals='{"field":"decision","value":"{{ '' if r.decision == 'post' else 'post' }}"}' hx-target="body">{{ 'Đã đăng ✓' if r.decision == 'post' else 'Đánh dấu đã đăng' }}</button>
+        <button class="btn btn-ghost text-error" hx-post="/videos/{{ v.id }}/review" hx-vals='{"field":"decision","value":"{{ '' if r.decision == 'drop' else 'drop' }}"}' hx-target="body">{{ 'Đã bỏ — hoàn tác' if r.decision == 'drop' else 'Bỏ video' }}</button>
+      </div>
+      {% if r.decision == 'drop' %}
+      <form hx-post="/videos/{{ v.id }}/review" hx-trigger="change" hx-target="body" class="flex items-center gap-3 text-[14px]">
+        <input type="hidden" name="field" value="reason"><span>Vì sao bỏ?</span>
+        <select name="value" class="select select-sm select-bordered">
+          {% for k, l in [("","— chọn —"),("hook","Hook yếu"),("voice","Giọng"),("visual","Hình"),("content","Nội dung"),("fact","Sai sự thật"),("other","Khác")] %}<option value="{{ k }}" {{ 'selected' if (r.reason or '') == k }}>{{ l }}</option>{% endfor %}
+        </select></form>
+      {% endif %}
+      <p class="m-0 text-[12px] text-muted">Đăng/Bỏ là quyết định chính (tính approve rate). Bốn ô điểm không bắt buộc.</p>
+    </section>
+
+    {% if r.decision == 'post' %}
+    <section class="card-x p-4 flex flex-col gap-3 max-w-[640px]">
+      <p class="eyebrow m-0">Số TikTok sau 72 giờ</p>
+      <form hx-post="/videos/{{ v.id }}/metrics" hx-target="body" class="grid gap-2 sm:grid-cols-2">
+        <label class="flex flex-col gap-1 text-[12.5px] sm:col-span-2">Link TikTok<input name="tiktok_url" value="{{ r.tiktok_url or '' }}" placeholder="https://www.tiktok.com/@…/video/…" class="input input-bordered input-sm"></label>
+        <label class="flex flex-col gap-1 text-[12.5px]">Lượt xem<input name="views" value="{{ r.views if r.views is not none }}" inputmode="numeric" class="input input-bordered input-sm num"></label>
+        <label class="flex flex-col gap-1 text-[12.5px]">Thời gian xem TB (giây)<input name="avg_watch" value="{{ r.avg_watch if r.avg_watch is not none }}" inputmode="decimal" class="input input-bordered input-sm num"></label>
+        <label class="flex flex-col gap-1 text-[12.5px]">Xem hết video (%)<input name="full_pct" value="{{ r.full_pct if r.full_pct is not none }}" inputmode="decimal" class="input input-bordered input-sm num"></label>
+        <div class="flex items-end"><button class="btn btn-sm">Lưu số</button></div>
+      </form>
+      <p class="m-0 text-[12px] text-muted">TikTok Studio → Phân tích → Nội dung → chạm video. Số có thể trễ tới 24 giờ nên đợi đủ 72 giờ.</p>
+    </section>
+    {% endif %}
+
+    <section class="flex flex-col gap-3 max-w-[560px]">
+      <p class="eyebrow m-0">Dựng lại với giọng khác</p>
+      <form class="flex flex-wrap gap-2" hx-post="/videos/{{ v.id }}/revoice">
+        <select name="voice" class="select select-bordered flex-1 min-w-48">{% for x in voices if x.id != v.voice %}<option value="{{ x.id }}">{{ x.name }} — {{ x.description }}</option>{% endfor %}</select>
+        <button class="btn">Dựng lại (~8 phút)</button>
+      </form>
+      <p class="m-0 text-[12px] text-muted">Giữ nguyên kịch bản và hình, chỉ đọc lại giọng rồi dựng và kiểm tra lại.</p>
+    </section>
+
+    <details class="card-x p-4" {{ 'open' if (v.qc or {}).get('status') != 'pass' }}>
+      <summary class="cursor-pointer font-medium">Kiểm tra tự động · <span class="{{ 'text-success' if (v.qc or {}).get('status') == 'pass' else 'text-warning' }}">{{ 'Đạt' if (v.qc or {}).get('status') == 'pass' else 'Có cảnh báo' }}</span></summary>
+      {% set qc = v.qc or {} %}
+      <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div class="rounded-field border border-base-300 p-3"><b class="num">{{ (qc.t1 or {}).get('passed', '–') }}/{{ (qc.t1 or {}).get('total', '–') }}</b><small class="block text-muted text-[11.5px]">Kỹ thuật</small></div>
+        <div class="rounded-field border border-base-300 p-3"><b class="num">{{ '%.1f'|format(qc.t3_total) if qc.t3_total is not none else '–' }}</b><small class="block text-muted text-[11.5px]">Sức hút /10</small></div>
+        <div class="rounded-field border border-base-300 p-3"><b class="num">{{ (qc.t4 or {}).get('claims', '–') }} · {{ (qc.t4 or {}).get('contradicted', 0) }} sai</b><small class="block text-muted text-[11.5px]">Sự thật</small></div>
+        <div class="rounded-field border border-base-300 p-3"><b class="num">{{ qc.rounds if qc.rounds is not none else '–' }}</b><small class="block text-muted text-[11.5px]">Vòng sửa</small></div>
+      </div>
+      {% if qc.remaining %}<ul class="mt-3 text-[13px] text-warning list-disc pl-5">{% for x in qc.remaining %}<li>{{ x.tier|upper }}: {{ x.what }}</li>{% endfor %}</ul>{% endif %}
+      {% if v.claims %}
+      <div class="mt-4 flex flex-col gap-2.5 text-[13px]">
+        {% for c in v.claims %}
+        <div class="border-l-2 {{ 'border-success' if c.verdict == 'supported' else 'border-error' if c.verdict == 'contradicted' else 'border-base-300' }} pl-3">
+          <span>{{ c.claim }}</span>
+          {% if c.url %}<a href="{{ c.url }}" target="_blank" rel="noopener" class="block text-muted text-[12px] link link-hover break-all" hx-boost="false">{{ c.url }}</a>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </details>
+
+    <details class="card-x p-4">
+      <summary class="cursor-pointer font-medium">Lời đọc</summary>
+      <div class="mt-3 flex flex-col gap-1.5 max-w-[70ch] text-[14.5px]">{% for l in v.lines if l %}<p class="m-0 {{ 'font-display text-[18px]' if loop.first }}">{{ l }}</p>{% endfor %}</div>
+    </details>
+  </div>
+</div>
+
+<!-- thanh hành động dính đáy trên điện thoại -->
+<div class="lg:hidden fixed inset-x-0 z-20 flex gap-2 px-4 py-2.5 border-t border-base-300 bg-base-100/95 backdrop-blur" style="bottom: calc(56px + env(safe-area-inset-bottom, 0px))">
+  <a href="/v/{{ v.id }}/download" class="btn btn-primary flex-1" hx-boost="false">Tải</a>
+  <button class="btn flex-1" onclick="copyText({{ (v.caption ~ '\n\n' ~ ('#' ~ v.hashtags|join(' #')))|tojson|forceescape }})">Copy</button>
+  <button class="btn flex-1" onclick="shareVideo('/v/{{ v.id }}/video.mp4', {{ (v.title ~ '.mp4')|tojson|forceescape }})">Chia sẻ</button>
+</div>
+{% endblock %}

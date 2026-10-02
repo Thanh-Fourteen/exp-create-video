@@ -1,0 +1,13 @@
+{# Viên tiến độ toàn cục + trạng thái máy — poll 6s, dừng khi tab ẩn #}
+{% if request.query_params.get('compact') %}
+  <a href="/queue" class="flex items-center gap-2 text-muted">
+    <span class="inline-block w-2 h-2 rounded-full {{ 'bg-secondary animate-pulse' if running else 'bg-success' }}"></span>
+    {{ 'Đang dựng' if running else 'Máy rảnh' }}</a>
+{% else %}
+  <a href="/queue" class="flex items-center gap-2 text-[12.5px] text-muted mb-2">
+    <span class="inline-block w-2 h-2 rounded-full {{ 'bg-secondary animate-pulse' if running else 'bg-success' }}"></span>
+    {{ 'Đang dựng 1 video' if running else 'Máy rảnh' }}</a>
+  <div class="num text-[11.5px] text-muted leading-relaxed">
+    {% if m.gpu_total_mib %}GPU {{ '%.1f'|format(m.gpu_used_mib/1024) }}/{{ '%.0f'|format(m.gpu_total_mib/1024) }} GB · {% endif %}RAM {{ m.ram_used_gb }}/{{ m.ram_total_gb|int }} GB
+  </div>
+{% endif %}

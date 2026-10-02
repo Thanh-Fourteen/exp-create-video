@@ -149,3 +149,61 @@ htmx.org · daisyui.com · tailwindcss.com/blog/standalone-cli · web.dev/articl
 developer.mozilla.org/…/Navigator/share · nngroup.com/articles/progress-indicators ·
 developers.tiktok.com/doc/content-posting-api-reference-direct-post · …-upload-video ·
 opus.pro/pricing · submagic.co/pricing · pictory.ai · capcut.com/resource/script-to-video-ai · vizard.ai
+
+---
+
+## 8. Sửa hướng 2026-10-02 (tối) — website responsive, KHÔNG app điện thoại
+
+**Tony:** *"không cần app điện thoại, 1 web site thao tác được bằng màn hình điện thoại và màn hình laptop là tốt
+rồi"* · *"font web thanh lịch, sáng tạo, sang trọng"*. Research lại (paper-scout + đo font thật):
+
+| Quyết định mới | Thay cho | Nguồn |
+|---|---|---|
+| **Bỏ PWA, manifest, service worker, Web Push** | §1 hàng "Báo xong", §3.2 #9, W4 cũ | Tony; `new Notification()` ném TypeError trên gần mọi trình duyệt mobile → muốn báo khi tab đóng phải có SW + push = gần như app (MDN, V) |
+| Báo xong: **Telegram bot** (`sendMessage` + link; video < 50MB gửi thẳng) · trong tab: SSE + đổi `document.title` "(1) …" + toast | Web Push | core.telegram.org (V); htmx SSE ext 2.2.4 tự reconnect (V) |
+| Điều hướng: **≥1024px thanh menu trái** (daisyUI `drawer lg:drawer-open`) · **<1024px thanh đáy 4 mục** | thanh đáy mọi kích thước | Android adaptive nav: compact → bar, rộng → rail (V, 2026-09-22); daisyUI drawer (V) |
+| Trang Tạo trên laptop **2 cột ~2/3 – 1/3** (form · đang chạy + thời gian ước tính) | 1 cột | Android canonical "supporting pane" ~67/33 (V) |
+| Thư viện: lưới `repeat(auto-fill, minmax(180px,1fr))` 9:16 · **≥1280px chi tiết ở khung phải** (list–detail, `hx-push-url`) · nhỏ hơn: chi tiết là **trang riêng** (không bottom sheet) | bottom sheet | Android list-detail (V); NN/g bottom sheet chỉ cho tác vụ ngắn (V) |
+| Chạm ≥ 44px cho mọi nút · reflow 320px không cuộn ngang · focus không bị thanh dính che | | WCAG 2.2 2.5.5/2.5.8/1.4.10/2.4.11 (V) |
+| HTTPS bắt buộc (clipboard, share): `http://100.x` KHÔNG phải secure context → giữ `tailscale serve` | | MDN Secure Contexts, Clipboard (V) |
+| Font tiêu đề **Noto Serif Display** + chữ thân **Be Vietnam Pro** + số **JetBrains Mono**; poster dùng Anton (khớp video) | Anton/Be Vietnam Pro | đo subset `vietnamese` qua Google Fonts CSS API + render chữ có dấu (V, 2026-10-02): Cormorant Garamond lệch dấu "gì", Prata không có italic thật, Bodoni Moda/Instrument Serif/Cinzel/Gloock/DM Serif Display **không có tiếng Việt** |
+| Màu: than ấm `#0F0F11` · ngà `#EEEAE3` · vàng champagne `#C9A86A` (accent) · teal video `#4DE1C1` chỉ cho "đang dựng" | dark + teal | Tony "sang trọng" |
+
+Mockup bấm thử (v2): `web/design/mockup.html` · bản xem trên claude.ai (riêng tư). Chụp kiểm 1440px + 400px, 0 lỗi JS.
+
+**Tông màu — Tony 2026-10-02 (tối): "tone màu web xanh dương"** → thay than + champagne: nền xanh nửa đêm `#0A1020` ·
+thẻ `#111A2E` · viền `#22304D` · chữ `#E8EDF7` · phụ `#93A0BA` · nhấn **sapphire `#7FA6FF`** · "đang dựng" xanh băng
+`#62D6F5` · cảnh báo `#F07A6A` · đạt `#86D3A8`. Poster thumbnail giữ màu của chính video (teal `#4DE1C1`). Mockup v3.
+
+## 9. Bố trí layout — research 2026-10-02 (Tony: "research cách sắp xếp bố trí layout cho web")
+
+Paper-scout 27 nguồn (NN/g, Apple HIG, Android adaptive, Refactoring UI, Baymard, Hoober/Smashing, help/docs của
+Runway, Midjourney, Krea, Luma, ElevenLabs, Suno, OpusClip). **V** verified · **R** reported · **O** quan sát.
+
+| Nguyên tắc | Áp vào | Nguồn |
+|---|---|---|
+| Thứ quan trọng nhất ở đỉnh + cạnh trái; tối đa 3 cỡ chữ; squint test | ô chủ đề + nút Tạo ở màn hình đầu | Apple HIG Layout (V 2026-09), NN/g visual hierarchy (V) |
+| Đọc lướt theo heading (layer-cake), phía phải dễ bị bỏ qua | thông tin phụ (đang chạy, gần đây) ở cột phải; mỗi khối có tiêu đề rõ | NN/g (V) |
+| ≤ 2 tầng ẩn/hiện | "Tuỳ chỉnh" (độ dài, duyệt kịch bản, thêm giọng) gói 1 tầng | NN/g progressive disclosure (V) |
+| Nhiều khoảng trắng = sang; không cần lấp kín màn hình; dày đặc có chủ ý ở trang số liệu | max-width nội dung, hàng đợi/QC dày hơn | Refactoring UI (V) |
+| Dòng chữ 50–75 ký tự | Cài đặt + đoạn kịch bản `max-w-[70ch]` | Baymard (V) |
+| Chờ > 10s: thanh tiến độ có %/bước, không spinner; 2–10s: skeleton | stepper 8 bước + % + ETA | NN/g skeleton (V) |
+| Trạng thái rỗng: báo trạng thái + dạy + nút đi thẳng tới việc | Thư viện/Hàng đợi rỗng có nút "Tạo video" | NN/g empty states (V) |
+| ≤ 4–5 mục: hiện thẳng, không hamburger | thanh đáy 4 mục trên điện thoại | NN/g hamburger (V) |
+| Chạm chính xác nhất ở giữa; nút chính dính đáy nhưng KHÔNG full-width, chừa safe-area | nút Tạo dính đáy dạng viên | Hoober 2014 (V), Baymard sticky CTA (V), Smashing bottom nav (V) |
+| Tool tạo nội dung: ô nhập trên, kết quả/gần đây dưới hoặc bên (Midjourney, Canva, CapCut); 2 pane điều khiển + kết quả (Krea, Kling) | Tạo = 2 pane trên laptop | O / R |
+| Tiến độ job luôn thấy ở sidebar | "viên tiến độ" toàn cục | OpusClip changelog (V) |
+| Giọng: thẻ có nút ▶, nghe ngay trên thẻ | thẻ giọng | ElevenLabs Voice Library (V) |
+| Thư viện: feed lưới co giãn (min ~180dp) + list–detail; chi tiết = supporting pane ~70/30, compact → trang riêng | Thư viện + Chi tiết video | Android canonical layouts (V) |
+
+**Bố trí chốt (A, dựa trên bảng trên):**
+
+| Trang | Laptop (≥1024px) | Điện thoại |
+|---|---|---|
+| Khung | menu trái có nhãn + viên tiến độ ở chân menu; nội dung `max-w ~1240px` | thanh trên (logo + viên tiến độ) + thanh đáy 4 mục |
+| Tạo | trái ~65%: tiêu đề serif · ô chủ đề · gợi ý trend (6 thẻ) · giọng (4 thẻ + "thêm giọng") · Tuỳ chỉnh · nút Tạo — phải ~35%: đang chạy · 3 video gần đây | 1 cột, nút Tạo dính đáy dạng viên |
+| Hàng đợi | danh sách job trái · chi tiết job phải (bước, kịch bản chờ duyệt + Duyệt/Viết lại/Huỷ) | danh sách; chạm → trang chi tiết job |
+| Thư viện | thanh lọc + tìm · lưới 9:16 `minmax(170px,1fr)` · rỗng có nút Tạo | lưới 2 cột |
+| Chi tiết video | player 9:16 trái (~380px) · phải: tiêu đề, Tải/Chia sẻ, caption + Copy, chấm điểm, Đăng/Bỏ/Đổi giọng, QC + nguồn thu gọn | player trên · thanh Tải/Copy/Chia sẻ dính đáy · QC trong accordion |
+| Cài đặt | 1 cột ~70ch, thanh ngang GPU/RAM/ổ | như laptop |
+| Phím tắt | `/` focus ô chủ đề · `g q` / `g l` sang Hàng đợi / Thư viện | — |

@@ -1,0 +1,79 @@
+/* Xưởng video — CSS nguồn (Tailwind v4 standalone + daisyUI 5, không Node). Build: scripts/setup_web.sh
+   Phong cách: thanh lịch · sáng tạo · sang trọng · tông xanh dương (Tony 2026-10-02). research/12-web-app.md §8 */
+@import "tailwindcss" source(none);
+@source "../src/create_video/web/templates";
+@plugin "./tools/daisyui.mjs" { themes: false; }
+@plugin "./tools/daisyui-theme.mjs" {
+  name: "xuong";
+  default: true;
+  color-scheme: dark;
+  --color-base-100: #0A1020;      /* xanh nửa đêm */
+  --color-base-200: #111A2E;      /* mặt thẻ */
+  --color-base-300: #22304D;      /* viền xanh thép */
+  --color-base-content: #E8EDF7;
+  --color-primary: #7FA6FF;       /* sapphire sáng */
+  --color-primary-content: #08142E;
+  --color-secondary: #62D6F5;     /* xanh băng — "đang dựng" */
+  --color-secondary-content: #04202A;
+  --color-accent: #C9D7FF;
+  --color-accent-content: #08142E;
+  --color-neutral: #1A2440;
+  --color-neutral-content: #E8EDF7;
+  --color-info: #62D6F5;
+  --color-info-content: #04202A;
+  --color-success: #86D3A8;
+  --color-success-content: #062012;
+  --color-warning: #F2C46B;
+  --color-warning-content: #241800;
+  --color-error: #F07A6A;
+  --color-error-content: #2A0704;
+  --radius-selector: 0.625rem;
+  --radius-field: 0.625rem;
+  --radius-box: 0.875rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+}
+
+@theme {
+  --font-display: "Noto Serif Display", "Playfair Display", Georgia, serif;
+  --font-sans: "Be Vietnam Pro", system-ui, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-poster: "Anton", Impact, "Arial Narrow", sans-serif;
+  --color-muted: #93A0BA;
+  --color-poster: #4DE1C1;        /* màu chữ số của chính video */
+}
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  body { @apply bg-base-100 text-base-content font-sans antialiased; font-size: 15px; line-height: 1.55; }
+  h1, h2, h3 { @apply font-display font-normal; text-wrap: balance; }
+  :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+}
+
+@layer components {
+  .eyebrow { @apply text-[11.5px] font-semibold uppercase tracking-[0.16em] text-muted; }
+  .num { @apply font-mono; font-variant-numeric: tabular-nums; }
+  .card-x { @apply rounded-box border border-base-300 bg-base-200; }
+  .hairline { @apply border-base-300; }
+  /* poster thumbnail dựng bằng CSS khi chưa có ảnh */
+  .poster { container-type: inline-size; aspect-ratio: 9 / 16; }
+  .h-italic { font-style: italic; color: var(--color-primary); }
+  /* nền sáng tạo nhẹ: vệt sáng sapphire trôi rất chậm ở góc — một điểm nhấn duy nhất */
+  .aurora { position: relative; isolation: isolate; }
+  .aurora::before {
+    content: ""; position: absolute; inset: -20% -10% auto auto; width: 60%; height: 60%; z-index: -1;
+    background: radial-gradient(closest-side, color-mix(in oklab, var(--color-primary) 16%, transparent), transparent);
+    filter: blur(20px); animation: drift 24s ease-in-out infinite alternate; pointer-events: none;
+  }
+  @keyframes drift { to { transform: translate(-12%, 10%) scale(1.1); } }
+  .steps8 { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+  .steps8 > i { height: 4px; border-radius: 2px; background: var(--color-base-300); }
+  .steps8 > i.done { background: var(--color-secondary); }
+  .steps8 > i.running { background: linear-gradient(90deg, var(--color-secondary) 45%, var(--color-base-300) 0);
+    background-size: 200% 100%; animation: run 1.6s linear infinite; }
+  .steps8 > i.failed { background: var(--color-error); }
+  .steps8 > i.skipped { background: transparent; border: 1px dashed var(--color-base-300); }
+  @keyframes run { from { background-position: 100% 0; } to { background-position: 0 0; } }
+}
