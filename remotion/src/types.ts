@@ -19,15 +19,50 @@ export interface FrameState {
   y_pct?: number;
 }
 
+/** P3b.S4 — shot "bằng chứng" vẽ từ dữ liệu. Chữ số ở đây do code vẽ. */
+export interface StatData {
+  value: number;
+  decimals?: number;
+  prefix?: string;
+  unit?: string;
+  label: string;
+}
+
+export interface ChartData {
+  title: string;
+  unit?: string;
+  bars: { label: string; value: number; highlight?: boolean }[];
+}
+
+export interface CodeToken {
+  t: "kw" | "str" | "num" | "com" | "fn" | "op" | "bi" | "txt";
+  v: string;
+}
+
+export interface CodeData {
+  lang: "python" | "bash" | "typescript" | "javascript" | "json" | "yaml" | "text";
+  title?: string;
+  lines: string[];
+  /** Python (Pygments) sinh; mỗi dòng một dãy token. Thiếu thì vẽ trơn. */
+  tokens?: CodeToken[][];
+}
+
+export type AssetKind = "image" | "video" | "color" | "stat" | "chart" | "screenshot" | "code";
+
 export interface Shot {
   id: string;
   start_sec: number;
   end_sec: number;
   asset: {
-    kind: "image" | "video" | "color";
-    path: string;
+    kind: AssetKind;
+    /** Có với image/video/color/screenshot; KHÔNG có với stat/chart/code. */
+    path?: string;
     alt?: string;
     depth_path?: string;
+    source_url?: string;
+    stat?: StatData;
+    chart?: ChartData;
+    code?: CodeData;
   };
   motion?: {
     type: "none" | "ken_burns" | "parallax";
@@ -49,6 +84,18 @@ export interface CaptionWord {
   w: string;
   start: number;
   end: number;
+  /** P3b.S5: từ cần nhấn (con số, tên model) — đổi màu. */
+  emph?: boolean;
+}
+
+/** P3b.S5: một cụm 1-3 từ; `from`/`to` là chỉ số trong `words` (to không gồm). */
+export interface CaptionChunk {
+  start_sec: number;
+  end_sec: number;
+  from: number;
+  to: number;
+  /** Hệ số thu chữ riêng cụm này cho vừa một dòng (Python đo bằng file font). */
+  fit?: number;
 }
 
 export interface Caption {
@@ -56,7 +103,10 @@ export interface Caption {
   end_sec: number;
   text: string;
   style?: "caption" | "hook";
+  /** Phase V3: chữ tiêu đề frame 0 (≤ 7 từ) khác lời đọc. */
+  display_text?: string;
   words: CaptionWord[];
+  chunks?: CaptionChunk[];
 }
 
 /** Overlay có thời gian riêng (schema 1.1) — hiện đúng lúc câu chứa nó được đọc. */
@@ -72,6 +122,7 @@ export interface TextStyle {
   font: string;
   weight?: number;
   size_px: number;
+  chunk_size_px?: number;
   stroke_px?: number;
   color: Hex;
   highlight_color?: Hex;

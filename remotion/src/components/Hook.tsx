@@ -15,7 +15,9 @@ export const Hook: React.FC<{
   style: TextStyle;
   safe: VideoSpec["style"]["safe_area_pct"];
   accent: string;
-}> = ({ text, style, safe, accent }) => {
+  /** Nền là thẻ bằng chứng (đã tối) → bỏ dải gradient: nó làm phẳng lưới nền thành "viền đen" (T1). */
+  plain?: boolean;
+}> = ({ text, style, safe, accent, plain = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -30,12 +32,14 @@ export const Hook: React.FC<{
     <AbsoluteFill>
       {/* Dải tối phía trên: ảnh SDXL thường sáng/rối đúng vùng chữ hook, viền đen
           8px không đủ cứu. Gradient chứ không phải khối đặc để không thành "banner". */}
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 32%, rgba(0,0,0,0) 52%)",
-        }}
-      />
+      {plain ? null : (
+        <AbsoluteFill
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 32%, rgba(0,0,0,0) 52%)",
+          }}
+        />
+      )}
       <AbsoluteFill
         style={{
           alignItems: "center",

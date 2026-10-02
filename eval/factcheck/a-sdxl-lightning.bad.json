@@ -1,0 +1,35 @@
+{
+  "topic": "SDXL-Lightning trên card sáu GB",
+  "hook": "Google distill SDXL thành model sinh ảnh chỉ cần bốn step.",
+  "sections": [
+    "Paper SDXL-Lightning lên arXiv tháng sáu năm hai nghìn không trăm hai mươi ba.",
+    "Model distill từ stable-diffusion-xl-base-1.0 của Stability AI.",
+    "Họ phát hành cả bản LoRA lẫn bản full UNet.",
+    "License của model là MIT, dùng thoải mái.",
+    "Tôi chạy trên RTX 2060, VRAM đỉnh khoảng một phẩy năm GB.",
+    "Mỗi ảnh mất trung bình ba giây.",
+    "Nhìn ảnh ra, khó tin đây chỉ là bốn step."
+  ],
+  "cta": "Lưu video này lại, lần sau chọn model mở ra xem.",
+  "sources": [
+    {
+      "claim": "nguồn",
+      "url": "https://huggingface.co/ByteDance/SDXL-Lightning"
+    },
+    {
+      "claim": "nguồn",
+      "url": "https://arxiv.org/abs/2402.13929"
+    },
+    {
+      "claim": "nguồn",
+      "url": "research/probes/p3s3-sdxl.md"
+    }
+  ],
+  "seeded": [
+    0,
+    1,
+    4,
+    5,
+    6
+  ]
+}

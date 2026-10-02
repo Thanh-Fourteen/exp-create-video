@@ -275,18 +275,29 @@ def check_caption_geometry(spec: dict) -> Check:
             safe["top"] + 10.0 if style.get("position") == "top" else 42.0
         )
 
-        path = _font_file(style["font"])
-        if path:
-            from PIL import ImageFont
-
-            n_lines = _wrap_lines(c["text"].split(), ImageFont.truetype(path, size), box_w)
+        # P3b.S5: caption có `chunks` được vẽ TỪNG CỤM ở `chunk_size_px`, line-height
+        # 1,12 (ChunkCaption) — đo đúng thứ được vẽ, không đo cả câu.
+        if c.get("chunks") and c.get("style") != "hook":
+            size = style.get("chunk_size_px") or round(style["size_px"] * 1.35)
+            texts = [(" ".join(w["w"] for w in c["words"][k["from"]:k["to"]]), round(size * k.get("fit", 1)))
+                     for k in c["chunks"]]
+            lh = 1.12
         else:
-            measured = False
-            n_lines = max(1, math.ceil(len(c["text"]) * size * 0.52 / box_w))
+            texts, lh = [(c["text"], size)], 1.22
 
-        bottom = h * top_pct / 100 + n_lines * size * 1.22
-        if worst is None or bottom > worst[0]:
-            worst = (bottom, c["text"][:40], n_lines)
+        path = _font_file(style["font"])
+        for text, sz in texts:
+            if path:
+                from PIL import ImageFont
+
+                n_lines = _wrap_lines(text.split(), ImageFont.truetype(path, sz), box_w)
+            else:
+                measured = False
+                n_lines = max(1, math.ceil(len(text) * sz * 0.52 / box_w))
+
+            bottom = h * top_pct / 100 + n_lines * sz * lh
+            if worst is None or bottom > worst[0]:
+                worst = (bottom, text[:40], n_lines)
 
     if worst is None:
         return Check("vùng an toàn (hình học)", False, "không có caption nào")
@@ -480,6 +491,66 @@ def check_frame_edges_and_motion(mp4: Path, spec: dict | None, th: dict) -> list
 
 # ── chạy cả cổng ────────────────────────────────────────────────────────────
 
+def check_music_balance(mp4: Path, th: dict) -> Check | None:
+    """Nhạc nền nằm dưới giọng bao nhiêu dB — đọc `audio/mix.json` cạnh mp4 (sound/design.py).
+    Không có mix (video không nhạc) → không kiểm. Thêm 2026-10-02, ngưỡng ở thresholds.yaml."""
+    p = Path(mp4).parent / "audio" / "mix.json"
+    lim = th["audio"].get("music_under_voice_db")
+    if not p.exists() or not lim:
+        return None
+    d = json.loads(p.read_text(encoding="utf-8"))
+    v = d.get("music_under_voice_db")
+    if v is None:
+        return None
+    lo, hi = lim
+    return Check("nhạc/giọng", lo <= v <= hi,
+                 f"nhạc dưới giọng {-v:.1f} dB (cho phép {-hi}–{-lo} dB; > {-lo} dB là gần như không nghe thấy)")
+
+
+def retention_proxies(spec: dict, th: dict | None = None) -> list[Check]:
+    """Phase V5 (2026-10-02): proxy giữ chân bằng CODE — CHỈ CẢNH BÁO, không chặn.
+
+    Ngưỡng ở `thresholds.yaml: t1_retention_warn`, viết 2026-10-02 trước khi có video đăng nào
+    (research/11 §8.4). Thành chặn chỉ khi 20 video cho thấy tương quan với retention/approve.
+    """
+    import re
+
+    th = (th or _thresholds()).get("t1_retention_warn", {})
+    out: list[Check] = []
+    caps = spec.get("captions") or []
+    hook = caps[0] if caps else {}
+    if hook.get("display_text"):
+        n = len(hook["display_text"].split())
+        out.append(Check("hook_text_words", n <= th.get("hook_text_max_words", 7),
+                         f"{n} từ trên frame 0: {hook['display_text']!r}"))
+    else:
+        out.append(Check("hook_text_words", False, "frame 0 dùng nguyên câu hook (không có hook_text)"))
+    words = hook.get("words") or []
+    info = [w for i, w in enumerate(words)
+            if w.get("emph") or re.search(r"\d", w["w"]) or (i > 0 and w["w"][:1].isupper())]
+    t_info = info[0]["start"] if info else None
+    lim = th.get("first_info_max_sec", 3.0)
+    out.append(Check("first_info_sec", t_info is not None and t_info <= lim,
+                     f"thông tin cụ thể đầu tiên ở {t_info:.2f}s" if t_info is not None
+                     else "hook không có số/tên riêng/từ nhấn"))
+    shots = spec.get("shots") or []
+    dur = spec.get("format", {}).get("duration_sec") or (shots[-1]["end_sec"] if shots else 0)
+    if shots and dur:
+        ai = sum(sh["end_sec"] - sh["start_sec"] for sh in shots if sh["asset"]["kind"] == "image")
+        share = ai / dur
+        out.append(Check("ai_image_share", share <= th.get("ai_image_max_share", 0.5),
+                         f"ảnh AI chiếm {share:.0%} thời lượng"))
+        out.append(Check("frame0_evidence", shots[0]["asset"]["kind"] != "image",
+                         f"frame 0 là {shots[0]['asset']['kind']}"))
+        longest = max(sh["end_sec"] - sh["start_sec"] for sh in shots)
+        out.append(Check("max_shot_sec", longest <= th.get("max_idea_sec", 12),
+                         f"shot dài nhất {longest:.1f}s"))
+    last = caps[-1]["text"] if caps else ""
+    bye = re.search(r"(tạm biệt|hẹn gặp lại|cảm ơn (các bạn )?đã xem)", last, re.I)
+    out.append(Check("cta_no_goodbye", not bye, f"câu cuối: {last[:60]!r}"))
+    return out
+
+
 def run(mp4: Path, spec: dict | None = None) -> list[Check]:
     th = _thresholds()
     info = _probe(mp4)
@@ -493,6 +564,9 @@ def run(mp4: Path, spec: dict | None = None) -> list[Check]:
         check_black_frames(mp4, th),
         check_loudness(mp4, th),
     ]
+    mb = check_music_balance(mp4, th)
+    if mb is not None:
+        checks.append(mb)
     checks += check_frame_edges_and_motion(mp4, spec, th)
     if spec is not None:
         checks += [

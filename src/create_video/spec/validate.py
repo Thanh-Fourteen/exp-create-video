@@ -25,6 +25,8 @@ SCHEMA_PATH = Path(__file__).with_name("schema.json")
 #  - EPS_SEC: 1 frame @30fps = 33ms; lấy 1/20 giây cho thoáng hơn một frame.
 #  - DRIFT_SEC: 120ms, đúng `t1_technical.captions.max_drift_ms` của thresholds.yaml.
 EPS_SEC = 0.05
+# Kind do Remotion vẽ từ dữ liệu trong spec (P3b.S4) — không có `path`.
+DATA_KINDS = frozenset({"stat", "chart", "code"})
 DRIFT_SEC = 0.120
 
 SUPPORTED_MAJOR = "1"
@@ -130,6 +132,10 @@ def _semantic_errors(spec: dict, root: Path, check_assets: bool) -> list[str]:
             v = asset["path"]
             if not (v.startswith("#") and len(v) == 7):
                 errs.append(f"/shots/{i}/asset/path: kind=color thì path phải là mã hex #RRGGBB, gặp {v!r}")
+        elif asset["kind"] in DATA_KINDS:
+            # stat/chart/code: Remotion vẽ từ dữ liệu, không có file để kiểm (P3b.S4).
+            if asset["kind"] == "chart" and not any(b.get("highlight") for b in asset["chart"]["bars"]):
+                errs.append(f"/shots/{i}/asset/chart: không cột nào highlight — người xem không biết nhìn vào đâu")
         elif check_assets:
             p = (root / asset["path"]).resolve()
             if not p.exists():
@@ -167,6 +173,21 @@ def _semantic_errors(spec: dict, root: Path, check_assets: bool) -> list[str]:
                     f"/captions/{i}/words/{len(words) - 1}/end: {words[-1]['end']:.3f}s muộn hơn "
                     f"end_sec của caption {c['end_sec']:.3f}s quá {DRIFT_SEC * 1000:.0f}ms"
                 )
+        # P3b.S5: cụm phải phủ KÍN mọi từ, đúng thứ tự, và liền nhau trong cửa sổ
+        # caption — hở là có lúc không có chữ, chồng là hai cụm nhấp nháy.
+        chunks = c.get("chunks") or []
+        if chunks:
+            if chunks[0]["from"] != 0 or chunks[-1]["to"] != len(words):
+                errs.append(f"/captions/{i}/chunks: không phủ đủ {len(words)} từ "
+                            f"({chunks[0]['from']}…{chunks[-1]['to']})")
+            for k, (a, b) in enumerate(zip(chunks, chunks[1:])):
+                if b["from"] != a["to"]:
+                    errs.append(f"/captions/{i}/chunks/{k + 1}: từ {a['to']}…{b['from']} bị hở/chồng")
+                if abs(b["start_sec"] - a["end_sec"]) > EPS_SEC:
+                    errs.append(f"/captions/{i}/chunks/{k + 1}: lệch thời gian {a['end_sec']}→{b['start_sec']}")
+            for k, ch in enumerate(chunks):
+                if not (ch["from"] < ch["to"] <= len(words)):
+                    errs.append(f"/captions/{i}/chunks/{k}: chỉ số {ch['from']}…{ch['to']} sai")
         joined = " ".join(w["w"] for w in words)
         if joined.split() != c["text"].split():
             errs.append(

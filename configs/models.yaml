@@ -10,6 +10,24 @@
 #   - TTS NC license : F5-vi, OmniVoice, viXTTS, VietTTS — kênh kiếm tiền không dùng được
 
 tts:
+  # Backend giọng (2026-10-02). `vieneu_local` = SDK VieNeu 3.8.3 chạy ONNX/CPU trong
+  # exp/venv-vieneu (voice/vieneu_local.py) — 25 giọng preset **Apache-2.0, cho phép nội dung
+  # kiếm tiền** (card HF 2026-09-23, đã tự đọc). `echo` = đường HTTP exp-echo cũ (SDK 3.2.4,
+  # giọng khai CC-BY-NC). Tony chê Thanh Bình 2026-10-02 → đổi giọng.
+  # Lý do + số đo 25 giọng: research/probes/giong-moi-2026-10-02.md
+  backend: vieneu_local
+  vieneu_local:
+    # Phase V1 (2026-10-02): GIỌNG CỦA TONY — clone từ mẫu có consent (data/voice/README.md).
+    # Mẫu chỉ ~4 kHz → mở rộng băng thông bằng LavaSR (Apache) cả ở mẫu lẫn ở output (`bwe`).
+    # Đo: research/probes/v1-giong-tony.md. Quay về preset: xoá `ref_audio` (và `bwe`), đặt `voice`.
+    voice: Tony (clone)
+    ref_audio: data/voice/tony-ref-bwe.wav
+    bwe:
+      cutoff: 3000
+    # Preset Apache dự phòng (Tony 2026-10-02: giọng mình không đạt → giọng free khác):
+    # Thiện Minh · Hải Đăng · Trúc Ly · Thùy Dung (out/demo-giong/, out/giong-tony/nghe-mu/)
+    seed: 7
+    license: Apache-2.0 (code + weights + 25 preset voices, SDK 3.8.3)
   # Service exp-echo (/mnt/data1tb/exp-echo), model VieNeu-TTS-v3-Turbo.
   # WER 3,3% [ViTTS-Bench, 2026-09] — ngang nhóm đầu trong các model dùng thương
   # mại được → chưa có lý do đổi model (research/08 §3).
@@ -62,10 +80,10 @@ depth:
   vram_peak_mib: 211             # đo thật
 
 vlm:
-  # Chấm ảnh (QC tầng 2, P4.S1 — code ở qc/t2_vlm.py, CHƯA nối vào pipeline,
-  # CHƯA có số đo thật). Chạy SAU khi visual đã nhả VRAM. vram_gb là ước lượng.
+  # Chấm ảnh (QC tầng 2, P4.S1 — qc/t2_vlm.py, P(Yes) từ 2026-10-02). Chạy SAU khi
+  # visual đã nhả VRAM. nf4 + compute fp16 (Turing không bf16), sdpa.
   model: Qwen/Qwen3-VL-2B-Instruct
-  vram_gb: 4                     # assumed — P4.S1 phải đo đỉnh thật
+  vram_gb: 1.8                   # ĐO 2026-10-02: đỉnh torch 1.760 MiB (ảnh 768px), research/probes/p4-s1.md
 
 agent:
   # Package là claude-agent-sdk, KHÔNG phải client.beta.messages.tool_runner

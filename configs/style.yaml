@@ -48,9 +48,30 @@ motion:
   # → camera trôi trong cảnh thay vì zoom phẳng. Tony: "ảnh chưa sinh động".
   parallax: true
   # 2026-08-14 chiều: trả về 3-8s sau khi Tony nghe demo-02 (nhịp 2-4s).
-  shot_duration_sec: [3, 8]      # đổi ý mỗi 5-8s theo rubric
+  # 2026-10-02: 3-8 → 2.5-5. Tony: "video chưa hấp dẫn". Lý do bác nhịp nhanh hồi 08-14 là
+  # GIỌNG đứt quãng (câu ngắn = nhiều mối ghép TTS) — đổi nhịp HÌNH không đụng tới câu/TTS.
+  # Research: tần suất cắt cảnh là top-3 yếu tố nhưng chữ U ngược (Xue et al. 2026-04) → vừa phải.
+  shot_duration_sec: [2.5, 5]
+
+captions:
+  # P3b.S5 (2026-10-01): phụ đề theo CỤM thay cả câu. Lý do từng số:
+  # research/probes/p3b-s5-research.md. `mode: sentence` để quay về cả câu.
+  mode: chunk
+  max_tokens: 3        # âm tiết mỗi cụm (tiếng Việt: 1 "từ" trong words = 1 âm tiết)
+  max_chars: 14        # vừa MỘT dòng Anton ở chunk_size_px trong hộp an toàn 842px
+  min_sec: 0.3         # bẫy của step: cụm ngắn đổi nhanh vượt 10 từ/s
+  gap_sec: 0.25        # lặng dài hơn → luôn cắt cụm
+  max_emph_tokens: 6   # không xé cụm nhấn ("sáu trăm hai mươi bốn MiB") — thu chữ thay vì cắt
+  chunk_size_px: 116   # to hơn caption cả câu (84) vì mỗi lúc chỉ 1-3 từ
 
 audio:
+  # Sound design (P3b.S6, 2026-10-02) — sound/design.py: nhạc + SFX tự tổng hợp, ducking theo giọng.
+  sound_design: true
+  music: true
+  # 2026-10-02: ace = ACE-Step 1.5 (MIT) chạy CPU ~85s/bài (p3b-s6-nhac.md) · synth = nhạc tổng hợp numpy.
+  # ACE lỗi thì tự lùi về synth.
+  music_source: ace
+  sfx: true
   voice_gain_db: 0
   music_gain_db: -18             # nhạc nền phải chìm hẳn dưới giọng đọc
   ducking: true

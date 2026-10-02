@@ -52,7 +52,7 @@ export const KenBurns: React.FC<{
   // `kind: "color"` — nền phẳng, dùng khi chưa có ảnh (khối visual tắt) hoặc khi
   // shot cố ý chỉ có chữ. Không có gì để zoom nên bỏ luôn transform.
   if (shot.asset.kind === "color" || !src) {
-    return <AbsoluteFill style={{ backgroundColor: shot.asset.kind === "color" ? shot.asset.path : bg }} />;
+    return <AbsoluteFill style={{ backgroundColor: shot.asset.kind === "color" ? shot.asset.path ?? bg : bg }} />;
   }
 
   if (shot.motion?.type === "parallax" && depthSrc && !glFailed && shot.asset.kind === "image") {

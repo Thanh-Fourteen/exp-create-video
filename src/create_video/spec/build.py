@@ -16,16 +16,17 @@ import shutil
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Sequence
+from typing import Collection, Mapping, Sequence
 
 import yaml
 
 from ..voice.base import TTSResult
 from ..voice.echo import LineSpan
 from .captions import map_line, split_spoken_by_lines
+from .chunks import add_chunks
 from .validate import REPO_ROOT, validate
 
-SPEC_VERSION = "1.1"
+SPEC_VERSION = "1.3"
 
 
 @dataclass
@@ -81,16 +82,24 @@ def _resolve_style() -> dict:
     }
 
 
-def _group_spans(spans: Sequence[LineSpan], lo: float = 3.0, hi: float = 8.0) -> list[list[int]]:
+def _group_spans(
+    spans: Sequence[LineSpan], lo: float = 3.0, hi: float = 8.0, breaks: Collection[int] = (),
+) -> list[list[int]]:
     """Gom câu thành nhóm 3–8 giây — mỗi nhóm sẽ thành một shot.
 
     Tách riêng khỏi `_plan_shots` vì pipeline cần biết TRƯỚC sẽ có bao nhiêu shot
     để sinh đúng bấy nhiêu ảnh. Hai nơi cùng đếm mà đếm khác nhau là lỗi âm thầm:
     thừa ảnh thì phí ~20 giây mỗi ảnh, thiếu ảnh thì shot cuối rơi về nền phẳng.
+
+    `breaks` (P3b.S4): câu BẮT BUỘC mở shot mới — câu có shot bằng chứng, để thẻ số
+    liệu hiện đúng lúc câu nói tới nó bắt đầu. Nhóm trước bị cắt dù chưa đủ `lo`.
     """
     groups: list[list[int]] = []
     cur: list[int] = []
     for i, sp in enumerate(spans):
+        if i in breaks and cur:
+            groups.append(cur)
+            cur = []
         cur.append(i)
         if spans[cur[-1]].end - spans[cur[0]].start >= lo:
             groups.append(cur)
@@ -98,7 +107,7 @@ def _group_spans(spans: Sequence[LineSpan], lo: float = 3.0, hi: float = 8.0) ->
     if cur:
         # Đuôi ngắn thì nhập vào shot trước — thà một shot dài hơn hi một chút
         # còn hơn một shot 0,8 giây nhấp qua.
-        if groups and spans[cur[-1]].end - spans[groups[-1][0]].start <= hi + 2:
+        if groups and cur[0] not in breaks and spans[cur[-1]].end - spans[groups[-1][0]].start <= hi + 2:
             groups[-1].extend(cur)
         else:
             groups.append(cur)
@@ -171,6 +180,9 @@ def _plan_shots(
     bg: str,
     motion_offset: int = 0,
     depths: Sequence[Path] = (),
+    breaks: Collection[int] = (),
+    evidence: Mapping[int, dict] | None = None,
+    alts: Sequence[str] = (),
 ) -> list[dict]:
     """Gom câu thành shot, mỗi shot 3–8 giây, phủ kín [0, total].
 
@@ -178,8 +190,9 @@ def _plan_shots(
     rubric ("đổi ý mỗi 5–8s"). Ngắn hơn thành nhấp nháy, dài hơn thành tĩnh.
     """
     lo, hi = style["motion"]["shot_duration_sec"]
+    evidence = evidence or {}
 
-    groups: list[list[int]] = _group_spans(spans, lo, hi)
+    groups: list[list[int]] = _group_spans(spans, lo, hi, breaks)
     zoom_lo, zoom_hi = style["motion"]["ken_burns"]["zoom_range"]
     offset = motion_offset
     shots: list[dict] = []
@@ -187,15 +200,27 @@ def _plan_shots(
         start = 0.0 if k == 0 else round(spans[g[0]].start, 3)
         end = round(total_sec, 3) if k == len(groups) - 1 else round(spans[groups[k + 1][0]].start, 3)
 
-        img = images[k] if k < len(images) else None
-        asset = (
-            {"kind": "image", "path": f"img/{img.name}"}
-            if img is not None
-            else {"kind": "color", "path": bg}
-        )
+        # Shot bằng chứng (P3b.S4) lấy asset dựng sẵn; ảnh/depth chỉ phát cho shot
+        # còn lại, theo thứ tự — `images` chỉ chứa ảnh cho các nhóm KHÔNG phải bằng chứng.
+        ev = evidence.get(k)
+        n_img = k - sum(1 for j in evidence if j < k)
+        img = None if ev else (images[n_img] if n_img < len(images) else None)
+        if ev:
+            asset = dict(ev)
+        else:
+            asset = (
+                {"kind": "image", "path": f"img/{img.name}"}
+                if img is not None
+                else {"kind": "color", "path": bg}
+            )
+            # Prompt đã sinh ra ảnh — T2 (P4.S1) cần để đề xuất sửa và render lại đúng shot.
+            if img is not None and n_img < len(alts) and alts[n_img]:
+                asset["alt"] = alts[n_img]
 
-        dep = depths[k] if k < len(depths) else None
-        if img is not None and dep is not None:
+        dep = None if ev else (depths[n_img] if n_img < len(depths) else None)
+        if ev:
+            motion = {"type": "none"}  # thẻ bằng chứng tự chuyển động trong Remotion
+        elif img is not None and dep is not None:
             asset["depth_path"] = f"depth/{dep.name}"
             motion = _parallax_preset(k + offset)
         elif img is not None:
@@ -232,6 +257,9 @@ def build(
     spans: Sequence[LineSpan],
     images: Sequence[Path] = (),
     depths: Sequence[Path] = (),
+    breaks: Collection[int] = (),
+    evidence: Mapping[int, dict] | None = None,
+    alts: Sequence[str] = (),
     out_dir: Path | None = None,
     sources: Sequence[dict] = (),
     music: Path | None = None,
@@ -240,6 +268,8 @@ def build(
     caption: str = "",
     hashtags: Sequence[str] = (),
     keywords: Sequence[str] = (),
+    emphasis: Sequence[str] = (),
+    hook_text: str = "",
 ) -> tuple[dict, Path]:
     """Trả `(spec, đường tới video-spec.json)`. Đã validate — ném SpecError nếu sai."""
     if len(lines) != len(spans):
@@ -301,11 +331,31 @@ def build(
             mid = round((a["end_sec"] + b["start_sec"]) / 2, 3)
             a["end_sec"], b["start_sec"] = mid, mid
     captions[0]["start_sec"] = max(0.0, captions[0]["start_sec"])
+    # Phase V3: chữ tiêu đề frame 0 khác lời đọc (research/11 §4.1 — chữ > hình > lời).
+    if hook_text.strip() and captions[0].get("style") == "hook":
+        captions[0]["display_text"] = hook_text.strip()
+
+    # Cắt ở giữa vẫn hỏng khi aligner đặt nhầm cả một TỪ sang câu kia: 2026-10-01
+    # (`out/p3b-s4-demo`) từ đầu câu 6 "ảnh" bị đặt ở 22,00s, dài 0s, lọt giữa câu 5
+    # (câu 6 thật bắt đầu 23,54s). Điểm cắt rơi sau nó → validator chặn đúng.
+    # Kẹp từ lạc về mép cửa sổ caption của chính nó: karaoke tô từ đó ngay khi câu
+    # hiện ra thay vì sai câu. In ra số từ bị kẹp — đây là lỗi aligner, không giấu.
+    clamped = 0
+    for c in captions:
+        for w in c["words"]:
+            s = min(max(w["start"], c["start_sec"]), c["end_sec"])
+            e = min(max(w["end"], s), c["end_sec"])
+            if (s, e) != (w["start"], w["end"]):
+                clamped += 1
+                w["start"], w["end"] = round(s, 3), round(e, 3)
+    if clamped:
+        print(f"  ⚠ aligner đặt {clamped} từ ra ngoài câu của nó — đã kẹp về mép caption", flush=True)
 
     duration = round(tts.duration_sec, 3)
     # Lệch điểm bắt đầu vòng chuyển động theo id: các video không mở cùng một kiểu.
     offset = sum(video_id.encode("utf-8")) % 4
-    shots = _plan_shots(spans, duration, img_dst, style_cfg, style["palette"]["bg"], offset, dep_dst)
+    shots = _plan_shots(spans, duration, img_dst, style_cfg, style["palette"]["bg"], offset, dep_dst,
+                        breaks=breaks, evidence=evidence, alts=alts)
 
     overlays = _timed_overlays(lines, spans, duration)
 
@@ -335,7 +385,13 @@ def build(
             "id": video_id,
             "topic": topic,
             "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "sources": list(sources),
+            # Chỉ giữ trường spec nhận: script.json cũ có thể mang thêm trường do LLM tự
+            # thêm ("note") và validator chặn cả video vì một trường chú thích.
+            "sources": [
+                {k: src[k] for k in ("claim", "url", "confidence")
+                 if src.get(k) is not None and (k != "confidence" or src[k] in ("verified", "reported", "assumed"))}
+                for src in sources if src.get("claim") and src.get("url")
+            ],
             **({"script_ref": script_ref} if script_ref else {}),
             "qc_round": qc_round,
             **({"caption": caption} if caption else {}),
@@ -354,6 +410,11 @@ def build(
         "audio": audio,
         "style": style,
     }
+
+    # P3b.S5: phụ đề theo cụm + nhấn từ khoá. Cùng hàm với `spec.upgrade` (spec cũ).
+    cap_cfg = style_cfg.get("captions", {})
+    if cap_cfg.get("mode", "chunk") == "chunk":
+        add_chunks(spec, cap_cfg, emphasis)
 
     validate(spec, root=out_dir)
 

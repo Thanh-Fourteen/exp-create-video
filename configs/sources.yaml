@@ -1,51 +1,58 @@
-# Nguồn trend cho agent trend-scout.
+# Nguồn trend cho vai trend scout (P5.S1). Viết lại 2026-10-02 — research/probes/p5-s1-research.md.
 #
-# KHÔNG có nguồn TikTok nào ở đây, và đó là chủ ý:
-#   - Research API của TikTok đã siết còn tổ chức học thuật
-#   - Creative Center CẤM harvest tự động trong ToS
-# Trend cần ở đây là trend LĨNH VỰC AI, không phải trend TikTok.
-# Nguồn dưới đây vừa hợp lệ vừa giàu hơn. Xem research/02-sources.md.
+# KHÔNG có TikTok (Research API chỉ học thuật, Creative Center cấm scrape), X API (trả tiền),
+# Reddit (phải xin duyệt, .json chặn từ 2026-05), Product Hunt (cấm thương mại), scrape
+# github.com/trending (Acceptable Use), OSS Insight (rỗng từ 2026-03). Trend ở đây là trend
+# LĨNH VỰC AI, không phải trend TikTok.
+#
+# `kind` = loại nguồn. "Có ≥ 2 nguồn KHÁC LOẠI" là tín hiệu trend thật (Xong khi P5.S1).
+# `weight` = w_kind trong điểm hot. Thấy top-10 dở thì ĐỔI TRỌNG SỐ, đừng thêm nguồn (todos Bẫy).
 
 sources:
-  - name: arxiv
-    kind: rss
-    url: http://export.arxiv.org/rss/cs.AI
-    also: [cs.CL, cs.CV]
-    weight: 0.8
-    note: nguồn gốc, đáng tin nhất — nhưng chậm hơn thực tế 6-18 tháng
+  - {name: hf_daily_papers, kind: paper,   weight: 1.0, url: "https://huggingface.co/api/daily_papers"}
+  - {name: arxiv,           kind: paper,   weight: 0.3, url: "https://export.arxiv.org/api/query",
+     cats: [cs.AI, cs.CL, cs.CV, cs.LG], max_results: 200,
+     note: "chỉ làm bằng chứng xác nhận cụm — ~500 bài/ngày toàn ngách"}
+  - {name: hn,              kind: forum,   weight: 1.0, url: "https://hn.algolia.com/api/v1/search",
+     min_points: 30}
+  - {name: github,          kind: repo,    weight: 0.8, url: "https://api.github.com/search/repositories",
+     topics: [llm, ai-agents, generative-ai, machine-learning, diffusion-models], window_days: 7}
+  - {name: hf_models,       kind: model,   weight: 0.9, url: "https://huggingface.co/api/models?sort=trendingScore&limit=40"}
+  - {name: openai,          kind: blog,    weight: 0.8, rss: "https://openai.com/news/rss.xml"}
+  - {name: deepmind,        kind: blog,    weight: 0.8, rss: "https://deepmind.google/blog/rss.xml"}
+  - {name: google_research, kind: blog,    weight: 0.6, rss: "https://research.google/blog/rss/"}
+  - {name: google_ai,       kind: blog,    weight: 0.6, rss: "https://blog.google/technology/ai/rss/"}
+  - {name: hf_blog,         kind: blog,    weight: 0.6, rss: "https://huggingface.co/blog/feed.xml"}
+  - {name: anthropic,       kind: blog,    weight: 0.8,
+     rss: "https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml"}
+  - {name: genk_ai,         kind: news_vn, weight: 0.7, rss: "https://genk.vn/rss/ai.rss"}
+  - {name: vnexpress_sohoa, kind: news_vn, weight: 0.7, rss: "https://vnexpress.net/rss/so-hoa.rss"}
+  # Đo độ "phổ thông" ở VN — KHÔNG làm nguồn topic (toàn chủ đề đại chúng).
+  - {name: gtrends_vn,      kind: vn_pulse, weight: 0.0, rss: "https://trends.google.com/trending/rss?geo=VN"}
 
-  - name: hackernews
-    kind: api
-    url: https://hacker-news.firebaseio.com/v0/topstories.json
-    filter_keywords: [AI, LLM, model, GPU, open-source, Claude, GPT, agent]
-    weight: 1.0
-    note: bắt trend nhanh nhất, nhiễu nhiều
-
-  - name: github_trending
-    kind: scrape
-    url: https://github.com/trending/python?since=daily
-    weight: 0.9
-    note: cái gì người ta thật sự chạy, không phải cái gì người ta viết paper
-
-  - name: huggingface_papers
-    kind: scrape
-    url: https://huggingface.co/papers
-    weight: 0.9
-
-  - name: reddit_localllama
-    kind: rss
-    url: https://www.reddit.com/r/LocalLLaMA/hot/.rss
-    weight: 0.7
-    note: hợp khán giả tự chạy model ở nhà — trùng gu với nội dung của kênh
+# Lọc HN + báo VN (tiêu đề, không phân biệt hoa thường).
+ai_keywords: [" ai ", "a.i.", "llm", "gpt", "claude", "gemini", "openai", "anthropic", "deepmind",
+  "model", "agent", "transformer", "diffusion", "neural", "machine learning", "deep learning",
+  "chatbot", "copilot", "qwen", "deepseek", "llama", "mistral", "hugging face", "gpu", "nvidia",
+  "inference", "fine-tun", "open-source", "open source", "trí tuệ nhân tạo", "mô hình", "chatgpt"]
 
 scoring:
-  # Điểm chủ đề = tổng có trọng số của các yếu tố dưới
-  recency_days: 7          # cũ hơn 7 ngày thì bỏ
-  min_sources: 1
-  boost_if_multi_source: 1.5   # xuất hiện ở nhiều nguồn = trend thật
-  # Không lặp chủ đề đã làm trong 30 ngày
-  dedupe_window_days: 30
+  max_age_days: 14          # Xong khi: 100% item ≤ 14 ngày
+  decay_hours: 48           # exp(−Δh/48)
+  blog_news_velocity: 0.5   # nguồn không có số đo
+  # Gom cụm — đổi 2026-10-02 sau lần chạy thử đầu (research/probes/p5-s1-research.md §4b): e5-base
+  # cho cosine nền 0,78 (trung vị) / 0,87 (p99) giữa tiêu đề AI KHÔNG liên quan → 0,86 nối bừa.
+  cluster_cos_strong: 0.93  # nối khi cosine ≥ — gần như cùng một tin
+  cluster_cos: 0.82         # hoặc cosine ≥ VÀ chung tên riêng (GPT-6.1, Qwen-Image…)
+  max_cluster_items: 12
+  multi_kind_bonus: 0.5     # mỗi loại nguồn thêm
+  vn_news_bonus: 0.5
+  vn_pulse_bonus: 0.25
+  done_penalty: 0.3         # trùng video đã làm 30 ngày → ×0,3
+  done_window_days: 30
+  judge_top: 12             # số cụm đưa LLM chấm
+  snapshot_chars: 3000      # text mỗi nguồn đưa LLM
 
-# raw_quote BẮT BUỘC lưu cùng mỗi mục — QC tầng 4 đối chiếu với nó.
-# Mất raw_quote thì T4 thành "LLM tự nhớ", đúng thứ thiết kế QC muốn tránh.
-require_raw_quote: true
+# Mọi claim của trend scout phải có `quote` nguyên văn trong snapshot sha256 (team/snapshots/)
+# — fact-checker (P4.S3) đối chiếu với nó. Code kiểm, claim trượt bị bỏ.
+require_quote_in_snapshot: true

@@ -12,6 +12,11 @@
 replace:
   dataset: "đa ta sét"     # thô: ASR nghe "đã tô xét" · thay: "data set" ✓
   context: "con tếch"      # thô: ASR nghe "còn tách" · thay: "con tech" (gần đúng)
+  # 2026-10-02, VieNeu SDK 3.8.3 giọng Thiện Minh, ASR exp-echo (out/demo-giong/pa_*.wav):
+  # thô "GPT-6.1 Sol" → ASR "gpt gạch nối sáu một sôi"; thay → "gpt sáu một son" ✓
+  # "Gemini 4 Argon" để thô là tốt nhất (ASR "gemini bốn aon") — KHÔNG thay.
+  gpt-6.1: "GPT sáu chấm một"
+  gpt-6: "GPT sáu"
 
 # Từ TTS đọc hỏng mà tiếng Việt có từ tự nhiên thay được → scriptwriter được dặn
 # TRÁNH (agents/scriptwriter.py đọc mục này vào prompt). Không đụng các thuật ngữ
@@ -23,3 +28,5 @@ avoid:
   context: "ngữ cảnh"
   agent: "agent"                 # thô: ASR nghe "i gen", nhưng "tác tử" lạ tai — giữ, chờ Tony nghe
   token: "token"                 # chưa có từ Việt quen tai — giữ, chờ Tony nghe
+  ChatGPT Work: "ChatGPT bản cho công việc"   # 2026-10-02: "Work" ASR nghe "quốc" ở mọi cách viết (6 bản thử)
+  DeepSWE: "bài đo lập trình"     # 2026-10-02: thô ASR nghe "ddfke", phiên âm "zip xu" — cả hai hỏng; tên vẫn được viết trên thẻ chart

@@ -31,9 +31,24 @@ PY="$REPO/.venv/bin/python"
 # thông báo lỗi — loại lỗi đắt nhất để truy.
 "$PY" -m create_video.spec.validate "$SPEC"
 
+# P3b.S5: spec chưa có `captions[].chunks` (spec cũ, 3 fixture đóng băng) → thêm cụm
+# phụ đề vào BẢN SAO bằng đúng hàm pipeline dùng. File gốc không bị đụng.
+PROPS="$(mktemp --suffix=.json)"
+trap 'rm -f "$PROPS"' EXIT
+(cd "$REPO" && PYTHONPATH="$REPO/src" "$PY" -m create_video.spec.upgrade "$SPEC" "$PROPS")
+"$PY" -m create_video.spec.validate "$PROPS" --no-assets
+
+# WebGL chỉ cần cho parallax (P3b.S10). `swangle` (đặt trong remotion.config.ts) làm
+# MỌI frame chậm gấp đôi — đo 2026-10-01 trên fixture 01 (không có parallax):
+# swangle 95,2s · swiftshader 46,6s · PSNR giữa hai bản 46 dB. Nên chỉ bật swangle
+# khi spec có shot parallax; còn lại để swiftshader.
+GL="$("$PY" -c 'import json,sys; s=json.load(open(sys.argv[1])); print("swangle" if any(sh["asset"].get("depth_path") for sh in s["shots"]) else "swiftshader")' "$PROPS")"
+echo "gl: $GL"
+
 cd "$REPO/remotion"
 npx remotion render Video "$OUT" \
-  --props="$SPEC" \
+  --gl="$GL" \
+  --props="$PROPS" \
   --public-dir="$SPEC_DIR" \
   --log=info
 

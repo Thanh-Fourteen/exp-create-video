@@ -49,3 +49,7 @@ remotion/out/
 
 # trạng thái runtime của tool autoclick — không phải mã nguồn
 .autoclick/
+
+# dữ liệu runtime của team: bản sao trang web bên thứ ba (fact-check) + kết quả trend scout — không phải mã nguồn
+team/snapshots/
+team/trends/

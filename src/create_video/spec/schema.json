@@ -156,8 +156,7 @@
           "asset": {
             "type": "object",
             "required": [
-              "kind",
-              "path"
+              "kind"
             ],
             "additionalProperties": false,
             "properties": {
@@ -165,12 +164,16 @@
                 "enum": [
                   "image",
                   "video",
-                  "color"
+                  "color",
+                  "stat",
+                  "chart",
+                  "screenshot",
+                  "code"
                 ]
               },
               "path": {
                 "type": "string",
-                "description": "Tương đối so với gốc repo. kind=color thì là mã màu."
+                "description": "Tương đối so với thư mục spec. kind=color thì là mã màu. Không dùng cho stat/chart/code."
               },
               "alt": {
                 "type": "string",
@@ -179,8 +182,223 @@
               "depth_path": {
                 "type": "string",
                 "description": "Depth map PNG (gần = sáng) cho motion.type=parallax (P3b.S10). Thiếu thì Remotion lùi về Ken Burns."
+              },
+              "source_url": {
+                "type": "string",
+                "description": "kind=screenshot: trang gốc đã chụp — hiện làm dòng ghi nguồn nhỏ dưới ảnh, và để T4 truy lại."
+              },
+              "stat": {
+                "type": "object",
+                "required": [
+                  "value",
+                  "label"
+                ],
+                "additionalProperties": false,
+                "description": "Một con số lớn đếm lên + nhãn. Chữ số ở đây do code vẽ, nên không vướng luật 'số viết bằng chữ' của lời đọc.",
+                "properties": {
+                  "value": {
+                    "type": "number"
+                  },
+                  "decimals": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "prefix": {
+                    "type": "string",
+                    "maxLength": 4
+                  },
+                  "unit": {
+                    "type": "string",
+                    "maxLength": 8
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                }
+              },
+              "chart": {
+                "type": "object",
+                "required": [
+                  "title",
+                  "bars"
+                ],
+                "additionalProperties": false,
+                "description": "Bar chart ngang từ dữ liệu (benchmark, VRAM, tốc độ). Cột highlight = thứ video đang nói tới.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "unit": {
+                    "type": "string",
+                    "maxLength": 8
+                  },
+                  "bars": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 6,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "label",
+                        "value"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "label": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 18
+                        },
+                        "value": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "highlight": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "code": {
+                "type": "object",
+                "required": [
+                  "lang",
+                  "lines"
+                ],
+                "additionalProperties": false,
+                "description": "Đoạn code ngắn, tô màu cú pháp, hiện dần từng dòng. ≤ 12 dòng × 40 ký tự để đọc được ở 1080px.",
+                "properties": {
+                  "lang": {
+                    "enum": [
+                      "python",
+                      "bash",
+                      "typescript",
+                      "javascript",
+                      "json",
+                      "yaml",
+                      "text"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "lines": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 12,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 40
+                    }
+                  },
+                  "tokens": {
+                    "description": "Do Python sinh (Pygments) từ `lines`: mỗi dòng là dãy {t: loại, v: chữ}. Spec mang LOẠI token, không mang màu — màu là việc của Remotion.",
+                    "type": "array",
+                    "maxItems": 12,
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "t",
+                          "v"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "t": {
+                            "enum": [
+                              "kw",
+                              "str",
+                              "num",
+                              "com",
+                              "fn",
+                              "op",
+                              "bi",
+                              "txt"
+                            ]
+                          },
+                          "v": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
-            }
+            },
+            "description": "Thứ hiện trong shot. image/video/color/screenshot cần `path`; stat/chart/code là dữ liệu, Remotion tự vẽ (P3b.S4) — không có file.",
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "enum": [
+                        "image",
+                        "video",
+                        "color",
+                        "screenshot"
+                      ]
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "path"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "stat"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "stat"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "chart"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "chart"
+                  ]
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "code"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            ]
           },
           "motion": {
             "type": "object",
@@ -284,6 +502,12 @@
               "hook"
             ]
           },
+          "display_text": {
+            "description": "Phase V3 (2026-10-02): chữ tiêu đề frame 0 (≤ 7 từ), KHÁC lời đọc nhưng cùng ý. Có thì Hook vẽ chữ này, còn lời đọc của hook hiện như phụ đề cụm bên dưới.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
           "words": {
             "type": "array",
             "minItems": 1,
@@ -307,6 +531,51 @@
                 "end": {
                   "type": "number",
                   "minimum": 0
+                },
+                "emph": {
+                  "type": "boolean",
+                  "description": "P3b.S5: từ cần nhấn (con số, tên model) — đổi màu. Do scriptwriter khai (`emphasis`) + mọi từ có chữ số."
+                }
+              }
+            }
+          },
+          "chunks": {
+            "description": "P3b.S5: phụ đề theo CỤM 1-3 từ, hiện từng cụm một giữa khung. Python chia (spec/chunks.py), Remotion chỉ vẽ cụm đang đọc. Thiếu thì Remotion vẽ cả câu như cũ.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "start_sec",
+                "end_sec",
+                "from",
+                "to"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "start_sec": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "end_sec": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "from": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "chỉ số từ đầu trong `words`"
+                },
+                "to": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "chỉ số từ cuối + 1 (không gồm)"
+                },
+                "fit": {
+                  "type": "number",
+                  "minimum": 0.5,
+                  "maximum": 1,
+                  "description": "Hệ số thu chữ cho riêng cụm này để vừa MỘT dòng (đo bằng file font). Thiếu = 1."
                 }
               }
             }
@@ -567,6 +836,12 @@
             "center-lower",
             "bottom"
           ]
+        },
+        "chunk_size_px": {
+          "type": "integer",
+          "minimum": 24,
+          "maximum": 200,
+          "description": "Cỡ chữ khi phụ đề hiện theo cụm (P3b.S5) — to hơn size_px vì mỗi lúc chỉ có 1-3 từ."
         }
       }
     }

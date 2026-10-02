@@ -1,0 +1,25 @@
+{
+  "topic": "Qwen3-VL-2B",
+  "hook": "Qwen3-VL-2B-Instruct chỉ cho nghiên cứu, cấm dùng thương mại.",
+  "sections": [
+    "Model lên Hugging Face tháng ba năm hai nghìn không trăm hai mươi lăm.",
+    "Context gốc một trăm hai mươi tám nghìn token, mở rộng được tới một triệu.",
+    "OCR đọc được năm mươi ngôn ngữ, tăng từ mười chín.",
+    "Qwen3-VL chỉ có bản Instruct, không có bản Thinking.",
+    "Tôi thấy bản hai tỉ tham số đủ cho việc chấm ảnh."
+  ],
+  "cta": "Lưu video này lại, lần sau chọn model mở ra xem.",
+  "sources": [
+    {
+      "claim": "nguồn",
+      "url": "https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct"
+    }
+  ],
+  "seeded": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

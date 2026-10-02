@@ -1,0 +1,30 @@
+{
+  "topic": "Whisper của OpenAI",
+  "hook": "OpenAI huấn luyện Whisper trên sáu mươi tám nghìn giờ âm thanh.",
+  "sections": [
+    "Paper Whisper lên arXiv tháng mười hai năm hai nghìn không trăm hai mươi.",
+    "Dữ liệu là đa ngôn ngữ và đa nhiệm, không chỉ tiếng Anh.",
+    "Whisper phải fine-tune riêng cho từng benchmark mới cạnh tranh được.",
+    "Code và model phát hành theo license Apache-2.0.",
+    "Paper chỉ có ba tác giả, trong đó có Ilya Sutskever.",
+    "Với dân làm phụ đề, đây là món quà lớn."
+  ],
+  "cta": "Lưu video này lại, lần sau chọn model mở ra xem.",
+  "sources": [
+    {
+      "claim": "nguồn",
+      "url": "https://arxiv.org/abs/2212.04356"
+    },
+    {
+      "claim": "nguồn",
+      "url": "https://github.com/openai/whisper"
+    }
+  ],
+  "seeded": [
+    0,
+    1,
+    3,
+    4,
+    5
+  ]
+}

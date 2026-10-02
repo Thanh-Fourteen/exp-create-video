@@ -14,7 +14,7 @@
 
 ## P3b.S4 — Shot "bằng chứng": stat / chart / screenshot / code
 
-- [ ] Shot "bằng chứng": stat / chart / screenshot / code
+- [x] Shot "bằng chứng": stat / chart / screenshot / code
 
 ```
 Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
@@ -83,7 +83,7 @@ nữa thì tốt, để hai file khỏi lệch nhau.
 
 ## P3b.S5 — Caption theo cụm + nhấn từ khoá
 
-- [ ] Caption theo cụm + nhấn từ khoá
+- [x] Caption theo cụm + nhấn từ khoá
 
 ```
 Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
@@ -152,7 +152,7 @@ nữa thì tốt, để hai file khỏi lệch nhau.
 
 ## P4.S0 — Xương sống team: `state.json` + bộ chạy vai *(thêm 2026-10-01)*
 
-- [ ] Xương sống team: `state.json` + bộ chạy vai *(thêm 2026-10-01)*
+- [x] Xương sống team: `state.json` + bộ chạy vai *(thêm 2026-10-01)*
 
 ```
 Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
@@ -240,7 +240,7 @@ nữa thì tốt, để hai file khỏi lệch nhau.
 
 ## P4.S1 — T2: chất lượng hình ảnh bằng VLM
 
-- [ ] T2: chất lượng hình ảnh bằng VLM
+- [x] T2: chất lượng hình ảnh bằng VLM
 
 ```
 Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
@@ -328,7 +328,7 @@ nữa thì tốt, để hai file khỏi lệch nhau.
 
 ## P4.S2 — T3: sức hút nội dung
 
-- [ ] T3: sức hút nội dung
+- [x] T3: sức hút nội dung
 
 ```
 Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
@@ -416,7 +416,7 @@ nữa thì tốt, để hai file khỏi lệch nhau.
 
 ## P4.S3 — T4: độ chính xác sự thật (vai **fact-checker**)
 
-- [ ] T4: độ chính xác sự thật (vai **fact-checker**)
+- [x] T4: độ chính xác sự thật (vai **fact-checker**)
 
 ```
 Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
@@ -504,7 +504,7 @@ nữa thì tốt, để hai file khỏi lệch nhau.
 
 ## P4.S4 — Vòng lặp và ghi vết
 
-- [ ] Vòng lặp và ghi vết
+- [x] Vòng lặp và ghi vết
 
 ```
 Dự án: exp-create-video — hệ nhiều agent tự tạo video TikTok tiếng Việt về chủ đề AI.
@@ -592,7 +592,7 @@ nữa thì tốt, để hai file khỏi lệch nhau.
 
 ## P5.S1 — Trend scout: topic hot hôm nay
 
-- [ ] Trend scout: topic hot hôm nay
+- [x] Trend scout: topic hot hôm nay
 
 ```
 Dự án: exp-create-video — team nhiều agent tự tạo video TikTok tiếng Việt về AI.

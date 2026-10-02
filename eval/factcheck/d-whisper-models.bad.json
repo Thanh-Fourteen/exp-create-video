@@ -1,0 +1,26 @@
+{
+  "topic": "Chọn bản Whisper cho card yếu",
+  "hook": "Bản turbo của Whisper có một tỉ năm trăm năm mươi triệu tham số.",
+  "sections": [
+    "Turbo cần khoảng hai GB VRAM, card nào cũng chạy được.",
+    "Bản large cần khoảng mười sáu GB VRAM.",
+    "Turbo nhanh hơn large khoảng ba lần.",
+    "Bản tiny chỉ ba mươi chín triệu tham số.",
+    "Turbo là bản dịch tiếng Việt sang tiếng Anh tốt nhất.",
+    "Card yếu thì cứ turbo mà chạy."
+  ],
+  "cta": "Lưu video này lại, lần sau chọn model mở ra xem.",
+  "sources": [
+    {
+      "claim": "nguồn",
+      "url": "https://github.com/openai/whisper"
+    }
+  ],
+  "seeded": [
+    0,
+    1,
+    2,
+    3,
+    5
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "topic": "Qwen3-VL-2B",
+  "hook": "Qwen3-VL-2B-Instruct dùng license Apache-2.0, kênh kiếm tiền dùng được.",
+  "sections": [
+    "Model lên Hugging Face tháng mười năm hai nghìn không trăm hai mươi lăm.",
+    "Context gốc hai trăm năm mươi sáu nghìn token, mở rộng được tới một triệu.",
+    "OCR đọc được ba mươi hai ngôn ngữ, tăng từ mười chín.",
+    "Ngoài bản Instruct còn có bản Thinking cho suy luận.",
+    "Tôi thấy bản hai tỉ tham số đủ cho việc chấm ảnh."
+  ],
+  "cta": "Lưu video này lại, lần sau chọn model mở ra xem.",
+  "sources": [
+    {
+      "claim": "nguồn",
+      "url": "https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct"
+    }
+  ],
+  "seeded": []
+}

@@ -27,6 +27,11 @@ t1_technical:
     loudness:
       integrated_lufs: [-15.5, -12.5]
       max_true_peak_dbtp: -1.0
+    # Thêm 2026-10-02 — KIỂM MỚI, viết TRƯỚC khi chạy trên video thật. demo-03 có nhạc nền nhưng
+    # ducking dìm nhạc xuống dưới giọng 27 dB → nghe như không có nhạc mà không kiểm nào bắt.
+    # Đọc audio/mix.json do sound/design.py ghi (bỏ qua nếu video không có mix). 12–18 dB là khoảng
+    # thường dùng cho lời nói trên nhạc nền (reported, research/probes/cuon-hon-2026-10-02.md).
+    music_under_voice_db: [-20, -10]
 
   video:
     max_black_frame_sec: 0.5   # frame đen dài hơn = lỗi render
@@ -54,6 +59,18 @@ t1_technical:
     right: 18    # cột nút like / comment / share
 
 # ─────────────────────────────────────────────────────────────
+# T1 phụ — proxy GIỮ CHÂN bằng code. CHỈ CẢNH BÁO, KHÔNG CHẶN.
+# Thêm 2026-10-02 (Phase V5) — KIỂM MỚI, viết TRƯỚC khi có video đăng nào, không sửa ngưỡng cũ.
+# Cơ sở: research/11-audit-tiktok-ai.md §3.1 + §8.4 (rời bỏ dồn ở 5s đầu — AAAI 2025; chữ > hình > lời
+# — Kallaway, OBS; ads: thông điệp trong 3s — DATA quảng cáo). Đây là HYP: chỉ được thành chặn sau khi
+# 20 video cho thấy tương quan với retention 5s / approve_rate. Sửa → ghi lý do + ngày vào research/.
+t1_retention_warn:
+  hook_text_max_words: 7     # chữ tiêu đề frame 0
+  first_info_max_sec: 3.0    # từ mang thông tin (số/tên riêng/từ nhấn) đầu tiên của hook
+  ai_image_max_share: 0.5    # thời lượng ảnh AI / tổng
+  max_idea_sec: 12           # một shot (một ý hình) dài nhất
+
+# ─────────────────────────────────────────────────────────────
 # T2 — chất lượng hình ảnh (VLM). ĐỀ XUẤT render lại, không chặn.
 # Ngưỡng đặt CAO có chủ ý: VLM hay "chê lấy lệ", ngưỡng thấp thì
 # mọi video đều tốn 2 vòng sửa vô ích.
@@ -67,7 +84,8 @@ t2_visual:
     # Thêm 2026-08-21 (P4.S1) khi viết qc/t2_vlm.py — chưa có trong bản gốc vì
     # tầng T2 lúc đó chưa tồn tại. Đây là hoàn thiện taxonomy để dựng feature,
     # KHÔNG phải chỉnh ngưỡng sau khi thấy kết quả: ảnh lạc chủ đề là lỗi rõ
-    # ràng như lỗi giải phẫu, không phải gu thẩm mỹ. Xem research/probes/p4s1-vlm.md
+    # ràng như lỗi giải phẫu, không phải gu thẩm mỹ. Xem research/probes/p4-s1.md (file
+    # p4s1-vlm.md mà dòng này từng trỏ tới chưa bao giờ tồn tại — sửa chú thích 2026-10-02)
     - topic_mismatch
   warn_only:
     - style_inconsistent

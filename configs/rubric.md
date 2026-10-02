@@ -36,6 +36,9 @@ phần còn lại hay đến mấy cũng không ai xem.
 **Cách kiểm nhanh:** đọc to câu đầu, bấm giờ. Quá 3 giây hoặc chưa có thông tin gì →
 fail, không cần xét tiếp.
 
+*Đo thế nào (2026-10-02, P4.S2):* hook ≤ 12 từ đọc mất ~5 giây, nên "3 giây" nghĩa là
+**lời đọc trong 3 giây đầu đã vào việc** — T3 lấy đúng phần đó từ phụ đề karaoke để chấm.
+
 ---
 
 ## 2. Nhịp (trọng số 0,25)
@@ -80,39 +83,52 @@ fail, không cần xét tiếp.
 
 Trọng số thấp vì CTA không cứu được video dở, nhưng thiếu thì mất tương tác.
 
-**Đạt:** một hành động cụ thể, liên quan tới nội dung vừa xem
-— "Ai đang chạy model gì trên card yếu, comment cho mình biết."
+**Đạt:** một hành động cụ thể, liên quan tới nội dung vừa xem, và **xin LƯU hoặc CHIA SẺ**
+— "Lưu lại, lần sau cài SDXL trên card yếu mở ra làm theo." · "Gửi cho đứa bạn đang than
+card 6GB không chạy nổi AI." *(thêm 2026-10-02, P4.S2 — TikTok 2026 ưu tiên save/share;
+like vô thức gần như không còn giá trị. Trọng số cụ thể chỉ là số blog, reported —
+`research/07-len-xu-huong.md`, `research/probes/p4-s2-research.md`)*. Xin comment kèm
+được, nhưng không thay được lưu/chia sẻ.
 
 **Hỏng:** "Nhớ like và subscribe nhé" (chung chung, ai cũng nói, không ai làm).
 
 ---
 
+## 5. Quan sát trực tiếp — chống AI slop *(thêm 2026-10-02, P4.S2)*
+
+Mỗi video có **ít nhất một câu quan sát TRỰC TIẾP** ngôi thứ nhất — "tôi chạy thử", "tôi
+đo được" — và số đo đó có nguồn trong `research/probes/` (ghi vào `sources[].url`), không
+phải web. Đây là thứ duy nhất phân biệt kênh này với AI slop: kênh **thật sự** có số đo
+của chính Tony trên con 2060 (`research/07-len-xu-huong.md` §3).
+
+T3 hiện **chỉ ghi vết** luật này, không trừ điểm: scriptwriter chưa được cấp số đo probe
+(brief có nguồn là P5.S3). Đề bài có số đo thì phải dùng.
+
+---
+
 ## Cách T3 chấm — dành cho critic
 
+*(viết lại 2026-10-02, P4.S2 — `research/probes/p4-s2-research.md`)*. LLM chấm "hay/sáng
+tạo" bằng thang 0–10 tương quan ~0 với chuyên gia và ưu ái output của chính nó, nên T3
+**không xin điểm**. T3 là **checklist nhị phân** (`src/create_video/qc/t3_appeal.py: ITEMS`):
+
+- Mục đo được — câu mở chào hỏi, dấu hiệu dịch máy, thuật ngữ bị dịch, CTA xin like, CTA
+  không xin lưu/chia sẻ, câu đều tăm tắp, từ chuyển tiếp thừa — **code** chấm.
+- Mục ngữ nghĩa — 3 giây đầu có thông tin không, ý dậm chân, chỗ ngoặt, câu lủng củng,
+  xưng hô, CTA cụ thể — **critic** chấm đạt/trượt.
+- Điểm từng nhóm do **code** tính: 10 × tỉ lệ mục đạt; trượt một mục hook = hook ≤ 3.
+  Tổng theo trọng số ở trên; ngưỡng ở `configs/thresholds.yaml`.
+
 Bạn là **critic**, không phải người viết lại. Việc của bạn là **tìm cái sai**, chỉ đúng
-chỗ, và đề xuất hướng sửa — không viết bản mới.
+chỗ, và đề xuất hướng sửa — không viết bản mới. Với mỗi mục checklist:
 
-Với mỗi mục 1–4:
-1. Chấm 0–10 theo tiêu chí trên
-2. Mỗi điểm trừ phải **trích đúng câu** trong script gây ra nó
-3. Đề xuất hướng sửa bằng **một câu**, không viết lại cả đoạn
-
-Trả JSON:
-
-```json
-{
-  "hook":   {"score": 0-10, "issues": [{"quote": "...", "why": "...", "fix": "..."}]},
-  "pacing": {"score": 0-10, "issues": [...]},
-  "vietnamese_quality": {"score": 0-10, "issues": [...]},
-  "cta":    {"score": 0-10, "issues": [...]},
-  "total":  0-10,
-  "verdict": "pass" | "revise"
-}
-```
+1. Mặc định **ĐẠT**. Chỉ đánh trượt khi chỉ ra được chỗ cụ thể.
+2. Trượt thì **trích NGUYÊN VĂN** câu gây lỗi — code đối chiếu, trích sai là lời chê bị bỏ.
+3. Đề xuất hướng sửa bằng **một câu**, không viết lại cả đoạn.
 
 **Ba điều critic không được làm:**
 
 1. **Không viết lại script.** Đề xuất, không thay thế.
-2. **Không chê lấy lệ.** Không tìm được lỗi thật thì cho điểm cao. Chê oan làm mọi video
+2. **Không chê lấy lệ.** Không tìm được lỗi thật thì cho đạt. Chê oan làm mọi video
    tốn 2 vòng sửa vô ích, và làm rubric mất tin cậy.
 3. **Không chấm nội dung đúng/sai.** Đó là việc của T4. T3 chỉ chấm **cách kể**.
