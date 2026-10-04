@@ -163,7 +163,7 @@ def _install_sigterm() -> None:
     signal.signal(signal.SIGTERM, h)
 
 
-def run_job(job: dict, notify=None) -> str:
+def run_job(job: dict) -> str:
     """Chạy một lượt của job. Trả trạng thái cuối của lượt: awaiting_approval | done | failed | cancelled."""
     jid = job["id"]
     if job["kind"] == "revoice":
@@ -213,11 +213,6 @@ def run_job(job: dict, notify=None) -> str:
         log(f"☾ tự duyệt (chạy đêm) {jid}")
         return "queued"
     log(f"■ {jid} → {new}{(' · ' + err[:120]) if err else ''}")
-    if notify:
-        try:
-            notify(db.get_job(jid))
-        except Exception as e:   # báo lỗi không được làm hỏng job
-            log(f"⚠ thông báo lỗi: {e}")
     return new
 
 
@@ -243,32 +238,34 @@ def night_auto_ok() -> bool:
     return len(recent) < int(_night().get("max", 4))
 
 
-def morning_digest() -> None:
-    """Một tin tóm tắt buổi sáng cho những gì chạy đêm qua (w5-research.md §4, kiểu iOS Scheduled Summary)."""
-    n = _night()
-    if not n.get("enabled"):
-        return
+_TREND = {"proc": None}
+TREND_HOUR = 6        # 6:30 sáng: gợi ý chủ đề mới cho trang Tạo video
+
+
+def daily_trends() -> None:
+    """Chạy trend scout một lần mỗi sáng (không GPU) — process riêng, KHÔNG chặn hàng đợi video."""
+    p = _TREND["proc"]
+    if p is not None:
+        if p.poll() is None:
+            return
+        log(f"✓ trend scout xong (mã {p.returncode})")
+        _TREND["proc"] = None
     now = time.localtime()
     today = time.strftime("%Y-%m-%d", now)
-    if now.tm_hour != int(n.get("digest_hour", 7)) or db.kv_get("digest_date") == today:
+    if (now.tm_hour, now.tm_min) < (TREND_HOUR, 30) or db.kv_get("trend_date") == today:
         return
-    db.kv_set("digest_date", today)
-    since = time.time() - 12 * 3600
-    js = [j for j in db.list_jobs(("done", "failed", "awaiting_approval")) if (j.get("finished_at") or j["created_at"]) > since]
-    if not js:
+    if list((REPO_ROOT / "team" / "trends").glob(f"{today}-*.json")):
+        db.kv_set("trend_date", today)
         return
-    from .notify import BASE_URL, send
-    import html
-
-    done = [j for j in js if j["state"] == "done"]
-    bad = [j for j in js if j["state"] != "done"]
-    lines = [f"☀️ <b>Đêm qua</b>: {len(done)} video xong, {len(bad)} cần anh xem"]
-    lines += [f"• 🎬 {html.escape(j['topic'][:80])}" for j in done]
-    lines += [f"• {'📝' if j['state'] == 'awaiting_approval' else '⚠️'} {html.escape(j['topic'][:80])}" for j in bad]
-    send("\n".join(lines), url=f"{BASE_URL}/library", button="Mở thư viện")
+    db.kv_set("trend_date", today)
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    f = open(LOG_DIR / f"trend-{today}.log", "a", encoding="utf-8")
+    _TREND["proc"] = subprocess.Popen([str(PY), "-m", "create_video.team.trend_scout", "--slot", "am"], cwd=REPO_ROOT,
+                                      stdout=f, stderr=subprocess.STDOUT, start_new_session=True, env=_env())
+    log("▶ trend scout buổi sáng")
 
 
-def loop(once: bool = False, notify=None) -> None:
+def loop(once: bool = False) -> None:
     db.init()
     _install_sigterm()
     # Chỉ có MỘT worker → lúc khởi động, mọi job 'running' đều là mồ côi của lần chạy trước (lease = 0).
@@ -290,9 +287,9 @@ def loop(once: bool = False, notify=None) -> None:
             if once:
                 return
             try:
-                morning_digest()
+                daily_trends()
             except Exception as e:
-                log(f"⚠ tóm tắt sáng lỗi: {e}")
+                log(f"⚠ việc buổi sáng lỗi: {e}")
             time.sleep(3)
             continue
         why = admit(job)
@@ -305,7 +302,7 @@ def loop(once: bool = False, notify=None) -> None:
             time.sleep(ADMIT_WAIT_SEC)
             continue
         waiting_reason = None
-        run_job(job, notify=notify)
+        run_job(job)
         if once:
             return
 
@@ -314,11 +311,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="worker xưởng video — 1 job một lúc")
     ap.add_argument("--once", action="store_true")
     a = ap.parse_args(argv)
-    try:
-        from .notify import notify_job
-    except Exception:
-        notify_job = None
-    loop(once=a.once, notify=notify_job)
+    loop(once=a.once)
     return 0
 
 

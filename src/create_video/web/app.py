@@ -147,9 +147,7 @@ def page_stats(request: Request):
 def page_settings(request: Request):
     from .worker import machine
 
-    tg = dict(db.kv_get("telegram", {}) or {})
-    tg.pop("token", None)                    # không bao giờ đưa token ra trang
-    return _page(request, "settings", m=machine(), voices=voices(), tg=tg, night=db.kv_get("night", NIGHT_DEFAULT),
+    return _page(request, "settings", m=machine(), voices=voices(), night=db.kv_get("night", NIGHT_DEFAULT),
                  user=request.state.user)
 
 
@@ -177,7 +175,7 @@ def _back(request: Request, url: str) -> Response:
 
 
 @app.post("/jobs")
-def create_job(request: Request, topic: str = Form(...), voice: str = Form("tony"), duration: int = Form(45),
+def create_job(request: Request, topic: str = Form(""), voice: str = Form("tony"), duration: int = Form(45),
                gate: str | None = Form(None)):
     topic = re.sub(r"\s+", " ", topic).strip()
     if not (6 <= len(topic) <= 400):
@@ -260,6 +258,21 @@ def metrics_video(request: Request, vid: str, tiktok_url: str = Form(""), views:
     return _back(request, f"/library/{vid}")
 
 
+@app.post("/videos/{vid}/delete")
+def delete_video(request: Request, vid: str):
+    """Xoá khỏi thư viện = CHUYỂN vào thư mục rác (không rm — quy ước repo), lấy lại được."""
+    d = _vid_dir(vid)
+    trash = Path(os.environ.get("XUONG_TRASH", "/mnt/data1tb/_trash-exp-create-video-2026-10-01/out-web"))
+    trash.mkdir(parents=True, exist_ok=True)
+    dst = trash / vid
+    if dst.exists():
+        dst = trash / f"{vid}-{int(time.time())}"
+    d.rename(dst) if d.stat().st_dev == trash.stat().st_dev else __import__("shutil").move(str(d), str(dst))
+    with db.db() as con:
+        con.execute("DELETE FROM reviews WHERE video_id=?", (vid,))
+    return _back(request, "/library")
+
+
 @app.post("/videos/{vid}/revoice")
 def revoice_video(request: Request, vid: str, voice: str = Form(...)):
     v = load_video(vid)
@@ -281,40 +294,6 @@ def set_night(request: Request, enabled: str | None = Form(None), start: int = F
     db.kv_set("night", {**NIGHT_DEFAULT, "enabled": enabled is not None, "start": max(0, min(23, start)),
                         "end": max(0, min(23, end)), "max": max(1, min(10, max_jobs))})
     return _back(request, "/settings")
-
-
-@app.post("/settings/telegram/start")
-def tg_start(request: Request, token: str = Form(...)):
-    from .notify import link_start
-
-    if not re.fullmatch(r"\d{5,}:[A-Za-z0-9_-]{30,}", token.strip()):
-        return JSONResponse({"ok": False, "why": "Token không đúng dạng (số:chuỗi)"})
-    url, why = link_start(token.strip())
-    return JSONResponse({"ok": bool(url), "url": url, "why": why})
-
-
-@app.post("/settings/telegram/finish")
-def tg_finish(request: Request):
-    from .notify import link_finish
-
-    ok, why = link_finish()
-    return JSONResponse({"ok": ok, "why": why})
-
-
-@app.post("/settings/telegram/toggle")
-def tg_toggle(request: Request, enabled: str | None = Form(None)):
-    cfg = db.kv_get("telegram", {}) or {}
-    cfg["enabled"] = enabled is not None
-    db.kv_set("telegram", cfg)
-    return _back(request, "/settings")
-
-
-@app.post("/settings/telegram/test")
-def test_telegram(request: Request):
-    from .notify import send
-
-    ok, why = send("Xưởng video: thử thông báo ✓")
-    return JSONResponse({"ok": ok, "why": why})
 
 
 # ── file ─────────────────────────────────────────────────────────────────────
@@ -342,6 +321,39 @@ def video_download(vid: str):
     return FileResponse(d / r["mp4"], media_type="video/mp4", filename=f"{name}.mp4")
 
 
+@app.get("/v/{vid}/bia.jpg")
+def post_cover(vid: str):
+    d = _vid_dir(vid)
+    p = d / "post" / "cover.jpg"
+    if not p.exists():
+        p = d / "cover.jpg"
+    return FileResponse(p, media_type="image/jpeg", filename=f"bia-{vid}.jpg", content_disposition_type="inline")
+
+
+@app.get("/v/{vid}/bo-dang.zip")
+def post_zip(vid: str):
+    """Cả bộ đăng một lần tải: video + bìa + caption + bình luận ghim + nguồn + checklist."""
+    import tempfile
+    import zipfile
+
+    from starlette.background import BackgroundTask
+
+    d = _vid_dir(vid)
+    r = json.loads((d / "result.json").read_text(encoding="utf-8"))
+    name = re.sub(r'[\\/:*?"<>|]+', "", (r.get("title") or vid))[:60].strip() or vid
+    tmp = tempfile.NamedTemporaryFile(suffix=".zip", delete=False)
+    tmp.close()
+    with zipfile.ZipFile(tmp.name, "w") as z:
+        z.write(d / r["mp4"], f"{name}.mp4", compress_type=zipfile.ZIP_STORED)   # mp4 đã nén
+        post = d / "post"
+        for f, arc in (("cover.jpg", "bia.jpg"), ("caption.txt", "caption.txt"), ("ghim.txt", "binh-luan-ghim.txt"),
+                       ("nguon.txt", "nguon.txt"), ("checklist.txt", "checklist-dang.txt")):
+            if (post / f).exists():
+                z.write(post / f, arc, compress_type=zipfile.ZIP_DEFLATED)
+    return FileResponse(tmp.name, media_type="application/zip", filename=f"{name} - bo dang TikTok.zip",
+                        background=BackgroundTask(os.unlink, tmp.name))
+
+
 @app.get("/v/{vid}/{asset}")
 def video_asset(vid: str, asset: str):
     if asset not in ("thumb.webp", "cover.jpg"):
@@ -365,6 +377,6 @@ def voice_preview(slug: str):
 def _startup() -> None:
     db.init()
     try:
-        os.chmod(db.DB_PATH, 0o600)          # DB chứa token bot Telegram
+        os.chmod(db.DB_PATH, 0o600)
     except OSError:
         pass

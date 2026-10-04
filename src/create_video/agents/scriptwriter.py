@@ -109,6 +109,8 @@ class Script:
     hook_text: str = ""
     hook_type: str = ""
     pillar: str = ""
+    # Bộ đăng (2026-10-02, research/probes/bo-dang-research.md): bình luận Tony ghim sau khi đăng.
+    pin_comment: str = ""
 
     @property
     def lines(self) -> list[str]:
@@ -151,6 +153,7 @@ class Script:
             hook_text=str(d.get("hook_text") or "").strip(),
             hook_type=str(d.get("hook_type") or "").strip(),
             pillar=str(d.get("pillar") or "").strip(),
+            pin_comment=str(d.get("pin_comment") or "").strip(),
         )
 
 
@@ -297,6 +300,8 @@ METADATA ĐĂNG BÀI — TikTok index cả caption, hashtag, chữ trên hình l
 10. `caption`: tối đa 150 ký tự (TikTok cắt hiển thị ở đó) — chứa `keywords[0]`
     trong 100 ký tự đầu. Viết như caption TikTok thật, không phải câu văn trang
     trọng; được chêm 1 emoji hợp ngữ cảnh nếu muốn.
+10b. `pin_comment` (≤ 150 ký tự): bình luận Tony GHIM ngay sau khi đăng — một câu hỏi mở để người xem trả lời
+    ("Bạn đã thử chưa, ra bao nhiêu?") hoặc nguồn chính ("Nguồn: trang hỗ trợ Google, link ở bio"). Không xin like.
 11. `hashtags`: 3-5 hashtag NGÁCH bám sát nội dung video, KHÔNG dùng #fyp #viral
     (quá chung, TikTok hạ ưu tiên). Viết không dấu #, chữ thường liền không dấu
     cách, ví dụ: "sdxl", "aiopensource", "rtx2060".
@@ -317,6 +322,7 @@ Output là JSON theo schema đã cho, ý nghĩa từng trường:
   "sources": [{{"claim": "điều đã nói", "url": "nguồn", "confidence": "verified|reported"}}],
   "keywords": ["từ khoá chính", "..."],
   "caption": "caption ngắn chứa từ khoá chính",
+  "pin_comment": "câu hỏi mở hoặc nguồn để ghim",
   "hashtags": ["ngach1", "ngach2", "ngach3"]
 }}"""
 
@@ -391,6 +397,7 @@ class ScriptOut(BaseModel):
     caption: str
     hashtags: list[str]
     emphasis: list[str] = []
+    pin_comment: str = ""
 
 
 def _bare_numbers(line: str) -> list[str]:

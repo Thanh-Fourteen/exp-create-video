@@ -44,8 +44,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   started_at REAL,
   finished_at REAL,
   heartbeat_at REAL,
-  error TEXT,
-  notified TEXT NOT NULL DEFAULT ''         -- các sự kiện đã báo Telegram: "review,done"
+  error TEXT
 );
 CREATE INDEX IF NOT EXISTS jobs_state ON jobs(state, created_at);
 CREATE TABLE IF NOT EXISTS reviews (
@@ -202,21 +201,6 @@ def recover_stale(lease_sec: float = 120, path: Path | None = None) -> list[str]
                            "(heartbeat_at IS NULL OR heartbeat_at < ?) RETURNING id", (now - lease_sec,)).fetchall()
         con.execute("COMMIT")
         return [r["id"] for r in rows]
-
-
-def mark_notified(jid: str, event: str, path: Path | None = None) -> bool:
-    """True nếu đây là lần đầu báo sự kiện này (chống gửi Telegram trùng)."""
-    with db(path) as con:
-        con.execute("BEGIN IMMEDIATE")
-        r = con.execute("SELECT notified FROM jobs WHERE id=?", (jid,)).fetchone()
-        done = set(filter(None, (r["notified"] if r else "").split(",")))
-        if event in done or r is None:
-            con.execute("ROLLBACK")
-            return False
-        done.add(event)
-        con.execute("UPDATE jobs SET notified=? WHERE id=?", (",".join(sorted(done)), jid))
-        con.execute("COMMIT")
-        return True
 
 
 # ── reviews ──────────────────────────────────────────────────────────────────

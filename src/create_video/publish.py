@@ -110,11 +110,70 @@ def write_result(out_dir: Path, decision: dict | None = None) -> Path | None:
         "sources": [s.get("url") for s in script.get("sources", []) if s.get("url")],
         "qc": _qc_summary(out_dir, decision),
     }
+    res["post"] = write_post_package(out_dir, mp4, script, res)
     p = out_dir / "result.json"
     tmp = p.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(res, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     tmp.replace(p)
     return p
+
+
+# ── Bộ đăng TikTok (2026-10-02, research/probes/bo-dang-research.md) ─────────────────────────────────────────
+CAPTION_MAX = 2200        # API Content Posting: title ≤ 2.200 UTF-16 (V); app 4.000 (R) — lấy mức chặt hơn
+HASHTAG_MAX = 5           # TikTok cảnh báo "Maximum 5 hashtags" từ 2025-08 (R)
+
+CHECKLIST = [
+    ("cover", "Chọn bìa → Tải lên ảnh → chọn bia.jpg (không chọn thì TikTok lấy frame đầu)"),
+    ("caption", "Dán caption + hashtag vào ô mô tả"),
+    ("aigc", "Thêm tùy chọn → BẬT \"Nội dung do AI tạo\" (giọng clone + hình AI — bắt buộc với nội dung AI trông như thật)"),
+    ("hq", "Thêm tùy chọn → bật \"Cho phép tải lên chất lượng cao\""),
+    ("privacy", "Ai có thể xem: Mọi người · cho phép bình luận, duet, stitch"),
+    ("commercial", "Tiết lộ nội dung thương mại: TẮT (trừ khi quảng cáo)"),
+    ("captions", "Bật phụ đề tự động nếu có tiếng Việt (video đã có phụ đề cháy sẵn — tuỳ chọn)"),
+    ("pin", "Sau khi đăng: dán bình luận ghim rồi ghim nó"),
+    ("url", "Dán link TikTok vào trang video trên web để theo dõi số 72 giờ"),
+]
+
+
+def build_caption(script: dict) -> str:
+    """Dòng đầu chứa từ khoá (~100 ký tự đầu hiện trước "thêm"), rồi hashtag ngách (≤ 5) ở dòng riêng."""
+    cap = (script.get("caption") or script.get("hook") or "").strip()
+    tags = [h.lstrip("#") for h in script.get("hashtags", [])][:HASHTAG_MAX]
+    text = cap + ("\n\n" + " ".join("#" + t for t in tags) if tags else "")
+    return text[:CAPTION_MAX]
+
+
+def write_post_package(out_dir: Path, mp4: Path, script: dict, res: dict) -> dict:
+    """out/<id>/post/: cover.jpg + caption.txt + ghim.txt + nguon.txt + checklist.txt. Trả mô tả cho result.json."""
+    from .cover import make_cover, pick_frame
+
+    post = out_dir / "post"
+    post.mkdir(exist_ok=True)
+    spec_p = mp4.parent / "video-spec.json"
+    spec = json.loads(spec_p.read_text(encoding="utf-8")) if spec_p.exists() else {}
+    title = (script.get("hook_text") or script.get("hook") or "").strip()
+    tag = (script.get("keywords") or [""])[0]
+    cover_ok = False
+    try:
+        cover_ok = make_cover(mp4, post / "cover.jpg", title, tag, frame_at=pick_frame(spec))
+    except Exception as e:   # bìa hỏng không làm hỏng bộ đăng — còn frame 0
+        print(f"  ⚠ không dựng được bìa: {e}", flush=True)
+    caption = build_caption(script)
+    domains = []
+    for u in res.get("sources") or []:
+        d = u.split("/")[2] if "://" in u else u
+        if d not in domains:
+            domains.append(d)
+    pin = (script.get("pin_comment") or "").strip() or (
+        "Nguồn mình đã kiểm: " + ", ".join(domains[:3]) + ". Bạn muốn video tiếp theo về gì?" if domains
+        else "Bạn muốn video tiếp theo về gì?")
+    (post / "caption.txt").write_text(caption + "\n", encoding="utf-8")
+    (post / "ghim.txt").write_text(pin + "\n", encoding="utf-8")
+    (post / "nguon.txt").write_text("\n".join(res.get("sources") or []) + "\n", encoding="utf-8")
+    (post / "checklist.txt").write_text("\n".join(f"[ ] {t}" for _, t in CHECKLIST) + "\n", encoding="utf-8")
+    return {"cover": "post/cover.jpg" if cover_ok else None, "caption": caption, "pin_comment": pin,
+            "cover_text": title, "checklist": [{"key": k, "text": t} for k, t in CHECKLIST],
+            "caption_chars": len(caption), "hashtags": len(script.get("hashtags", [])[:HASHTAG_MAX])}
 
 
 def main(argv: list[str] | None = None) -> int:

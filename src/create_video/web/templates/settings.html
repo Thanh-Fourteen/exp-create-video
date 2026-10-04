@@ -16,37 +16,9 @@
     <p class="m-0 text-[12.5px] text-muted">Ổ chứa video còn trống <span class="num">{{ m.disk_free_gb }}</span> GB. Dự án khác đang dùng GPU thì job đợi, không chạy liều.</p>
   </section>
 
-  <section class="card-x p-5 flex flex-col gap-4" x-data="{step: {{ 'null' if tg.get('chat_id') else '1' }}, link: '', busy: false}">
-    <h2 class="text-[21px] m-0">Báo khi xong — Telegram</h2>
-    {% if tg.get('chat_id') %}
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <span class="text-[14px]">Đã kết nối{% if tg.get('name') %} với <b>{{ tg.name }}</b>{% endif %}.</span>
-        <form hx-post="/settings/telegram/toggle" hx-trigger="change" class="flex items-center gap-3 text-[14px]">
-          <input type="checkbox" name="enabled" class="toggle toggle-primary" {{ 'checked' if tg.get('enabled') }}>Bật thông báo</form>
-      </div>
-      <div class="flex gap-2">
-        <button class="btn" @click="fetch('/settings/telegram/test',{method:'POST'}).then(r=>r.json()).then(d=>toast(d.ok?'Đã gửi tin thử':'Chưa gửi được: '+d.why))">Gửi tin thử</button>
-        <button class="btn btn-ghost" @click="step=1">Kết nối lại</button>
-      </div>
-    {% endif %}
-    <div x-show="step===1" x-cloak class="flex flex-col gap-3">
-      <p class="m-0 text-[13.5px] text-muted max-w-[62ch]">Bước 1: mở Telegram, nhắn <b>@BotFather</b> lệnh <code>/newbot</code>, đặt tên, rồi dán token nó trả về vào đây.</p>
-      <form class="flex flex-wrap gap-2" @submit.prevent="busy=true; fetch('/settings/telegram/start',{method:'POST',body:new FormData($el)}).then(r=>r.json()).then(d=>{busy=false; if(d.ok){link=d.url; step=2} else toast(d.why)})">
-        <input name="token" required autocomplete="off" placeholder="123456789:AA…" class="input input-bordered flex-1 min-w-60 num">
-        <button class="btn btn-primary" :disabled="busy">Tiếp</button>
-      </form>
-    </div>
-    <div x-show="step===2" x-cloak class="flex flex-col gap-3">
-      <p class="m-0 text-[13.5px] text-muted max-w-[62ch]">Bước 2: mở link dưới, bấm <b>Start</b> trong Telegram, rồi quay lại bấm "Đã bấm Start". Máy nhận đúng mã của lần này nên người khác nhắn bot cũng không kết nối nhầm.</p>
-      <a :href="link" target="_blank" rel="noopener" class="btn btn-primary self-start" hx-boost="false">Mở bot trong Telegram</a>
-      <button class="btn self-start" :disabled="busy" @click="busy=true; fetch('/settings/telegram/finish',{method:'POST'}).then(r=>r.json()).then(d=>{busy=false; if(d.ok){toast('Đã kết nối'); location.reload()} else toast(d.why)})"
-        x-text="busy ? 'Đang chờ Telegram (tối đa 25 giây)…' : 'Đã bấm Start'"></button>
-    </div>
-  </section>
-
   <section class="card-x p-5 flex flex-col gap-4">
     <h2 class="text-[21px] m-0">Chạy đêm</h2>
-    <p class="m-0 text-[13.5px] text-muted max-w-[62ch]">Trong khung giờ này, kịch bản xong thì tự duyệt và dựng luôn (vẫn bị chặn nếu sai sự thật, không bao giờ tự đăng). Sáng ra máy nhắn một tin tóm tắt.</p>
+    <p class="m-0 text-[13.5px] text-muted max-w-[62ch]">Trong khung giờ này, kịch bản xong thì tự duyệt và dựng luôn (vẫn bị chặn nếu sai sự thật, không bao giờ tự đăng). Sáng ra mở Thư viện là thấy.</p>
     <form hx-post="/settings/night" hx-trigger="change" class="flex flex-wrap items-center gap-x-5 gap-y-3 text-[14px]">
       <label class="flex items-center gap-3"><input type="checkbox" name="enabled" class="toggle toggle-primary" {{ 'checked' if night.enabled }}>Bật</label>
       <label class="flex items-center gap-2">Từ<select name="start" class="select select-sm select-bordered num">{% for h in range(18,24) %}<option {{ 'selected' if night.start == h }}>{{ h }}</option>{% endfor %}</select>giờ</label>

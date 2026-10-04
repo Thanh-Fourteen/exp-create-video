@@ -40,10 +40,3 @@ def test_noi_tiep_sau_crash(tmp_path):
     db.claim_next(p)
     db.update_job(a["id"], heartbeat_at=time.time() - 999, path=p)
     assert db.recover_stale(120, p) == [a["id"]] and db.get_job(a["id"], p)["state"] == "queued"
-
-
-def test_bao_mot_lan(tmp_path):
-    p = tmp_path / "x.db"
-    db.init(p)
-    a = db.add_job("a", path=p)
-    assert db.mark_notified(a["id"], "done", p) and not db.mark_notified(a["id"], "done", p)

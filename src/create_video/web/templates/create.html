@@ -7,7 +7,7 @@
 </div>
 
 <div class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.9fr)_minmax(300px,1fr)] lg:items-start">
-  <form method="post" action="/jobs" class="flex flex-col gap-7" x-data="{voice:'tony', dur:45, more:false, adv:false}">
+  <form method="post" action="/jobs" class="flex flex-col gap-7" x-data="{voice:'tony', dur:45, more:false, adv:false, gate:false}">
     <div class="flex flex-col gap-2">
       <label for="topic" class="eyebrow">Chủ đề</label>
       <textarea id="topic" name="topic" required minlength="6" maxlength="400" rows="3"
@@ -55,7 +55,7 @@
     </div>
 
     <details class="rounded-box border border-base-300 px-4 py-3" :open="adv">
-      <summary class="cursor-pointer text-[14px] font-medium">Tuỳ chỉnh <span class="text-muted font-normal">· <span x-text="dur"></span>s · duyệt kịch bản</span></summary>
+      <summary class="cursor-pointer text-[14px] font-medium">Tuỳ chỉnh <span class="text-muted font-normal">· <span x-text="dur"></span>s · <span x-text="gate ? 'duyệt kịch bản trước' : 'dựng thẳng, không duyệt'"></span></span></summary>
       <div class="mt-4 flex flex-col gap-4">
         <div class="flex flex-wrap items-center gap-3"><span class="text-[14px] w-20">Độ dài</span>
           <div class="join">{% for d in (30,45,60) %}<button type="button" class="btn join-item" :class="dur==={{ d }} && 'btn-active'" @click="dur={{ d }}">{{ d }}s</button>{% endfor %}</div>
@@ -63,12 +63,14 @@
         <label class="flex items-start justify-between gap-4 cursor-pointer">
           <span><span class="text-[14px] font-medium">Duyệt kịch bản trước khi dựng</span>
             <small class="block text-muted text-[12.5px]">Máy dừng sau ~5 phút để anh đọc kịch bản và nguồn, rồi mới chạy GPU ~20 phút.</small></span>
-          <input type="checkbox" name="gate" checked class="toggle toggle-primary mt-1"></label>
+          <input type="checkbox" name="gate" x-model="gate" class="toggle toggle-primary mt-1"></label>
       </div>
     </details>
 
-    <button class="btn btn-primary btn-lg self-end sm:self-start px-8 rounded-full lg:rounded-field sticky bottom-[calc(76px+env(safe-area-inset-bottom,0px))] lg:static shadow-lg shadow-primary/20">
-      Tạo video <span class="font-normal text-[13px] opacity-75">· ~25 phút</span></button>
+    <div class="flex flex-wrap items-center gap-3 sticky bottom-[calc(76px+env(safe-area-inset-bottom,0px))] lg:static justify-end sm:justify-start">
+      <button class="btn btn-primary btn-lg px-8 rounded-full lg:rounded-field shadow-lg shadow-primary/20">
+        Tạo video <span class="font-normal text-[13px] opacity-75">· ~25 phút</span></button>
+    </div>
   </form>
 
   <aside class="flex flex-col gap-6 lg:sticky lg:top-10">

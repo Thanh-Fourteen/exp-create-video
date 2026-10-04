@@ -8,8 +8,8 @@
     <video class="w-full aspect-[9/16] rounded-[14px] border border-base-300 bg-black" controls playsinline preload="metadata"
            poster="/v/{{ v.id }}/cover.jpg" src="/v/{{ v.id }}/video.mp4"></video>
     <div class="hidden lg:flex gap-2">
-      <a href="/v/{{ v.id }}/download" class="btn btn-primary flex-1" hx-boost="false">Tải video</a>
-      <a href="/v/{{ v.id }}/cover.jpg" class="btn" hx-boost="false" download>Tải bìa</a>
+      <a href="/v/{{ v.id }}/bo-dang.zip" class="btn btn-primary flex-1" hx-boost="false">Tải cả bộ</a>
+      <a href="/v/{{ v.id }}/download" class="btn" hx-boost="false">Chỉ video</a>
     </div>
   </div>
 
@@ -20,12 +20,47 @@
       <p class="text-muted mt-2 max-w-[62ch]">{{ v.topic }}</p>
     </div>
 
-    <section class="card-x p-4 flex flex-col gap-3 max-w-[70ch]">
-      <p class="eyebrow m-0">Caption · hashtag gợi ý</p>
-      <p class="m-0 text-[14.5px]">{{ v.caption }}</p>
-      <p class="m-0 text-primary text-[14px]">{% for h in v.hashtags %}#{{ h }} {% endfor %}</p>
-      <button class="btn btn-primary self-start" onclick="copyText({{ (v.caption ~ '\n\n' ~ ('#' ~ v.hashtags|join(' #')))|tojson|forceescape }})">Copy caption + hashtag</button>
-      <p class="m-0 text-[12px] text-muted">TikTok lấy frame đầu làm bìa — frame đầu của video này đã thiết kế làm bìa. Nhớ bật nhãn "Nội dung do AI tạo" khi đăng.</p>
+    {% set pk = v.post or {} %}
+    <section class="card-x p-5 flex flex-col gap-5 max-w-[760px]" x-data="{done: JSON.parse(localStorage.getItem('ck-{{ v.id }}') || '{}'), save(){ localStorage.setItem('ck-{{ v.id }}', JSON.stringify(this.done)) }}">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div><p class="eyebrow m-0">Bộ đăng TikTok</p><h2 class="text-[22px] m-0 mt-1">Đủ để đăng ngay</h2></div>
+        <a href="/v/{{ v.id }}/bo-dang.zip" class="btn btn-primary" hx-boost="false">Tải cả bộ (.zip)</a>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-[150px_1fr]">
+        <a href="/v/{{ v.id }}/bia.jpg" target="_blank" hx-boost="false" class="block">
+          <img src="/v/{{ v.id }}/bia.jpg" alt="Ảnh bìa" class="w-full aspect-[9/16] object-cover rounded-[10px] border border-base-300" loading="lazy"></a>
+        <div class="flex flex-col gap-2 text-[14px]">
+          <p class="m-0"><b class="font-medium">Ảnh bìa</b> 1080×1920 · chữ “{{ pk.cover_text or v.title }}” nằm trong vùng giữa (lưới profile cắt ~3:4).</p>
+          <p class="m-0 text-muted text-[12.5px]">Trong app: Chọn bìa → Tải lên → chọn ảnh này. Không chọn thì TikTok lấy frame đầu (frame đầu của video cũng đã thiết kế làm bìa).</p>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <a href="/v/{{ v.id }}/download" class="btn btn-sm" hx-boost="false">Tải video</a>
+            <a href="/v/{{ v.id }}/bia.jpg" download="bia-{{ v.id }}.jpg" class="btn btn-sm" hx-boost="false">Tải bìa</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2"><p class="eyebrow m-0">Caption + hashtag</p>
+          <span class="num text-[11.5px] text-muted">{{ (pk.caption or '')|length }}/2200 · {{ pk.hashtags or v.hashtags|length }}/5 hashtag</span></div>
+        <pre class="m-0 whitespace-pre-wrap font-sans text-[14.5px] bg-base-100 border border-base-300 rounded-field p-3">{{ pk.caption or (v.caption ~ '\n\n#' ~ v.hashtags|join(' #')) }}</pre>
+        <button class="btn btn-primary btn-sm self-start" onclick="copyText({{ (pk.caption or (v.caption ~ '\n\n#' ~ v.hashtags|join(' #')))|tojson|forceescape }})">Copy caption + hashtag</button>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <p class="eyebrow m-0">Bình luận ghim sau khi đăng</p>
+        <p class="m-0 text-[14.5px] bg-base-100 border border-base-300 rounded-field p-3">{{ pk.pin_comment or '' }}</p>
+        <button class="btn btn-sm self-start" onclick="copyText({{ (pk.pin_comment or '')|tojson|forceescape }})">Copy bình luận</button>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <p class="eyebrow m-0">Trong app TikTok — bấm xong thì tick</p>
+        {% for c in (pk.checklist or []) %}
+        <label class="flex items-start gap-3 text-[14px] cursor-pointer">
+          <input type="checkbox" class="checkbox checkbox-primary checkbox-sm mt-0.5" :checked="done['{{ c.key }}']" @change="done['{{ c.key }}'] = $el.checked; save()">
+          <span :class="done['{{ c.key }}'] && 'line-through text-muted'">{{ c.text }}</span></label>
+        {% endfor %}
+      </div>
     </section>
 
     <section class="flex flex-col gap-3">
@@ -43,6 +78,7 @@
       <div class="flex flex-wrap gap-2 mt-1">
         <button class="btn {{ 'btn-success' if r.decision == 'post' else '' }}" hx-post="/videos/{{ v.id }}/review" hx-vals='{"field":"decision","value":"{{ '' if r.decision == 'post' else 'post' }}"}' hx-target="body">{{ 'Đã đăng ✓' if r.decision == 'post' else 'Đánh dấu đã đăng' }}</button>
         <button class="btn btn-ghost text-error" hx-post="/videos/{{ v.id }}/review" hx-vals='{"field":"decision","value":"{{ '' if r.decision == 'drop' else 'drop' }}"}' hx-target="body">{{ 'Đã bỏ — hoàn tác' if r.decision == 'drop' else 'Bỏ video' }}</button>
+        <button class="btn btn-ghost text-muted" hx-post="/videos/{{ v.id }}/delete" hx-confirm="Xoá video này khỏi thư viện? (chuyển vào thư mục rác, lấy lại được)">Xoá khỏi thư viện</button>
       </div>
       {% if r.decision == 'drop' %}
       <form hx-post="/videos/{{ v.id }}/review" hx-trigger="change" hx-target="body" class="flex items-center gap-3 text-[14px]">
@@ -108,7 +144,7 @@
 
 <!-- thanh hành động dính đáy trên điện thoại -->
 <div class="lg:hidden fixed inset-x-0 z-20 flex gap-2 px-4 py-2.5 border-t border-base-300 bg-base-100/95 backdrop-blur" style="bottom: calc(56px + env(safe-area-inset-bottom, 0px))">
-  <a href="/v/{{ v.id }}/download" class="btn btn-primary flex-1" hx-boost="false">Tải</a>
+  <a href="/v/{{ v.id }}/bo-dang.zip" class="btn btn-primary flex-1" hx-boost="false">Cả bộ</a>
   <button class="btn flex-1" onclick="copyText({{ (v.caption ~ '\n\n' ~ ('#' ~ v.hashtags|join(' #')))|tojson|forceescape }})">Copy</button>
   <button class="btn flex-1" onclick="shareVideo('/v/{{ v.id }}/video.mp4', {{ (v.title ~ '.mp4')|tojson|forceescape }})">Chia sẻ</button>
 </div>
