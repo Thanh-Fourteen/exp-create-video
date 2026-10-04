@@ -130,3 +130,21 @@ configs/                 models.yaml · style.yaml · thresholds.yaml (ngưỡng
 
 Tài liệu gốc: `research/11-audit-tiktok-ai.md` (research nội dung + audit) · `research/12-web-app.md` (website) ·
 `research/10-team.md` (kiến trúc agent) · `research/probes/` (số đo từng bước).
+
+---
+
+## 7. Tóm gọn
+
+- **Làm gì:** gõ một chủ đề (hoặc chọn gợi ý) trên website → ~20–25 phút sau có **bộ đăng TikTok** đầy đủ: video
+  dọc 9:16 tiếng Việt + ảnh bìa + caption/hashtag + bình luận ghim + checklist đăng.
+- **Vào ở đâu:** https://tony.tailfcdcfc.ts.net:8443 (điện thoại/laptop có bật Tailscale).
+- **Agent Claude (7 vai):** gợi ý chủ đề · tìm nguồn · viết kịch bản · sửa kịch bản · chấm sức hút · rút claim ·
+  kiểm sự thật. Mỗi vai một lần gọi, có code kiểm ở giữa.
+- **Model chạy trên máy:** VieNeu-TTS (giọng) · LavaSR (làm rõ giọng clone) · Qwen3-ForcedAligner + Qwen3-ASR (căn và
+  nghe lại lời đọc) · FLUX.2-klein (ảnh) · Depth-Anything (chiều sâu) · ACE-Step (nhạc) · Qwen3-VL (chấm hình) ·
+  multilingual-e5 (gom trend). Công cụ: Playwright (chụp trang thật), Remotion (dựng video).
+- **Kiểm tra:** T1 kỹ thuật bằng code · T2 hình bằng VLM · T3 sức hút + T4 sự thật bằng Claude. Sai sự thật thì chặn;
+  tối đa 2 vòng tự sửa.
+- **Chi phí:** 0đ tiền mặt. Bước Claude trừ hạn mức gói (~2–3 USD quy đổi/video); phần còn lại dùng GPU 6GB + CPU của
+  máy, mỗi lúc một video.
+- **Metric chính:** `approve_rate` = video anh bấm Đăng / tổng đã quyết — xem ở trang Thống kê.
