@@ -223,9 +223,13 @@ def code_items(script: "Script") -> list[ItemResult]:
                            for i, t in enumerate(lines)
                            for rx, why, fix in _MARKERS if rx.search(unicodedata.normalize("NFC", t).lower())])
 
-    # V_TERMS
+    # V_TERMS — chỉ kênh giữ thuật ngữ Anh (kênh AI). Kênh mẹo nói tiếng Việt đời thường → mục luôn đạt.
+    from ..channel import current
+
+    keep_en = current().flag("keep_english_terms", True)
     add_hits("V_TERMS", [(i, t, f"thuật ngữ bị dịch: '{vi}'", f"giữ nguyên '{en}'")
-                         for i, t in enumerate(lines) for vi, en in _TRANSLATED_TERMS.items() if vi in _norm(t)])
+                         for i, t in enumerate(lines) for vi, en in _TRANSLATED_TERMS.items()
+                         if keep_en and vi in _norm(t)])
 
     # CTA
     cta_i = len(lines) - 1
@@ -267,12 +271,19 @@ class CriticOut(BaseModel):
 
 
 def _rubric() -> str:
-    return (REPO_ROOT / "configs" / "rubric.md").read_text(encoding="utf-8")
+    from ..channel import current
+
+    return current().rubric_path.read_text(encoding="utf-8")
 
 
 def critic_system_prompt() -> str:
     qs = "\n".join(f"- {k}: {ITEMS[k][2]}" for k in LLM_ITEMS)
-    return f"""Bạn là CRITIC của một kênh TikTok tiếng Việt về AI. Việc của bạn là TÌM CÁI SAI
+    from ..channel import current
+
+    ch = current()
+    about = "về AI" if ch.id == "ai" else f"\"{ch.name}\" ({ch.text('topic_of_video', ch.name)})"
+    std = ch.text("critic_terms_note", "câu ngắn, giọng thân mật, dùng thuật ngữ tiếng Anh (model, VRAM, OOM…)\n   là CHUẨN của kênh, không phải lỗi")
+    return f"""Bạn là CRITIC của một kênh TikTok tiếng Việt {about}. Việc của bạn là TÌM CÁI SAI
 trong kịch bản theo một checklist cố định. Bạn KHÔNG viết lại kịch bản, KHÔNG chấm điểm,
 KHÔNG khen, KHÔNG chấm nội dung đúng/sai (đó là việc của fact-checker).
 
@@ -291,8 +302,7 @@ LUẬT CHẤM — đọc kỹ:
    — code sẽ đối chiếu, trích không khớp thì lời chê bị bỏ. `why` một câu, `fix` một câu
    chỉ hướng sửa, KHÔNG viết sẵn câu thay thế.
 3. Đạt thì để quote/why/fix rỗng.
-4. Không chê vì gu: câu ngắn, giọng thân mật, dùng thuật ngữ tiếng Anh (model, VRAM, OOM…)
-   là CHUẨN của kênh, không phải lỗi. Số được viết bằng chữ ("tám phẩy hai giây") là ràng
+4. Không chê vì gu: {std}. Số được viết bằng chữ ("tám phẩy hai giây") là ràng
    buộc kỹ thuật của giọng đọc, không phải lỗi.
 5. H_INFO chỉ xét phần lời trong 3 giây đầu được đưa riêng ở dưới. `hook_type`: kiểu hook
    của câu đầu (con_so | mau_thuan | cau_hoi | ket_qua_truoc), hoặc khong_co nếu không thuộc kiểu nào."""

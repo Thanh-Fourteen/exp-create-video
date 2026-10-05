@@ -27,7 +27,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from ..team import State
@@ -42,7 +42,9 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 # lần gọi TTS riêng rồi ghép lại kèm 0,28s lặng. Câu càng ngắn thì càng nhiều
 # mối ghép, và mỗi mối ghép là một chỗ ngắt hơi không giống người nói. Tony nghe
 # demo-02 và nhận ra ngay: "không tự nhiên như người nói".
-MIN_WORDS, MAX_WORDS = 5, 16
+# 2026-10-05 (research/19): 5–16 → 2–26. Giới hạn cũ có từ thời đọc TỪNG câu rồi ghép (câu ngắn = nhiều mối ghép); giờ
+# đọc cả đoạn một lần (`paragraph`) nên lý do đó hết, còn trần 16 ép mọi câu dài như nhau → nghe như đọc gạch đầu dòng.
+MIN_WORDS, MAX_WORDS = 2, 26
 
 # Phase V3 (2026-10-02): 20 khuôn hook ở research/11 §4.2 gom thành nhãn để sau 20 video
 # đếm được loại nào giữ người xem — không phải để ép LLM viết theo khuôn.
@@ -52,7 +54,6 @@ HOOK_TYPES = (
     "danh_sach", "ban_dang_sai", "thoi_gian", "pha_tuong_4", "doi_dau", "context_snapback",
     "he_qua_nguoi_viet",
 )
-PILLARS = ("tin_nong", "cong_cu", "meo", "so_sanh", "tu_do", "canh_bao")
 HOOK_TEXT_MAX_WORDS = 7
 # Từ khung chung của prompt ảnh (ánh sáng, nền) — không tính khi so hai ảnh có trùng chủ thể không.
 _STOP = {"dark", "light", "lighting", "background", "shadow", "shadows", "deep", "single", "soft", "cool",
@@ -78,13 +79,16 @@ class Shot:
     overlay: str | None = None
     # P3b.S4: shot neo vào CÂU (chỉ số trong `lines`) + loại hình. `line=None` là
     # script cũ → router xoay vòng prompt như trước.
-    kind: str = "image"   # image | stat | chart | code | screenshot
+    kind: str = "image"   # image | stat | chart | code | screenshot | chat | list (chat/list: kênh mẹo 2026-10-04)
     line: int | None = None
     stat: dict | None = None      # {value, unit?, label, decimals?, prefix?}
     chart: dict | None = None     # {title, unit?, bars: [{label, value, highlight?}]}
     code: dict | None = None      # {lang, title?, lines: [...]}
     url: str | None = None        # screenshot
     highlight: str | None = None  # screenshot: chữ cần tô vàng trên trang
+    chat: dict | None = None      # {title?, messages: [{from: me|them, text, mark?: ok|no}]}
+    list: dict | None = None      # {title?, items: [{text, mark?: num|ok|no}]}
+    query: str | None = None      # stock (2026-10-05): từ khoá tiếng Anh tìm cảnh quay thật Pexels/Pixabay
 
 
 @dataclass
@@ -138,6 +142,7 @@ class Script:
                     line=x.get("line"),
                     stat=x.get("stat"), chart=x.get("chart"), code=x.get("code"),
                     url=x.get("url"), highlight=x.get("highlight"),
+                    chat=x.get("chat"), list=x.get("list"), query=x.get("query"),
                 )
                 for x in d.get("shots", [])
             ],
@@ -177,10 +182,100 @@ def _min_evidence_hint(duration_sec: int) -> int:
     return max(2, -(-(duration_sec // 5) // 3))
 
 
+# Mặc định của code = kênh AI. Kênh khác ghi đè từng đoạn ở `configs/channels/<kênh>/channel.yaml: prompts`
+# (2026-10-04, research/13 §5). Kênh AI không khai gì → prompt giống hệt trước khi tách.
+INTRO_AI = """Bạn viết kịch bản video TikTok tiếng Việt về AI cho khán giả Việt Nam PHỔ THÔNG (sinh viên,
+dân văn phòng, người làm nội dung — không chỉ dev)."""
+HOOK_EXAMPLE_AI = 'hook "Gemini vừa cho sinh viên Việt Nam dùng bản Pro miễn phí một năm" →\n    hook_text "Gemini Pro: 0 đồng"'
+IMAGE_EXAMPLES_AI = "điện thoại hiện khung chat, laptop, sách vở, ví\n   tiền, đồng hồ, chip, bản đồ Việt Nam…"
+TERMS_AI = """1. Số trong lời văn phải viết BẰNG CHỮ: "sáu GB", "ba mươi bảy giây", "mười lăm
+   phần trăm" — không viết "6GB", "37 giây", "15%". Lý do: TTS đọc chữ số thành
+   nhiều từ hơn số từ hiện trên màn hình, làm phụ đề karaoke mất mốc thời gian.
+   NGOẠI LỆ: tên riêng thì giữ NGUYÊN dạng thật của nó — "Qwen3-VL", "GPT-5",
+   "Claude Opus 5", "SDXL". Đổi tên model thành chữ là sai tên, tệ hơn nhiều so
+   với lệch phụ đề vài chục mili giây.
+2. Tên model, tên hãng, thuật ngữ tiếng Anh thì GIỮ NGUYÊN (model, benchmark,
+   fine-tune, inference, prompt, open-source, hook, retention)."""
+CODE_KIND_AI = """   - `code`: đoạn code ≤ 12 dòng × 40 ký tự — {"lang": "python", "lines": [...]}.
+     CHỈ TRÍCH code có sẵn trong đề bài (được cắt dòng cho vừa, giữ nguyên tên hàm/
+     tham số). Đề bài không có code thì KHÔNG dùng kind này — code tự viết trông như
+     bằng chứng mà sai là tệ hơn không có.
+"""
+SCREENSHOT_AI = """   - `screenshot`: chụp trang thật — `url` là một trang trong "TRANG CHỤP ĐƯỢC" của đề bài,
+     hoặc trang model Hugging Face (huggingface.co/<org>/<model>), repo GitHub
+     (github.com/<owner>/<repo>), arxiv.org/abs/<id>; `highlight` (nên có) là cụm chữ CÓ
+     NGUYÊN VĂN TRÊN trang cần tô vàng — video cuộn tới đúng chỗ đó. Không bịa URL."""
+SCREENSHOT_TIP_AI = """   - `screenshot`: ưu tiên trang model Hugging Face và abstract arXiv (chữ to, đọc được). KHÔNG chụp
+     README GitHub dài — chữ tiếng Anh nhỏ, đang cuộn, trên điện thoại không đọc nổi.
+"""
+STOCK_KIND = """   - `stock`: CẢNH QUAY THẬT (video) từ kho Pexels/Pixabay — `query` tiếng Anh 2–6 từ, hành động/đồ vật CỤ THỂ
+     quay được ngoài đời ("hands holding smartphone", "washing vegetables in sink", "flooded street motorbikes").
+     Dùng cho cảnh đời thực (bếp, chợ, phố, điện thoại, tiền, thời tiết) — thật hơn ảnh AI. Chủ đề lừa đảo/tiêu cực:
+     query KHÔNG có người lộ mặt (dùng "hands", "phone screen", "close up"). Không tìm chữ/logo/thương hiệu.
+     Cảnh ĐỦ SÁNG: không dùng "dark", "night", "dim" trong query — clip tối thành dải đen trên điện thoại (code loại)."""
+ICON_HINT = """   - `icon` (tuỳ chọn, NÊN có ở `stat` và từng mục `list`): MỘT emoji Unicode minh hoạ đúng đồ vật/ý (📱 💰 🥩 ⚠️ 🔒
+     🧊 🤖) — code vẽ thành hình 3D cạnh chữ. Không dùng emoji mặt người/cờ."""
+H4_AI = """H4. Shot ở câu 0 NÊN là bằng chứng mang CHỦ ĐỀ (screenshot trang thật, hoặc stat có con số của hook) —
+    người xem phải nhận ra video nói về cái gì ngay frame đầu. Ảnh AI ở câu 0 chỉ khi không có bằng chứng."""
+H4_HEADLINE = """H4. Shot ở câu 0 là ẢNH BÌA: dùng `stock` (cảnh quay thật gây chú ý, đúng chủ đề) hoặc `stat` có con số sốc
+    của hook. KHÔNG dùng `screenshot` ở câu 0 — trang chụp chữ nhỏ không kéo được người đang lướt (tiêu đề cố định phía
+    trên đã nói chủ đề)."""
+SPEECH_EXAMPLES_AI = """- @ai5phut (340K view): "Có một bài toán mà loài người giải suốt một trăm sáu mươi bảy năm mà không xong, trao giải
+  một triệu đô mà không ai lấy được. Bài toán đấy tên là giả thuyết Riemann. Nói gọn ra thì như này nhé: mọi con số trên
+  đời đều xây từ số nguyên tố, như xây nhà từ những viên gạch."
+- @aidev.news (248K): "Việt Nam vừa mất gần một phần ba đường ra internet quốc tế. Tối hai lăm tháng tám, hai tuyến cáp
+  cùng lúc gặp sự cố, trong khi hai tuyến kia còn chưa sửa xong. Với dân AI thì giờ cao điểm gọi API sẽ chậm thấy rõ."
+- @hieuanca (1,2M): "Nếu bạn gõ gạch chéo ba trăm sáu mươi view vào ChatGPT, nó sẽ tạo ra góc nhìn ba trăm sáu mươi độ
+  cho sản phẩm của bạn. Còn gõ gạch chéo x-ray thì nó vẽ luôn bên trong sản phẩm."
+"""
+HASHTAG_EXAMPLE_AI = '"sdxl", "aiopensource", "rtx2060"'
+STAT_EXAMPLE_AI = '{"value": 6, "unit": "GB", "label": "VRAM của RTX 2060"}'
+
+
+def _indent(text: str, n: int) -> str:
+    return "\n".join((" " * n + ln) if ln.strip() else ln for ln in text.splitlines())
+
+
+def _pillars() -> tuple[str, ...]:
+    from ..channel import current
+
+    return tuple(current().pillars)
+
+
+def evidence_kinds() -> tuple[str, ...]:
+    """Loại shot tính là bằng chứng ở kênh đang chạy (chat/list chỉ kênh có khai)."""
+    from ..channel import current
+
+    return tuple(k for k in current().shot_kinds if k in EVIDENCE_KINDS)
+
+
 def _system_prompt(duration_sec: int) -> str:
-    rubric = (REPO_ROOT / "configs" / "rubric.md").read_text(encoding="utf-8")
-    return f"""Bạn viết kịch bản video TikTok tiếng Việt về AI cho khán giả Việt Nam PHỔ THÔNG (sinh viên,
-dân văn phòng, người làm nội dung — không chỉ dev). Video dọc 1080×1920, dài khoảng {duration_sec} giây,
+    from ..channel import current
+
+    ch = current()
+    rubric = ch.rubric_path.read_text(encoding="utf-8")
+    kinds = ch.shot_kinds
+    code_kind = CODE_KIND_AI if "code" in kinds else ""
+    shot_rule = _indent(ch.text("screenshot_rule"), 3) if ch.text("screenshot_rule") else SCREENSHOT_AI
+    extra = ch.text("extra_kinds", "")
+    extra = ("\n" + _indent(extra, 3)) if extra else ""
+    if "stock" in kinds:
+        extra += "\n" + STOCK_KIND
+    extra += "\n" + ICON_HINT
+    shot_tip = SCREENSHOT_TIP_AI if "screenshot_rule" not in (ch.raw.get("prompts") or {}) else ""
+    ev = "/".join(k for k in kinds if k in EVIDENCE_KINDS)
+    stat_ex = ch.text("json_stat_example", STAT_EXAMPLE_AI)
+    # 2026-10-05: bố cục headline đã có tiêu đề cố định nói chủ đề → khung đầu (= ảnh bìa) cần HÌNH gây chú ý, không phải
+    # trang chụp chữ nhỏ (demo v3 kênh mẹo; Zack D. Films: hình gây sốc trước chữ đầu tiên — research/15).
+    h4 = H4_HEADLINE if ch.style.get("layout") else H4_AI
+    r_img = float(ch.flag("image_min_ratio", 0) or 0)
+    img_rule = (f"\n   LUẬT KÊNH: ≥ {r_img:.0%} số shot là `image` (ảnh cảnh thật, đẹp như ảnh chụp) — video không được thành "
+                "\n   trình chiếu thẻ chữ.") if r_img else ""
+    r_real = float(ch.flag("real_min_ratio", 0) or 0)
+    if r_real and "stock" in kinds:
+        img_rule += (f"\n   LUẬT KÊNH: ≥ {r_real:.0%} số shot là `stock` (CẢNH QUAY/ẢNH CHỤP THẬT) — người xem chán ảnh AI. "
+                     "\n   `image` (ảnh AI) chỉ cho cảnh KHÔNG quay được ngoài đời (khái niệm, đồ vật tưởng tượng).")
+    return f"""{ch.text("script_intro", INTRO_AI)} Video dọc 1080×1920, dài khoảng {duration_sec} giây,
 giọng đọc nam, kênh KHÔNG lộ mặt người dẫn.
 
 ĐỀ BÀI thường kèm "SỰ THẬT ĐÃ KIỂM" (F1, F2…) do researcher tìm và code đã đối chiếu nguồn. Khi có:
@@ -190,16 +285,29 @@ CHỈ dùng sự thật trong đó, `sources[].url` lấy đúng url của sự 
 H1. `hook` (lời đọc, ≤ 12 từ) đưa THÔNG TIN CỤ THỂ ngay — con số, kết quả, mâu thuẫn. Không chào, không
     bối cảnh, không định nghĩa.
 H2. `hook_text` (chữ to trên frame 0, 2–7 từ) KHÁC lời hook nhưng CÙNG MỘT Ý — kiểu tiêu đề báo, đọc
-    trong 1 giây. Ví dụ hook "Gemini vừa cho sinh viên Việt Nam dùng bản Pro miễn phí một năm" →
-    hook_text "Gemini Pro: 0 đồng". Được dùng chữ số trong hook_text (code vẽ, không đọc).
+    trong 1 giây. Ví dụ {ch.text("hook_example", HOOK_EXAMPLE_AI)}. Được dùng chữ số trong hook_text (code vẽ, không đọc).
 H3. `hook_type` chọn MỘT: {", ".join(HOOK_TYPES)}.
-H4. Shot ở câu 0 NÊN là bằng chứng mang CHỦ ĐỀ (screenshot trang thật, hoặc stat có con số của hook) —
-    người xem phải nhận ra video nói về cái gì ngay frame đầu. Ảnh AI ở câu 0 chỉ khi không có bằng chứng.
-H5. `pillar` chọn MỘT: {", ".join(PILLARS)} (đề bài có PILLAR thì dùng đúng nó).
+{h4}
+H5. `pillar` chọn MỘT: {", ".join(ch.pillars)} (đề bài có PILLAR thì dùng đúng nó).
 
-Nhịp là thứ quan trọng thứ hai sau hook: không có câu thừa. Bỏ mọi câu chuyển tiếp
-kiểu "vậy thì", "như vậy là", "tiếp theo" — chúng ăn thời gian mà không mang thông
-tin. Vào thẳng ý. Nhưng câu vẫn phải là câu nói được liền một hơi, không cắt vụn.
+Nhịp là thứ quan trọng thứ hai sau hook: không có câu THỪA (câu không mang thông tin). Nhưng từ nối của văn nói không
+phải câu thừa — nó là thứ làm lời nghe như người thật.
+
+VĂN NÓI — viết như một người thật đang KỂ bằng miệng, không phải đọc bản tin gạch đầu dòng:
+V1. Độ dài câu XEN KẼ mạnh: có câu 2–5 từ chốt ý ("Sai rồi.", "Thế thôi."), có câu 18–25 từ chảy liền một hơi bằng
+    "thì", "mà", "nên", "rồi", "là". Không để ba câu liền nhau dài xấp xỉ nhau.
+V2. Câu sau NỐI vào câu trước như lúc nói: "Mà khoan,", "Nói gọn là", "Thế là", "Vấn đề là", "Đấy,", "Còn nữa,",
+    "Để ý nhé:". Đừng để câu nào cũng mở một mệnh đề mới toanh.
+V3. Tiểu từ cuối câu tự nhiên — nhé, nha, đấy, đó, à, luôn, thôi, mà — khoảng 1 trong 3 câu, không dồn một chỗ.
+V4. 1–2 chỗ hỏi rồi tự trả lời ngay ("Vì sao? Vì…").
+V5. Từ đời thường, cụ thể ("lấy điện thoại ra", "bấm vào", "mất tiền oan") — không danh từ hoá ("việc thực hiện",
+    "sự gia tăng").
+V6. NHẤN bằng cấu trúc: chữ quan trọng đặt ở CUỐI câu ngắn; trước con số/ý chốt dùng "…" ("mất… một trăm triệu");
+    dấu phẩy đặt đúng chỗ người nói lấy hơi — code ngắt giọng theo đúng dấu câu bạn viết.
+V7. Dấu hiệu văn AI người xem nhận ra ngay — viết cách khác: gạch ngang "—" giữa câu, liệt kê đúng ba vế, "không chỉ… mà
+    còn", "Hơn nữa", "Thêm vào đó", "Đáng chú ý", "Bạn có biết", "Hãy cùng", "Tóm lại", "Trong bối cảnh", "đóng vai trò".
+CÁCH NÓI THAM KHẢO — lời thật của kênh top (học NHỊP và từ nối, KHÔNG chép nội dung, KHÔNG bắt chước từ ngữ suồng sã):
+{ch.text("speech_examples", SPEECH_EXAMPLES_AI)}
 
 RUBRIC — đây chính là thứ critic sẽ dùng để chấm bạn. Đọc kỹ, viết đúng ngay từ đầu:
 
@@ -212,8 +320,8 @@ A. Hook VÀO GIỮA CHUYỆN, kiểu "khoan, cái gì?": câu đầu là sự th
    câu hỏi có con số — người xem phải muốn biết câu trả lời. Không giới thiệu, không dẫn dắt.
 B. MỞ MỘT VÒNG TÒ MÒ ở hook, TRẢ LỜI ở khoảng 2/3 video (không để tới câu cuối) — kèm một chỗ
    ngoặt ("nhưng có một điều…") ở giữa.
-C. Nói như kể cho bạn: ngôi "tôi" – "bạn", được dùng 1–2 câu hỏi tu từ. NHƯNG chỉ nói "tôi thử / tôi
-   đo / tôi vào / tôi chạy" khi đề bài có số đo của chính kênh (`research/probes/`) — thông tin từ trang
+C. Nói như kể cho bạn: ngôi "mình" – "bạn"/"mọi người", được dùng 1–2 câu hỏi tu từ. NHƯNG chỉ nói "mình thử / mình
+   đo / mình vào / mình chạy" khi đề bài có số đo của chính kênh (`research/probes/`) — thông tin từ trang
    help/công bố thì nói "bạn vào…", "Google ghi…" (2026-10-02: tự nhận đã làm mà chưa làm là nói dối). Năng lượng cao, chắc
    chắn — không rào đón "có thể", "dường như" trừ khi nguồn nói vậy.
 D. KẾT VÒNG: câu cuối (CTA) móc lại ý của hook, để người xem muốn xem lại từ đầu.
@@ -222,27 +330,17 @@ E. Ảnh minh hoạ (`kind=image`): MỘT chủ thể, ≤ 2 mệnh đề, chủ
    thành chữ trong vùng UI che — demo-03, 2026-10-02). Prompt ẩn
    dụ nhiều chi tiết làm SDXL hỏng ~nửa số ảnh (P4.S1, P4.S4). **KHÔNG CÓ NGƯỜI** (không mặt, không
    tay, không dáng người — 2026-10-02: mặt người AI là dấu hiệu "AI slop" dễ nhận nhất, và kênh không
-   lộ mặt). Dùng đồ vật/biểu tượng cụ thể của chủ đề: điện thoại hiện khung chat, laptop, sách vở, ví
-   tiền, đồng hồ, chip, bản đồ Việt Nam… Ảnh AI là phương án CUỐI — có bằng chứng thì dùng bằng chứng.
+   lộ mặt). Dùng đồ vật/biểu tượng cụ thể của chủ đề: {ch.text("image_examples", IMAGE_EXAMPLES_AI)} Ảnh AI là phương án CUỐI — có bằng chứng thì dùng bằng chứng.
    Bề mặt có thể mang chữ (giấy, màn hình, biển, sách) phải ghi rõ TRỐNG: "blank paper", "blank glowing
    screen" — model ảnh vẽ chữ méo lên đó (v2, 2026-10-02: QC tầng 2 bắt 4/6 ảnh có chữ méo).
 F. KẾT Ở ĐỈNH: câu cuối không chào tạm biệt, không "hẹn gặp lại", không "cảm ơn đã xem".
 
 RÀNG BUỘC KỸ THUẬT — vi phạm là hỏng pipeline, không phải hỏng thẩm mỹ:
 
-1. Số trong lời văn phải viết BẰNG CHỮ: "sáu GB", "ba mươi bảy giây", "mười lăm
-   phần trăm" — không viết "6GB", "37 giây", "15%". Lý do: TTS đọc chữ số thành
-   nhiều từ hơn số từ hiện trên màn hình, làm phụ đề karaoke mất mốc thời gian.
-   NGOẠI LỆ: tên riêng thì giữ NGUYÊN dạng thật của nó — "Qwen3-VL", "GPT-5",
-   "Claude Opus 5", "SDXL". Đổi tên model thành chữ là sai tên, tệ hơn nhiều so
-   với lệch phụ đề vài chục mili giây.
-2. Tên model, tên hãng, thuật ngữ tiếng Anh thì GIỮ NGUYÊN (model, benchmark,
-   fine-tune, inference, prompt, open-source, hook, retention).
+{ch.text("terms_rule", TERMS_AI)}
 {_avoid_rule()}
-3. Mỗi câu lời đọc {MIN_WORDS}-{MAX_WORDS} từ. Mỗi câu là một dòng phụ đề, và
-   mỗi câu chỉ mang MỘT ý. Độ dài câu nên xen kẽ, đừng đều tăm tắp — nhưng
-   ĐỪNG cắt vụn thành hàng loạt câu ba bốn từ: mỗi câu được đọc riêng rồi ghép
-   lại, nên câu càng ngắn thì giọng đọc càng nhiều chỗ ngắt và càng nghe như máy.
+3. Mỗi câu lời đọc {MIN_WORDS}-{MAX_WORDS} từ, mỗi câu MỘT ý (một câu = một mục trong `sections`). Độ dài XEN KẼ
+   theo V1 — code đo độ chênh độ dài câu và trả lại kịch bản đều tăm tắp.
 4. `hook` là MỘT câu, tối đa 12 từ — đọc lên phải xong trong 3 giây.
 5. `shots[].prompt` viết bằng TIẾNG ANH, tả cảnh cụ thể, KHÔNG chứa chữ hay logo
    trong ảnh (ảnh sinh ra chữ luôn méo, QC tầng 2 chặn).
@@ -260,25 +358,16 @@ RÀNG BUỘC KỸ THUẬT — vi phạm là hỏng pipeline, không phải hỏn
    - `chart`: bar chart so sánh 2-6 cột — {{"title": "...", "unit": "%", "bars":
      [{{"label": "...", "value": 71.2, "highlight": true}}]}}. Đúng MỘT cột highlight
      = thứ video đang nói tới. Nhãn cột ≤ 18 ký tự.
-   - `code`: đoạn code ≤ 12 dòng × 40 ký tự — {{"lang": "python", "lines": [...]}}.
-     CHỈ TRÍCH code có sẵn trong đề bài (được cắt dòng cho vừa, giữ nguyên tên hàm/
-     tham số). Đề bài không có code thì KHÔNG dùng kind này — code tự viết trông như
-     bằng chứng mà sai là tệ hơn không có.
-   - `screenshot`: chụp trang thật — `url` là một trang trong "TRANG CHỤP ĐƯỢC" của đề bài,
-     hoặc trang model Hugging Face (huggingface.co/<org>/<model>), repo GitHub
-     (github.com/<owner>/<repo>), arxiv.org/abs/<id>; `highlight` (nên có) là cụm chữ CÓ
-     NGUYÊN VĂN TRÊN trang cần tô vàng — video cuộn tới đúng chỗ đó. Không bịa URL.
+{code_kind}{shot_rule}{extra}
    Rút từ lần tự xem lại demo-03 (2026-10-02):
    - `stat` chỉ cho câu có ĐÚNG MỘT con số. Câu có hai số (giá vào/ra, trước/sau) → dùng `chart`,
      không thì thẻ đứng yên hiện một số trong khi giọng đã đọc sang số khác.
-   - `screenshot`: ưu tiên trang model Hugging Face và abstract arXiv (chữ to, đọc được). KHÔNG chụp
-     README GitHub dài — chữ tiếng Anh nhỏ, đang cuộn, trên điện thoại không đọc nổi.
-   - Shot ở câu CTA (câu cuối) là khung người xem thấy ngay trước khi video lặp lại → dùng thẻ
+{shot_tip}   - Shot ở câu CTA (câu cuối) là khung người xem thấy ngay trước khi video lặp lại → dùng thẻ
      `stat`/`chart` tóm lại con số chính, hoặc ảnh MỘT chủ thể thật đơn giản.
    Mọi chữ tiếng Việt trên hình (`label`, `title`, nhãn cột) viết CÓ DẤU đầy đủ —
    chỉ hashtag mới viết không dấu.
    LUẬT: ít nhất {_min_evidence_hint(duration_sec)} shot (và ≥ 1/3 số shot) là
-   stat/chart/code/screenshot — hình phải CHỨNG MINH lời nói, không chỉ minh hoạ.
+   {ev} — hình phải CHỨNG MINH lời nói, không chỉ minh hoạ.{img_rule}
    Shot bằng chứng NÊN đặt ở câu 0 (luật H4). Mọi shot vẫn phải có
    `prompt` tiếng Anh — với shot bằng chứng đó là ảnh dự phòng nếu dựng hỏng.
    Số trong stat/chart phải có trong `sources` — đây là chữ số do code vẽ, nên
@@ -304,7 +393,7 @@ METADATA ĐĂNG BÀI — TikTok index cả caption, hashtag, chữ trên hình l
     ("Bạn đã thử chưa, ra bao nhiêu?") hoặc nguồn chính ("Nguồn: trang hỗ trợ Google, link ở bio"). Không xin like.
 11. `hashtags`: 3-5 hashtag NGÁCH bám sát nội dung video, KHÔNG dùng #fyp #viral
     (quá chung, TikTok hạ ưu tiên). Viết không dấu #, chữ thường liền không dấu
-    cách, ví dụ: "sdxl", "aiopensource", "rtx2060".
+    cách, ví dụ: {ch.text("hashtag_example", HASHTAG_EXAMPLE_AI)}.
 
 Output là JSON theo schema đã cho, ý nghĩa từng trường:
 
@@ -312,12 +401,12 @@ Output là JSON theo schema đã cho, ý nghĩa từng trường:
   "hook": "một câu",
   "hook_text": "2-7 từ trên frame 0",
   "hook_type": "con_so_soc",
-  "pillar": "cong_cu",
+  "pillar": "{"cong_cu" if "cong_cu" in ch.pillars else next(iter(ch.pillars), "")}",
   "sections": ["câu", "câu", "..."],
   "cta": "một câu kêu gọi cụ thể",
   "shots": [{{"line": 0, "kind": "image", "prompt": "english scene description"}},
             {{"line": 3, "kind": "stat", "prompt": "fallback scene",
-              "stat": {{"value": 6, "unit": "GB", "label": "VRAM của RTX 2060"}}}}],
+              "stat": {stat_ex}}}],
   "overlays": [{{"line": 2, "text": "16-bit"}}],
   "sources": [{{"claim": "điều đã nói", "url": "nguồn", "confidence": "verified|reported"}}],
   "keywords": ["từ khoá chính", "..."],
@@ -328,6 +417,7 @@ Output là JSON theo schema đã cho, ý nghĩa từng trường:
 
 
 class _StatOut(BaseModel):
+    icon: str | None = None   # emoji Unicode → ảnh 3D Fluent (2026-10-05)
     value: float
     unit: str | None = None
     label: str
@@ -353,6 +443,31 @@ class _CodeOut(BaseModel):
     lines: list[str]
 
 
+class _ChatMsgOut(BaseModel):
+    # `from` là từ khoá Python → alias; schema LLM thấy đúng tên "from"
+    sender: Literal["me", "them"] = Field(alias="from")
+    text: str
+    mark: Literal["ok", "no"] | None = None
+
+    model_config = {"populate_by_name": True}
+
+
+class _ChatOut(BaseModel):
+    title: str | None = None
+    messages: list[_ChatMsgOut]
+
+
+class _ListItemOut(BaseModel):
+    icon: str | None = None   # emoji Unicode → ảnh 3D Fluent (2026-10-05)
+    text: str
+    mark: Literal["num", "ok", "no"] | None = None
+
+
+class _ListOut(BaseModel):
+    title: str | None = None
+    items: list[_ListItemOut]
+
+
 class _SourceOut(BaseModel):
     claim: str
     url: str
@@ -361,11 +476,14 @@ class _SourceOut(BaseModel):
 
 class _ShotOut(BaseModel):
     line: int
-    kind: Literal["image", "stat", "chart", "code", "screenshot"]
+    kind: Literal["image", "stat", "chart", "code", "screenshot", "chat", "list", "stock"]
     prompt: str
+    query: str | None = None
     stat: _StatOut | None = None
     chart: _ChartOut | None = None
     code: _CodeOut | None = None
+    chat: _ChatOut | None = None
+    list: _ListOut | None = None
     url: str | None = None
     highlight: str | None = None
 
@@ -386,7 +504,7 @@ class ScriptOut(BaseModel):
     hook: str
     hook_text: str
     hook_type: Literal[HOOK_TYPES]  # type: ignore[valid-type]
-    pillar: Literal[PILLARS]  # type: ignore[valid-type]
+    pillar: str           # Literal theo kênh — `_script_model()`
     sections: list[str]
     cta: str
     shots: list[_ShotOut]
@@ -398,6 +516,19 @@ class ScriptOut(BaseModel):
     hashtags: list[str]
     emphasis: list[str] = []
     pin_comment: str = ""
+
+
+def _script_model() -> type[ScriptOut]:
+    """ScriptOut với pillar + kind là Literal CỦA KÊNH đang chạy (SDK ép LLM chọn trong danh sách)."""
+    from pydantic import create_model
+
+    from ..channel import current
+
+    kinds = current().shot_kinds
+    shot = create_model("_ShotOut", __base__=_ShotOut, kind=(Literal[kinds], ...))  # type: ignore[valid-type]
+    return create_model("ScriptOut", __base__=ScriptOut,
+                        pillar=(Literal[_pillars()], ...),  # type: ignore[valid-type]
+                        shots=(list[shot], ...))
 
 
 def _bare_numbers(line: str) -> list[str]:
@@ -483,6 +614,7 @@ def _check(script: Script) -> list[str]:
             problems.append(f"overlay {t!r} dài {len(t)} ký tự, trần {OVERLAY_MAX_CHARS}")
     problems.extend(_check_metadata(script))
     problems.extend(_check_shots(script))
+    problems.extend(_check_speech(script))
     problems.extend(_check_emphasis(script))
     return problems
 
@@ -503,7 +635,8 @@ def _check_emphasis(script: Script) -> list[str]:
     return problems
 
 
-EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot")
+EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot", "chat", "list")
+CHAT_MAX_CHARS, LIST_MAX_CHARS, CARD_TITLE_MAX = 60, 34, 32   # khớp spec/schema.json
 
 # Từ tiếng Việt hay gặp khi bị viết mất dấu. Demo P3b.S4 đầu tiên (2026-10-01) ra
 # "VRAM dinh so voi dung luong card", "Khi chay offload" — LLM lây kiểu không dấu
@@ -524,6 +657,9 @@ def _screen_texts(sh: "Shot") -> list[str]:
         out += [str(b.get("label", "")) for b in sh.chart.get("bars", [])]
     if sh.code and " " in str(sh.code.get("title") or ""):
         out.append(str(sh.code["title"]))
+    for blk, key in ((sh.chat, "messages"), (sh.list, "items")):
+        if blk:
+            out += [str(blk.get("title") or "")] + [str(x.get("text", "")) for x in blk.get(key) or []]
     return out
 
 
@@ -586,6 +722,33 @@ def _check_shots(script: Script) -> list[str]:
                     f"{tag}: url {sh.url!r} ngoài danh sách cho phép (trang trong đề bài · "
                     "huggingface.co/<org>/<model> · github.com/<owner>/<repo> · arxiv.org/abs/<id>)"
                 )
+        elif sh.kind == "chat":
+            msgs = (sh.chat or {}).get("messages") or []
+            if not (2 <= len(msgs) <= 5):
+                problems.append(f"{tag}: chat cần 2-5 tin nhắn, có {len(msgs)}")
+            for m in msgs:
+                if m.get("from") not in ("me", "them") or not str(m.get("text", "")).strip():
+                    problems.append(f"{tag}: tin nhắn cần `from` me|them và `text`")
+                elif len(m["text"]) > CHAT_MAX_CHARS:
+                    problems.append(f"{tag}: tin {m['text']!r} dài {len(m['text'])} ký tự, trần {CHAT_MAX_CHARS}")
+            if len(str((sh.chat or {}).get("title") or "")) > CARD_TITLE_MAX:
+                problems.append(f"{tag}: title ≤ {CARD_TITLE_MAX} ký tự")
+        elif sh.kind == "list":
+            items = (sh.list or {}).get("items") or []
+            if not (2 <= len(items) <= 5):
+                problems.append(f"{tag}: list cần 2-5 mục, có {len(items)}")
+            for it in items:
+                t = str(it.get("text", ""))
+                if not t.strip() or len(t) > LIST_MAX_CHARS:
+                    problems.append(f"{tag}: mục {t!r} — 1-{LIST_MAX_CHARS} ký tự")
+            if len(str((sh.list or {}).get("title") or "")) > CARD_TITLE_MAX:
+                problems.append(f"{tag}: title ≤ {CARD_TITLE_MAX} ký tự")
+        elif sh.kind == "stock":
+            q = (sh.query or "").strip()
+            if not (2 <= len(q.split()) <= 8) or not q.isascii():
+                problems.append(f"{tag}: stock cần `query` tiếng Anh 2–8 từ, có {q!r}")
+        if sh.kind not in ("image", "stock", *evidence_kinds()):
+            problems.append(f"{tag}: kênh này không dùng kind {sh.kind!r}")
         for txt in _screen_texts(sh):
             if _looks_unaccented(txt):
                 problems.append(f"{tag}: {txt!r} trông như tiếng Việt KHÔNG DẤU — chữ trên hình phải có dấu")
@@ -593,9 +756,67 @@ def _check_shots(script: Script) -> list[str]:
     need = max(2, -(-len(script.shots) // 3))
     if n_ev < need:
         problems.append(
-            f"chỉ {n_ev} shot bằng chứng (stat/chart/code/screenshot) trên {len(script.shots)} "
+            f"chỉ {n_ev} shot bằng chứng ({'/'.join(evidence_kinds())}) trên {len(script.shots)} "
             f"shot — cần ≥ {need} (≥ 1/3)"
         )
+    # 2026-10-05 (demo v2 kênh AI): 7/14 shot chụp CÙNG một trang → hình lặp, đơn điệu. Mỗi URL ≤ 2 lần, không liền nhau.
+    urls = [sh.url for sh in script.shots if sh.kind == "screenshot" and sh.url]
+    for u in sorted(set(urls)):
+        if urls.count(u) > 2:
+            problems.append(f"chụp trang {u} tới {urls.count(u)} lần — tối đa 2; thay bằng thẻ list/stat/ảnh minh hoạ ý đó")
+    seq = [(sh.kind, sh.url) for sh in sorted(script.shots, key=lambda x: x.line if x.line is not None else 0)]
+    for (k1, u1), (k2, u2) in zip(seq, seq[1:]):
+        if k1 == k2 == "screenshot" and u1 == u2:
+            problems.append(f"hai shot liền nhau cùng chụp {u1} — xen hình khác vào giữa")
+            break
+    # R4 (2026-10-04): kênh khai `rules.image_min_ratio` → đủ ảnh/cảnh thật, không thành "trình chiếu thẻ chữ"
+    # (demo kênh mẹo: 83% thời lượng là thẻ — research/14 §0).
+    from ..channel import current
+
+    r_img = float(current().flag("image_min_ratio", 0) or 0)
+    n_img = sum(sh.kind in ("image", "stock") for sh in script.shots)   # cảnh quay thật cũng là "cảnh thật"
+    if r_img and n_img < r_img * len(script.shots) - 1e-9:
+        problems.append(f"chỉ {n_img} shot ảnh trên {len(script.shots)} — kênh này cần ≥ {r_img:.0%} là ảnh cảnh thật "
+                        "(thẻ chữ chỉ ở chỗ cần số/danh sách/hội thoại)")
+    r_real = float(current().flag("real_min_ratio", 0) or 0)
+    n_real = sum(sh.kind == "stock" for sh in script.shots)
+    if r_real and "stock" in current().shot_kinds and n_real < r_real * len(script.shots) - 1e-9:
+        problems.append(f"chỉ {n_real} shot `stock` trên {len(script.shots)} — kênh này cần ≥ {r_real:.0%} là cảnh quay/ảnh "
+                        "chụp THẬT; đổi các shot `image` tả cảnh đời thực sang `stock` (query tiếng Anh)")
+    return problems
+
+
+# V7 (2026-10-05, research/19): dấu hiệu văn AI — Wikipedia "Signs of AI writing" (2026-08), Brands Vietnam (2025-09),
+# Russell et al. 2025 (người dùng ChatGPT nhiều nhận ra qua từ vựng + cấu trúc "không chỉ… mà còn", liệt kê 3 vế).
+AI_TELLS = ("không chỉ", "hơn nữa", "thêm vào đó", "đáng chú ý", "bạn có biết", "hãy cùng", "tóm lại", "trong bối cảnh",
+            "đóng vai trò", "vô cùng quan trọng", "không thể phủ nhận")
+SPOKEN_MARKERS = ("nhé", "nha", "đấy", "đó", " à", "luôn", "thôi", " mà", "thì", "nói gọn", "thế là", "để ý",
+                  "vấn đề là", "khoan", "còn nữa", "này")
+MIN_LEN_CV = 0.35   # độ lệch chuẩn / trung bình số từ mỗi câu thân bài; 2 kịch bản 2026-10-05 đo được 0,09 (đều tăm tắp)
+
+
+def _check_speech(script: Script) -> list[str]:
+    """Văn nói (V1–V7) — đo bằng code: dấu hiệu văn AI, độ chênh độ dài câu, từ nối/tiểu từ văn nói."""
+    import statistics as _st
+
+    problems: list[str] = []
+    lines = list(script.lines)
+    for i, ln in enumerate(lines):
+        low = ln.lower()
+        hit = [t for t in AI_TELLS if t in low]
+        if hit or "—" in ln:
+            problems.append(f"câu {i} có dấu hiệu văn AI ({', '.join(hit + (['gạch ngang —'] if '—' in ln else []))}) — "
+                            f"nói lại như người kể: {ln!r}")
+    body = [len(x.split()) for x in script.sections]
+    if len(body) >= 5:
+        cv = _st.pstdev(body) / max(_st.mean(body), 1)
+        if cv < MIN_LEN_CV:
+            problems.append(f"độ dài câu đều tăm tắp ({min(body)}–{max(body)} từ, độ chênh {cv:.2f} < {MIN_LEN_CV}) — "
+                            "nghe như đọc gạch đầu dòng; xen câu 2–5 từ chốt ý với câu 18–25 từ nối bằng thì/mà/nên/rồi (V1)")
+    spoken = sum(any(m in f" {x.lower()}" for m in SPOKEN_MARKERS) for x in lines)
+    need = max(2, len(lines) // 4)
+    if spoken < need:
+        problems.append(f"chỉ {spoken} câu có từ nối/tiểu từ văn nói (nhé, đấy, thì, mà, thế là…) — cần ≥ {need} (V2–V3)")
     return problems
 
 
@@ -696,13 +917,18 @@ async def _write(
 
     for attempt in range(max_retry + 1):
         out = await arun_role(
-            role, prompt, ScriptOut,
+            role, prompt, _script_model(),
             system_prompt=system, tools=[], max_turns=6, max_budget_usd=2.0,
             model=model, state=state,
         )
-        data = out.model_dump()
+        data = out.model_dump(by_alias=True)
         script = Script.from_dict(data, topic=topic)
         problems = _check(script)
+        soft = set(_check_speech(script))
+        if problems and attempt == max_retry and set(problems) <= soft:
+            # Văn nói (V1–V7) là tiêu chí chất lượng, không phải ràng buộc kỹ thuật → lần cuối không làm hỏng cả video.
+            print("  ⚠ văn nói chưa đạt sau khi thử lại: " + " | ".join(p[:90] for p in problems), flush=True)
+            problems = []
         if not problems:
             if artifact is not None:
                 artifact.write_text(script.to_json() + "\n", encoding="utf-8")

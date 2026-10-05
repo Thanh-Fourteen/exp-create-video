@@ -1,37 +1,32 @@
 {% extends "base.html" %}{% from "_macros.html" import poster %}
 {% block main %}
 <div class="aurora">
-  <p class="eyebrow mb-2.5">Xưởng video TikTok · tiếng Việt</p>
+  <p class="eyebrow mb-2.5 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span>Kênh {{ ch.name }} · TikTok tiếng Việt</p>
   <h1 class="text-[clamp(30px,5.4vw,48px)] leading-[1.06] m-0">Hôm nay làm video <i class="h-italic">về điều gì?</i></h1>
   <p class="text-muted mt-2 max-w-[62ch]">Gõ một chủ đề hoặc chọn gợi ý. Máy tự tìm nguồn, viết kịch bản, đọc bằng giọng đã chọn và dựng video dọc 9:16.</p>
 </div>
 
 <div class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.9fr)_minmax(300px,1fr)] lg:items-start">
-  <form method="post" action="/jobs" class="flex flex-col gap-7" x-data="{voice:'tony', dur:45, more:false, adv:false, gate:false}">
+  <form method="post" action="/jobs" class="flex flex-col gap-7"
+        x-data="{voice: {{ (ch.voice or 'tony')|tojson|forceescape }}, dur:{{ ch.raw.duration_default or 60 }}, more:false, adv:false, gate:false, pillar: {{ pre.pillar|tojson|forceescape }}, idea: {{ pre.idea|tojson|forceescape }}}">
+    <input type="hidden" name="channel" value="{{ ch.id }}">
+    <input type="hidden" name="pillar" :value="pillar">
+    <input type="hidden" name="idea" :value="idea">
     <div class="flex flex-col gap-2">
       <label for="topic" class="eyebrow">Chủ đề</label>
       <textarea id="topic" name="topic" required minlength="6" maxlength="400" rows="3"
         class="textarea textarea-bordered w-full text-[16.5px] leading-relaxed bg-base-200 focus:border-primary"
-        placeholder="Ví dụ: Gemini miễn phí cho sinh viên Việt Nam dùng được những gì"></textarea>
-      <span class="hidden lg:inline text-[12px] text-muted">Phím tắt: <kbd class="kbd kbd-xs">/</kbd> để gõ chủ đề</span>
-    </div>
-
-    {% if topics %}
-    <div class="flex flex-col gap-3">
-      <p class="eyebrow m-0">Gợi ý hôm nay · trend scout {{ topics[0].as_of[:10] if topics[0].as_of }}</p>
-      <div class="grid gap-2 sm:grid-cols-2">
-        {% for t in topics[:6] %}
-        <button type="button" class="text-left rounded-box border border-base-300 px-4 py-3 hover:border-primary/50 grid grid-cols-[1fr_auto] gap-x-3"
-                @click="document.getElementById('topic').value = {{ t.title|tojson|forceescape }}; $el.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('border-primary')); $el.classList.add('border-primary')"
-                title="{{ t.why }}">
-          <b class="font-medium text-[14.5px] leading-snug">{{ t.title }}</b>
-          <span class="num text-[12px] text-primary row-span-2 self-center">{{ '%.2f'|format(t.hot) }}</span>
-          <small class="text-muted text-[12px] line-clamp-1">{{ t.why }}</small>
-        </button>
-        {% endfor %}
+        @input="idea = ''; pillar = ''"
+        placeholder="{{ 'Ví dụ: Gemini miễn phí cho sinh viên Việt Nam dùng được những gì' if ch.id == 'ai' else 'Ví dụ: Cách từ chối cho bạn vay tiền mà không mất lòng' }}">{{ pre.topic }}</textarea>
+      <div class="flex flex-wrap items-center justify-between gap-2 text-[12.5px] text-muted">
+        {% if ch.pillars %}<span>Mảng nội dung: <b class="font-medium text-base-content" x-text="pillar ? ({{ ch.pillars|tojson|forceescape }})[pillar].vi : 'máy tự xếp theo chủ đề'"></b>
+          · <button type="button" class="link link-hover" @click="adv = true; $nextTick(() => $refs.pil.scrollIntoView({block: 'center'}))">đổi</button></span>{% endif %}
+        <span class="hidden lg:inline">Phím tắt: <kbd class="kbd kbd-xs">/</kbd> để gõ chủ đề</span>
       </div>
     </div>
-    {% endif %}
+
+    {% with sg=sg %}{% include "_suggest.html" %}{% endwith %}
+
 
     <div class="flex flex-col gap-3">
       <p class="eyebrow m-0">Giọng đọc</p>
@@ -57,8 +52,20 @@
     <details class="rounded-box border border-base-300 px-4 py-3" :open="adv">
       <summary class="cursor-pointer text-[14px] font-medium">Tuỳ chỉnh <span class="text-muted font-normal">· <span x-text="dur"></span>s · <span x-text="gate ? 'duyệt kịch bản trước' : 'dựng thẳng, không duyệt'"></span></span></summary>
       <div class="mt-4 flex flex-col gap-4">
+        {% if ch.pillars %}
+        <div class="flex flex-col gap-2" x-ref="pil">
+          <span class="text-[14px]">Mảng nội dung <small class="text-muted">— mặc định máy tự xếp; chỉ chọn khi muốn ép</small></span>
+          <div class="flex flex-wrap gap-2" role="radiogroup">
+            <button type="button" role="radio" :aria-checked="!pillar" @click="pillar=''" class="btn btn-sm rounded-full" :class="!pillar ? 'btn-primary btn-outline' : 'btn-ghost border border-base-300'">Máy tự xếp</button>
+            {% for k, p in ch.pillars.items() %}
+            <button type="button" role="radio" :aria-checked="pillar === {{ k|tojson|forceescape }}" @click="pillar = {{ k|tojson|forceescape }}" title="{{ p.desc }}"
+                    class="btn btn-sm rounded-full" :class="pillar === {{ k|tojson|forceescape }} ? 'btn-primary btn-outline' : 'btn-ghost border border-base-300'">{{ p.vi }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
         <div class="flex flex-wrap items-center gap-3"><span class="text-[14px] w-20">Độ dài</span>
-          <div class="join">{% for d in (30,45,60) %}<button type="button" class="btn join-item" :class="dur==={{ d }} && 'btn-active'" @click="dur={{ d }}">{{ d }}s</button>{% endfor %}</div>
+          <div class="join">{% for d in (45,60,75,90,120) %}<button type="button" class="btn join-item" :class="dur==={{ d }} && 'btn-active'" @click="dur={{ d }}">{{ d }}s</button>{% endfor %}</div>
           <input type="hidden" name="duration" :value="dur"></div>
         <label class="flex items-start justify-between gap-4 cursor-pointer">
           <span><span class="text-[14px] font-medium">Duyệt kịch bản trước khi dựng</span>
@@ -69,7 +76,7 @@
 
     <div class="flex flex-wrap items-center gap-3 sticky bottom-[calc(76px+env(safe-area-inset-bottom,0px))] lg:static justify-end sm:justify-start">
       <button class="btn btn-primary btn-lg px-8 rounded-full lg:rounded-field shadow-lg shadow-primary/20">
-        Tạo video <span class="font-normal text-[13px] opacity-75">· ~25 phút</span></button>
+        Tạo video cho {{ ch.name }} <span class="font-normal text-[13px] opacity-75">· ~25 phút</span></button>
     </div>
   </form>
 

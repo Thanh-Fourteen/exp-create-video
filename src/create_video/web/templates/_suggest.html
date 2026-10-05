@@ -1,0 +1,49 @@
+{# Khối gợi ý chủ đề (2026-10-04) — htmx thay cả khối: Đổi gợi ý (lô kế), ✕ Không quan tâm, Tìm chủ đề mới (chạy nền).
+   Nằm trong x-data của form Tạo video: bấm thẻ đặt topic + pillar + idea. research/probes/k6-goi-y-research.md #}
+{% set r = sg.refresh %}
+<div id="suggest" class="flex flex-col gap-3"
+     {% if r and r.running %}hx-get="/p/suggest?c={{ sg.ch.id }}&page={{ sg.page }}" hx-trigger="every 4s [!document.hidden]" hx-swap="outerHTML"{% endif %}>
+  <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+    <p class="eyebrow m-0">Gợi ý · {{ sg.meta.source }}{% if sg.meta.updated %} · cập nhật {{ sg.meta.updated.strftime('%H:%M %d/%m') }}{% endif %}</p>
+    <div class="flex gap-1.5">
+      <button type="button" class="btn btn-xs btn-ghost border border-base-300" hx-get="/p/suggest?c={{ sg.ch.id }}&page={{ sg.page + 1 }}"
+              hx-target="#suggest" hx-swap="outerHTML" title="Lô gợi ý khác">↻ Đổi gợi ý</button>
+      <button type="button" class="btn btn-xs btn-ghost border border-base-300" hx-post="/suggest/refresh" hx-vals='{"c": "{{ sg.ch.id }}"}'
+              hx-target="#suggest" hx-swap="outerHTML" {{ 'disabled' if r and r.running }}
+              title="{{ 'Claude tìm tin 7–14 ngày qua rồi đề xuất ý tưởng mới' if sg.meta.kind == 'ideas' else 'Chạy lại trend scout (gom tin + chấm chủ đề)' }}">✦ Tìm chủ đề mới</button>
+    </div>
+  </div>
+
+  {% if r and r.running %}
+  <div class="rounded-box border border-secondary/40 bg-secondary/5 px-4 py-3 text-[13.5px] flex items-center gap-3" role="status">
+    <span class="loading loading-dots loading-sm text-secondary"></span>
+    <span class="flex-1">{{ 'Đang tìm tin mới và đề xuất ý tưởng' if r.kind == 'ideas' else 'Đang gom tin và chấm chủ đề' }} ·
+      <span class="num">{{ '%d:%02d'|format(r.elapsed // 60, r.elapsed % 60) }}</span> /
+      thường {{ '1–3' if r.kind == 'ideas' else '3–6' }} phút. Có thể rời trang — xong danh sách tự cập nhật.</span>
+  </div>
+  {% elif r and r.finished_at and (now - r.finished_at) < 120 %}
+  <div class="text-[12.5px] {{ 'text-success' if r.code == 0 else 'text-error' }}" role="status">
+    {{ 'Đã có gợi ý mới.' if r.code == 0 else 'Tìm chủ đề mới bị lỗi — xem log ' ~ r.log }}</div>
+  {% endif %}
+
+  {% if sg['items'] %}
+  <div class="grid gap-2 sm:grid-cols-2">
+    {% for t in sg['items'] %}
+    <div role="button" tabindex="0" title="{{ t.why }}"
+         class="relative text-left rounded-box border border-base-300 pl-4 pr-9 py-3 hover:border-primary/50 grid grid-cols-[1fr_auto] gap-x-3 cursor-pointer"
+         @click="document.getElementById('topic').value = {{ t.title|tojson|forceescape }}; pillar = {{ (t.pillar or '')|tojson|forceescape }}; idea = {{ (t.idea_id or '')|tojson|forceescape }}; $el.parentElement.querySelectorAll('[role=button]').forEach(b=>b.classList.remove('border-primary')); $el.classList.add('border-primary')"
+         @keydown.enter="$el.click()">
+      <b class="font-medium text-[14.5px] leading-snug">{{ t.title }}</b>
+      <span class="num text-[12px] text-primary row-span-2 self-center">{% if 'mới' in (t.kinds or []) %}mới{% else %}{{ '%.2f'|format(t.hot) }}{% endif %}</span>
+      <small class="text-muted text-[12px] line-clamp-1">{% if t.pillar_vi %}<b class="font-medium text-base-content/80">{{ t.pillar_vi }}</b> · {% endif %}{{ t.why }}</small>
+      <button type="button" class="absolute top-1.5 right-1.5 btn btn-ghost btn-xs btn-circle opacity-60 hover:opacity-100"
+              aria-label="Không quan tâm: {{ t.title }}" title="Không quan tâm — ẩn gợi ý này"
+              hx-post="/suggest/dismiss" hx-vals='{{ {"c": sg.ch.id, "title": t.title, "idea": t.idea_id or "", "page": sg.page}|tojson|forceescape }}'
+              hx-target="#suggest" hx-swap="outerHTML" @click.stop>✕</button>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-x px-4 py-3 text-[13.5px] text-muted">Hết gợi ý chưa làm. Bấm <b class="text-base-content">✦ Tìm chủ đề mới</b> hoặc gõ chủ đề của anh.</div>
+  {% endif %}
+</div>

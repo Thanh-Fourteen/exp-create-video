@@ -1,4 +1,4 @@
-{% from "_macros.html" import steps, eta %}
+{% from "_macros.html" import steps, eta, kbadge %}
 {# Danh sách job đang hoạt động — poll 3s khi tab hiện #}
 <div id="jobs" class="flex flex-col gap-3" hx-get="/p/jobs{{ '?compact=1' if compact }}" hx-trigger="every 3s [!document.hidden], visibilitychange[!document.hidden] from:document" hx-swap="outerHTML">
 {% for j in jobs %}
@@ -8,6 +8,7 @@
       <div class="min-w-0">
         <b class="font-medium text-[15px] leading-snug">{{ j.topic }}</b>
         <div class="text-[12.5px] text-muted mt-1 flex flex-wrap gap-x-3">
+          {{ kbadge(j.channel_short, j.channel_accent) }}{% if j.pillar_vi %}<span>{{ j.pillar_vi }}</span>{% endif %}
           <span>{{ j.voice if j.voice != 'tony' else 'Giọng Tony' }}</span><span>{{ j.duration }}s</span>
           {% if j.kind == 'revoice' %}<span>đổi giọng</span>{% endif %}
           {% if j.error and j.error.startswith('đợi:') %}<span class="text-warning">{{ j.error }}</span>{% endif %}

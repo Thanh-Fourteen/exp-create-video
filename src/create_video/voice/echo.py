@@ -112,6 +112,10 @@ class EchoBackend(TTSBackend):
         self.pronounce = load_pronounce() if pronounce is None else pronounce
 
     # ── HTTP ────────────────────────────────────────────────────────────────
+    tempo: float = 1.0          # R1: >1 nhanh hơn (atempo, giữ cao độ) — models.yaml tts.post.tempo
+    voice_fx: str = ""          # R1: chuỗi filter ffmpeg hậu kỳ giọng — models.yaml tts.post.fx
+    pauses: dict | None = None  # 2026-10-05 (research/19): nhịp ngắt theo dấu câu — models.yaml tts.post.pauses
+
     def _get(self, path: str, timeout: float = 5.0):
         with urllib.request.urlopen(f"{self.base}{path}", timeout=timeout) as r:
             return json.loads(r.read())
@@ -290,7 +294,11 @@ class EchoBackend(TTSBackend):
     #   tight    : từng câu, cắt đệm đầu/đuôi, gap theo dấu câu (biến thể C).
     #   grouped  : 2-3 câu một lần gọi → ngữ điệu chảy qua ranh giới câu; giữa
     #              các nhóm ghép như `tight` (biến thể B).
-    JOIN_MODES = ("per_line", "tight", "grouped")
+    #   paragraph: (R1, 2026-10-04) CẢ BÀI một lần gọi — model tự chia ≤ 256 ký tự và nối theo dấu câu.
+    #              MagpieTTS-LF (arXiv 2606.18485): ghép từng câu → nhảy năng lượng, ngữ điệu gãy; kênh tham khảo
+    #              @ainius.net nói gần như liền 220s (research/probes/r-tham-khao-ainius.md). Tách câu lệch → lùi
+    #              về `grouped` 3 câu, không về từng câu.
+    JOIN_MODES = ("per_line", "tight", "grouped", "paragraph")
     PUNCT_GAP = {".": 0.30, "?": 0.35, "!": 0.35, ",": 0.15, ";": 0.18, ":": 0.18}
     DEFAULT_GAP = 0.20
 
@@ -367,6 +375,15 @@ class EchoBackend(TTSBackend):
         # Mỗi "khối" = một lần gọi TTS → (pcm, [norm từng câu trong khối], câu cuối gốc)
         blocks: list[tuple[object, list[str], str]] = []
         params = None
+        if mode == "paragraph":
+            wav, norm, _sr, _dur = self._synth_checked(" ".join(lines), n_sent=len(lines))
+            pieces = self._split_norm(norm, len(lines))
+            if pieces is not None:
+                a, params = self._read_pcm(wav)
+                blocks.append((a, pieces, lines[-1]))
+            else:
+                print("    ⚠ đọc cả đoạn: chuẩn hoá đổi số câu → lùi về nhóm 3 câu", flush=True)
+                mode, group_size = "grouped", 3
         if mode == "grouped":
             i = 0
             while i < len(lines):
@@ -384,7 +401,7 @@ class EchoBackend(TTSBackend):
                     a, params = self._read_pcm(wav)
                     blocks.append((a, pieces, grp[-1]))
                 i += group_size
-        else:
+        elif not blocks:   # per_line / tight — KHÔNG chạy khi paragraph đã đọc xong (lỗi demo 2026-10-04: đọc 2 lần)
             for t in lines:
                 wav, norm, _sr, _dur = self._synth_checked(t)
                 a, params = self._read_pcm(wav)
@@ -393,6 +410,8 @@ class EchoBackend(TTSBackend):
         assert params is not None
         ch, sw, sr = params
         trim = mode != "per_line"
+        if mode == "paragraph":
+            trim = True
 
         merged = self.out_dir / out_name
         chunks = []
@@ -416,8 +435,20 @@ class EchoBackend(TTSBackend):
             out.writeframes(pcm.tobytes())
 
         norms = [n for _a, ns, _t in blocks for n in ns]
+        # R1: tốc độ (atempo — bản ffmpeg máy không có rubberband) + hậu kỳ giọng, TRƯỚC aligner → mốc từ khớp
+        # audio cuối. Biên khối co theo đúng hệ số tempo.
+        if abs(self.tempo - 1.0) > 1e-3 or self.voice_fx:
+            _post_fx(merged, self.tempo, self.voice_fx)
+            block_bounds = [(b0 / self.tempo, b1 / self.tempo) for b0, b1 in block_bounds]
+            with wave.open(str(merged), "rb") as f:
+                pcm_len = f.getnframes()
+        else:
+            pcm_len = len(pcm)
         words = self._align(merged, " ".join(norms))
-        total = len(pcm) / sr
+        if self.pauses:
+            words, tmap, pcm_len = _reshape_pauses(merged, words, " ".join(norms), self.pauses)
+            block_bounds = [(tmap(b0), tmap(b1)) for b0, b1 in block_bounds]
+        total = pcm_len / sr
 
         # Mốc câu: khối một câu thì lấy biên khối (đo bằng SỐ MẪU, chính xác);
         # khối nhiều câu thì ranh giới trong khối chỉ aligner biết.
@@ -446,6 +477,96 @@ class EchoBackend(TTSBackend):
         )
         result.validate()
         return result, spans
+
+
+def _reshape_pauses(wav: Path, words: list[Word], text: str, cfg: dict):
+    """Chỉnh khoảng lặng GIỮA các từ theo dấu câu, tại chỗ (2026-10-05, research/19).
+
+    Vì sao: Tony thấy giọng "nhấn nhả chưa tốt". VieNeu không có thẻ ngắt/SSML; đo trên 10 phút giọng VieNeu ngắt ở dấu
+    phẩy dao động 60–650 ms (srt-whiteboard-animation PR #11) — chỗ ngắt dài lẫn chỗ ngắt cụt đều nghe như máy. Ở đây:
+    sau dấu câu → nới tới ĐỦ `cfg[dấu]` giây; giữa cụm không dấu mà lặng > `cfg["max_inner"]` → rút về `cfg["inner"]`.
+    Chỉ cắt mẫu thật sự lặng (≤ −40 dBFS) để không xén âm vị; chèn lặng ở giữa khe. Trả (words đã dời, hàm đổi mốc thời gian
+    cũ→mới, số mẫu mới). Từ của aligner lệch số token với `text` → không làm gì (an toàn hơn đoán).
+    """
+    import numpy as np
+
+    toks = text.split()
+    if len(toks) != len(words) or len(words) < 2:
+        return words, (lambda t: t), _nframes(wav)
+    with wave.open(str(wav), "rb") as f:
+        ch, sw, sr = f.getnchannels(), f.getsampwidth(), f.getframerate()
+        a = np.frombuffer(f.readframes(f.getnframes()), dtype=np.int16).reshape(-1, ch)
+    loud = np.abs(a.astype(np.float32)).max(axis=1) / 32768.0
+    quiet_thr = 10 ** (-40 / 20)
+    edits: list[tuple[int, int]] = []          # (vị trí mẫu, +chèn / −cắt) theo thứ tự tăng
+    for i in range(len(words) - 1):
+        g0, g1 = int(words[i].end * sr), int(words[i + 1].start * sr)
+        gap = (g1 - g0) / sr
+        tail = toks[i].rstrip('"\'”’)')[-1:]
+        if tail in ("…",) or toks[i].endswith("..."):
+            want = cfg.get("…", 0.55)
+        elif tail in cfg and tail not in ("inner", "max_inner"):
+            want = float(cfg[tail])
+        elif gap > cfg.get("max_inner", 0.30):
+            want = cfg.get("inner", 0.12)
+        else:
+            continue
+        mid = (g0 + g1) // 2
+        d = int(round((want - gap) * sr))
+        if d > 0:
+            edits.append((mid, d))
+        elif d < 0 and g1 > g0:
+            # cắt quanh tâm khe, chỉ phần lặng thật
+            half = (-d) // 2
+            lo, hi = max(g0, mid - half), min(g1, mid + (-d - half))
+            if hi > lo and loud[lo:hi].max() <= quiet_thr:
+                edits.append((lo, -(hi - lo)))
+    if not edits:
+        return words, (lambda t: t), len(a)
+    parts, cur = [], 0
+    for pos, d in edits:
+        if d > 0:
+            parts += [a[cur:pos], np.zeros((d, ch), dtype=np.int16)]
+            cur = pos
+        else:
+            parts.append(a[cur:pos])
+            cur = pos - d
+    parts.append(a[cur:])
+    out = np.concatenate(parts)
+    with wave.open(str(wav), "wb") as f:
+        f.setnchannels(ch); f.setsampwidth(sw); f.setframerate(sr); f.writeframes(out.tobytes())
+
+    marks = [(pos / sr, d / sr) for pos, d in edits]
+
+    def tmap(t: float) -> float:
+        shift = 0.0
+        for pos, d in marks:
+            if t >= pos:
+                shift += d if d > 0 else max(d, pos - t)   # t rơi trong đoạn bị cắt → kẹp về điểm cắt
+        return max(0.0, t + shift)
+
+    moved = [Word(w=w.w, start=round(tmap(w.start), 3), end=round(tmap(w.end), 3)) for w in words]
+    return moved, tmap, len(out)
+
+
+def _nframes(wav: Path) -> int:
+    with wave.open(str(wav), "rb") as f:
+        return f.getnframes()
+
+
+def _post_fx(wav: Path, tempo: float = 1.0, fx: str = "") -> None:
+    """atempo + chuỗi hậu kỳ (EQ/nén/de-ess) tại chỗ, giữ sample rate (R1, research/14 §3)."""
+    import shutil as _sh
+
+    ff = os.environ.get("FFMPEG_BIN") or _sh.which("ffmpeg") or "/home/tony/miniconda3/bin/ffmpeg"
+    with wave.open(str(wav), "rb") as f:
+        sr = f.getframerate()
+    chain = [f"atempo={tempo:.4f}"] if abs(tempo - 1.0) > 1e-3 else []
+    chain += [fx] if fx else []
+    tmp = wav.with_suffix(".fx.wav")
+    subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav), "-af", ",".join(chain),
+                    "-ar", str(sr), "-c:a", "pcm_s16le", str(tmp)], check=True)
+    tmp.replace(wav)
 
 
 def loudnorm(wav: Path, target_lufs: float = -14.0, true_peak: float = -1.5, lra: float = 11.0) -> dict:

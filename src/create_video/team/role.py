@@ -106,6 +106,7 @@ async def arun_role(
     state: State | None = None,
     artifact: Path | None = None,
     write_roots: Sequence[Path] | None = None,
+    timeout_sec: float | None = None,
     _query: Callable | None = None,
 ) -> M:
     """Chạy một vai. Trả về instance `schema`, hoặc raise `RoleError`.
@@ -113,6 +114,9 @@ async def arun_role(
     `max_turns` không đặt 1: SDK coi lượt trả lời cuối là chạm trần và ném lỗi dù
     đã trả lời xong (đã gặp ở scriptwriter 2026-08-14), và structured output
     cũng cần lượt để SDK re-prompt khi lệch schema.
+
+    `timeout_sec`: trần thời gian cả vai. Có vì 2026-10-05 `angle_judge` treo 923s API cho 2.141 token ra
+    (out/1005-cuoc-goi-…/state.json) — vai phụ thì quá hạn nên lùi về phương án code, đừng bắt cả video chờ.
 
     `_query` chỉ để test thay `claude_agent_sdk.query` bằng bản giả.
     """
@@ -144,10 +148,16 @@ async def arun_role(
     t0 = time.time()
     result: Any = None
     exc: BaseException | None = None
-    try:
+    async def _drain() -> None:
+        nonlocal result
         async for msg in _query(prompt=prompt, options=options):
             if isinstance(msg, ResultMessage):
                 result = msg
+
+    try:
+        await asyncio.wait_for(_drain(), timeout_sec)
+    except asyncio.TimeoutError:
+        exc = TimeoutError(f"quá {timeout_sec:.0f}s")
     except Exception as e:  # query() raise SAU khi đã yield result lỗi — giữ cả hai
         exc = e
 

@@ -340,7 +340,10 @@ class Embedder:
         from ..qc.loop import gpu_free_mib
 
         free = gpu_free_mib()
-        self.device = "cuda" if torch.cuda.is_available() and (free or 0) > 1500 else "cpu"
+        # TREND_DEVICE=cpu: nút "Tìm chủ đề mới" trên web có thể bấm lúc worker đang dựng video — không giành GPU
+        # với FLUX/aligner (CLAUDE.md: không nạp hai khối GPU cùng lúc). 2026-10-04.
+        cpu_only = os.environ.get("TREND_DEVICE") == "cpu"
+        self.device = "cuda" if not cpu_only and torch.cuda.is_available() and (free or 0) > 1500 else "cpu"
         dtype = torch.float16 if self.device == "cuda" else torch.float32
         self._tok = AutoTokenizer.from_pretrained(self.model_id)
         self._m = AutoModel.from_pretrained(self.model_id, torch_dtype=dtype).to(self.device).eval()
@@ -628,6 +631,8 @@ def run(as_of: datetime | None = None, *, slot: str | None = None, out_dir: Path
     as_of = (as_of or now).astimezone(timezone.utc)
     local = as_of.astimezone(VN_TZ)
     slot = slot or ("am" if local.hour < 12 else "pm")
+    if slot == "r":   # chạy tay từ web (2026-10-04) — tên sau "pm" theo thứ tự chữ nên thành file mới nhất trong ngày
+        slot = f"r{local:%H%M}"
     name = f"{local:%Y-%m-%d}-{slot}"
     t0 = time.time()
 
@@ -705,7 +710,7 @@ def main(argv: list[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(description="trend scout — chủ đề AI hot → team/trends/")
     ap.add_argument("--as-of", help="YYYY-MM-DD (backfill, mốc 20:00 giờ VN) hoặc ISO đầy đủ")
-    ap.add_argument("--slot", choices=["am", "pm"])
+    ap.add_argument("--slot", choices=["am", "pm", "r"], help="r = chạy tay (nút trên web)")
     ap.add_argument("--no-judge", action="store_true")
     ap.add_argument("--out", type=Path, default=TRENDS_DIR)
     a = ap.parse_args(argv)

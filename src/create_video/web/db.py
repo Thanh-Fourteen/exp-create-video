@@ -55,6 +55,17 @@ CREATE TABLE IF NOT EXISTS reviews (
   updated_at REAL NOT NULL
 );
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL);
+-- Kênh mẹo (2026-10-04): trạng thái ý tưởng trong kho (configs/channels/<kênh>/ideas.yaml) + ý tưởng Tony tự thêm.
+CREATE TABLE IF NOT EXISTS ideas (
+  channel TEXT NOT NULL,
+  idea_id TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new',       -- new | skip | used
+  title TEXT,                               -- chỉ ý tưởng Tony thêm (source='tony'); seed lấy từ YAML
+  pillar TEXT,
+  source TEXT NOT NULL DEFAULT 'seed',      -- seed | tony | may (team/idea_gen.py)
+  updated_at REAL NOT NULL,
+  PRIMARY KEY (channel, idea_id)
+);
 """
 
 
@@ -83,7 +94,10 @@ def db(path: Path | None = None) -> Iterator[sqlite3.Connection]:
 _MIGRATE = {
     "reviews": {"reason": "TEXT", "views": "INTEGER", "avg_watch": "REAL", "full_pct": "REAL",
                 "captured_at": "REAL"},
-    "jobs": {"auto_approved": "INTEGER NOT NULL DEFAULT 0"},
+    "jobs": {"auto_approved": "INTEGER NOT NULL DEFAULT 0",
+             # 2026-10-04 (research/13 §6.3): video cũ tự thành kênh 'ai'
+             "channel": "TEXT NOT NULL DEFAULT 'ai'", "pillar": "TEXT", "idea_id": "TEXT"},
+    "ideas": {"note": "TEXT"},
 }
 
 
@@ -103,16 +117,20 @@ def _row(r: sqlite3.Row | None) -> dict | None:
 
 # ── jobs ─────────────────────────────────────────────────────────────────────
 def add_job(topic: str, *, voice: str = "tony", duration: int = 45, gate: bool = True, kind: str = "new",
-            video_id: str | None = None, source: str | None = None, path: Path | None = None) -> dict:
+            video_id: str | None = None, source: str | None = None, path: Path | None = None,
+            channel: str = "ai", pillar: str | None = None, idea_id: str | None = None) -> dict:
     from ..pipeline import slugify
 
     jid = uuid.uuid4().hex[:10]
     vid = video_id or f"{time.strftime('%m%d')}-{slugify(topic, 32)}-{jid[:4]}"
     phase = "script" if gate and kind == "new" else "full"
     with db(path) as con:
-        con.execute("INSERT INTO jobs(id,video_id,topic,voice,duration,gate,kind,source,phase,approved,created_at) "
-                    "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-                    (jid, vid, topic, voice, int(duration), int(gate), kind, source, phase, int(not gate), time.time()))
+        con.execute("INSERT INTO jobs(id,video_id,topic,voice,duration,gate,kind,source,phase,approved,created_at,"
+                    "channel,pillar,idea_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (jid, vid, topic, voice, int(duration), int(gate), kind, source, phase, int(not gate), time.time(),
+                     channel, pillar, idea_id))
+        if idea_id:
+            _set_idea(con, channel, idea_id, status="used")
         return _row(con.execute("SELECT * FROM jobs WHERE id=?", (jid,)).fetchone())
 
 
@@ -238,3 +256,31 @@ def kv_set(k: str, v, path: Path | None = None) -> None:
     with db(path) as con:
         con.execute("INSERT INTO kv(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v",
                     (k, json.dumps(v, ensure_ascii=False)))
+
+
+# ── ý tưởng (kênh mẹo, 2026-10-04) ───────────────────────────────────────────
+def _set_idea(con: sqlite3.Connection, channel: str, idea_id: str, **fields) -> None:
+    con.execute("INSERT INTO ideas(channel,idea_id,updated_at) VALUES(?,?,?) ON CONFLICT DO NOTHING",
+                (channel, idea_id, time.time()))
+    if fields:
+        sets = ",".join(f"{k}=?" for k in fields)
+        con.execute(f"UPDATE ideas SET {sets}, updated_at=? WHERE channel=? AND idea_id=?",
+                    (*fields.values(), time.time(), channel, idea_id))
+
+
+def set_idea(channel: str, idea_id: str, path: Path | None = None, **fields) -> None:
+    with db(path) as con:
+        _set_idea(con, channel, idea_id, **fields)
+
+
+def add_idea(channel: str, title: str, pillar: str, path: Path | None = None, *, source: str = "tony",
+             note: str | None = None) -> str:
+    iid = ("u" if source == "tony" else "m") + uuid.uuid4().hex[:6]
+    with db(path) as con:
+        _set_idea(con, channel, iid, title=title.strip(), pillar=pillar, source=source, note=note)
+    return iid
+
+
+def idea_rows(channel: str, path: Path | None = None) -> dict[str, dict]:
+    with db(path) as con:
+        return {r["idea_id"]: dict(r) for r in con.execute("SELECT * FROM ideas WHERE channel=?", (channel,))}

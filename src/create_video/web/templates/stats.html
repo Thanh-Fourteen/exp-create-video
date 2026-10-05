@@ -14,7 +14,20 @@
 {% block main %}
 {% set o = s.overall %}
 <p class="eyebrow mb-2.5">Metric chính · Đăng / (Đăng + Bỏ) · mục tiêu ≥ 50% sau 20 video</p>
-<h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Thống <i class="h-italic">kê</i></h1>
+<h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Thống <i class="h-italic">kê</i>{% if kenh != 'all' %} <span class="text-[0.5em] text-muted not-italic">· {{ ch.name }}</span>{% endif %}</h1>
+{# Mỗi kênh một hàng (small multiples) — không gộp approve_rate của hai khán giả khác nhau (k-research.md). #}
+<section class="mt-7 card-x p-5 flex flex-col gap-3 max-w-[1100px]">
+  <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h2 class="text-[19px] m-0">Từng kênh</h2>
+    <span class="text-[12.5px] text-muted">mỗi kênh tự đạt ≥ 50% trên 20 video đầu của nó</span></div>
+  {% for c in per_channel %}
+  <a href="/k/{{ c.id }}?next=/stats" hx-boost="false" class="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(110px,170px)_1fr_auto] items-center gap-x-3 gap-y-1.5 text-[14px] rounded-field px-2 py-1.5 -mx-2 hover:bg-base-300/40 {{ 'opacity-50' if c.weak }}">
+    <span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ c.accent }}"></span>{{ c.name }}</span>
+    <div class="relative h-2.5 rounded-full bg-base-300 col-span-2 sm:col-span-1 order-last sm:order-none"><div class="absolute inset-y-0 left-0 rounded-full" style="width: {{ ((c.rate or 0) * 100)|round }}%; background: {{ c.accent }}"></div>
+      <div class="absolute -top-1 -bottom-1 w-[2px] bg-base-content/70 left-1/2" aria-hidden="true"></div></div>
+    <span class="num text-muted text-[12.5px]">{{ ((c.rate or 0)*100)|round|int if c.rate is not none else '–' }}% · {{ c.post }}/{{ c.n }} · {{ c.total }} video</span>
+  </a>
+  {% endfor %}
+</section>
 <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] max-w-[1100px]">
   <section class="card-x p-6 flex flex-col gap-4">
     <div class="flex items-end gap-4">

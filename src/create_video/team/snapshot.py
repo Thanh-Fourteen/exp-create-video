@@ -115,11 +115,27 @@ def html_to_text(html: str) -> str:
     return re.sub(r"\n\s*\n+", "\n\n", t).strip()
 
 
+def _legacy_ssl():
+    """vfa.gov.vn (Cục ATTP — nguồn tier1 kênh mẹo) dùng khoá DH < 2048 bit → OpenSSL 3 từ chối DH_KEY_TOO_SMALL
+    (demo K5 2026-10-04 mất 8/15 sự thật vì vậy). Thử lại với SECLEVEL=1: vẫn kiểm chứng chỉ + tên miền, chỉ nhận khoá
+    DH ngắn hơn. Chỉ để ĐỌC trang công khai, không gửi dữ liệu gì."""
+    import ssl
+
+    ctx = ssl.create_default_context()
+    ctx.set_ciphers("DEFAULT:@SECLEVEL=1")
+    return ctx
+
+
 def _get(url: str, timeout_s: float = 30, **kw):
     import httpx
 
-    r = httpx.get(url, headers={"User-Agent": UA, **kw.pop("headers", {})}, timeout=timeout_s,
-                  follow_redirects=True, **kw)
+    headers = {"User-Agent": UA, **kw.pop("headers", {})}
+    try:
+        r = httpx.get(url, headers=headers, timeout=timeout_s, follow_redirects=True, **kw)
+    except httpx.ConnectError as e:
+        if "DH_KEY_TOO_SMALL" not in str(e):
+            raise
+        r = httpx.get(url, headers=headers, timeout=timeout_s, follow_redirects=True, verify=_legacy_ssl(), **kw)
     r.raise_for_status()
     return r
 
@@ -193,7 +209,10 @@ def classify(url: str) -> tuple[str, str]:
     u = urlparse(url)
     host = (u.hostname or "").lower()
     if host not in ALLOWLIST:
-        return "blocked", host
+        from ..channel import current   # kênh mẹo (2026-10-04): tier1/tier2 của kênh được đối chiếu
+
+        if host not in current().fact_domains:
+            return "blocked", host
     if host == "huggingface.co":
         return "hf", host
     if host in ("arxiv.org", "export.arxiv.org"):

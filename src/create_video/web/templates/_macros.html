@@ -18,3 +18,30 @@
 {% macro eta(snap) -%}
 {% if snap.awaiting_approval %}chờ anh duyệt kịch bản{% elif snap.eta_sec is not none %}{{ snap.percent }}% · còn ~{{ (snap.eta_sec / 60)|round|int }} phút{% endif %}
 {%- endmacro %}
+
+{# Bộ chọn kênh (2026-10-04): đỉnh menu trái trên laptop, viên tròn ở thanh trên trên điện thoại (Linear/Metricool,
+   Gmail — research/probes/k-research.md). Đổi kênh = GET /k/<id> (đặt cookie) rồi quay lại đúng trang. #}
+{% macro switcher(kenh, ch, channels, path, compact=False) -%}
+{% set cur = 'Tất cả kênh' if kenh == 'all' else ch.name %}
+<details class="dropdown {{ 'dropdown-end' if compact else 'w-full' }}">
+  <summary class="list-none cursor-pointer flex items-center gap-2.5 rounded-field {{ 'px-3 py-1.5 border border-base-300 text-[13px]' if compact else 'w-full px-3 py-2.5 bg-base-200 ring-1 ring-base-300 text-[14.5px]' }}"
+           aria-label="Đổi kênh — đang chọn {{ cur }}">
+    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ 'var(--color-muted)' if kenh == 'all' else ch.accent }}"></span>
+    <b class="font-medium truncate">{{ ('Tất cả' if kenh == 'all' else ch.short) if compact else cur }}</b>
+    <svg viewBox="0 0 24 24" class="w-4 h-4 ml-auto fill-none stroke-current opacity-60" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </summary>
+  <ul class="dropdown-content menu z-50 mt-2 {{ 'w-60' if compact else 'w-full' }} rounded-box border border-base-300 bg-base-200 p-2 shadow-xl">
+    <li class="menu-title text-[11px] uppercase tracking-[0.14em]">Kênh</li>
+    {% for c in channels %}
+    <li><a href="/k/{{ c.id }}?next={{ path|urlencode }}" hx-boost="false" class="flex items-center gap-2.5 min-h-11 {{ 'active' if kenh == c.id }}">
+      <span class="w-2.5 h-2.5 rounded-full" style="background: {{ c.accent }}"></span>
+      <span class="flex-1">{{ c.name }}</span>{% if c.handle %}<small class="text-muted">@{{ c.handle }}</small>{% endif %}</a></li>
+    {% endfor %}
+    <li class="border-t border-base-300 mt-1 pt-1"><a href="/k/all?next={{ path|urlencode }}" hx-boost="false" class="min-h-11 {{ 'active' if kenh == 'all' }}">Tất cả kênh <small class="text-muted">· hàng đợi, thư viện, thống kê</small></a></li>
+  </ul>
+</details>
+{%- endmacro %}
+
+{% macro kbadge(short, accent) -%}
+<span class="inline-flex items-center gap-1.5 text-[11.5px] font-medium rounded-full px-2 py-0.5 border border-base-300"><span class="w-2 h-2 rounded-full" style="background: {{ accent }}"></span>{{ short }}</span>
+{%- endmacro %}

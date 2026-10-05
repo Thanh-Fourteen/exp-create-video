@@ -37,16 +37,11 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 MIN_FACTS = 4            # dưới mức này thì không đủ chất cho 30-60s — viết trước khi chạy (2026-10-02)
 FUZZY_MIN = 0.8          # tỉ lệ token của câu trích phải có trong câu nguồn khi khớp mềm
 
-Pillar = Literal["tin_nong", "cong_cu", "meo", "so_sanh", "tu_do", "canh_bao"]
+def _pillars() -> dict[str, str]:
+    """{key: mô tả} của kênh đang chạy — nguồn duy nhất: configs/channels/<kênh>/channel.yaml (2026-10-04)."""
+    from ..channel import current
 
-PILLARS = {
-    "tin_nong": "tin AI mới — điều gì vừa xảy ra và nó đổi gì cho người Việt",
-    "cong_cu": "công cụ AI dùng được NGAY (miễn phí hoặc rẻ) — làm được gì, bắt đầu thế nào",
-    "meo": "mẹo/prompt dùng AI hằng ngày (học, làm, văn phòng) — người xem làm theo được",
-    "so_sanh": "so sánh hai lựa chọn (model, tool, gói giá) — chọn cái nào",
-    "tu_do": "tự chạy/tự đo trên máy thật (RTX 2060 6GB) — số đo của chính kênh",
-    "canh_bao": "bóc tin đồn, cảnh báo lừa đảo/rủi ro khi dùng AI",
-}
+    return {k: v.get("desc", "") for k, v in current().pillars.items()}
 
 
 class Fact(BaseModel):
@@ -64,7 +59,7 @@ class VisualRef(BaseModel):
 
 class BriefOut(BaseModel):
     topic: str
-    pillar: Pillar
+    pillar: str          # schema LLM ép Literal theo kênh — xem `_brief_model`
     angle: str           # góc kể cho người Việt — vì sao người lướt TikTok phải quan tâm
     audience: str        # ai xem (sinh viên, dân văn phòng, dev…)
     facts: list[Fact]
@@ -73,16 +68,15 @@ class BriefOut(BaseModel):
     caveats: list[str] = []   # điều chưa chắc / nguồn tự công bố — scriptwriter phải nói rõ
 
 
-SYSTEM = f"""Bạn là RESEARCHER của một kênh TikTok tiếng Việt về AI (khán giả phổ thông Việt Nam, không chỉ dev).
+INTRO_AI = "Bạn là RESEARCHER của một kênh TikTok tiếng Việt về AI (khán giả phổ thông Việt Nam, không chỉ dev)."
+
+SYSTEM = f"""{{intro}}
 Hôm nay là {{today}}. Nhiệm vụ: với chủ đề được giao, tìm SỰ THẬT KIỂM CHỨNG ĐƯỢC để viết video 30–60 giây.
 
 Quy trình: WebSearch để tìm → WebFetch đọc TRANG GỐC → chép sự thật kèm trích dẫn.
 
 LUẬT NGUỒN
-1. Ưu tiên trang CHÍNH CHỦ: blog/help/docs của hãng (openai.com, help.openai.com, blog.google,
-   support.google.com, anthropic.com, microsoft.com…), model card Hugging Face, repo GitHub, arXiv.
-   Báo lớn (vnexpress.net, tuoitre.vn, theverge.com, techcrunch.com, reuters.com) chỉ khi không có chính chủ.
-   KHÔNG dùng: mạng xã hội, diễn đàn, trang tổng hợp SEO, trang cần đăng nhập, video.
+{{sources}}
 2. `quote` CHÉP NGUYÊN VĂN một câu/đoạn ngắn (≤ 300 ký tự) từ trang đó, ĐÚNG ngôn ngữ gốc. Code sẽ tải
    lại trang và tìm đúng chuỗi này — trích sai là sự thật bị loại. Đừng dịch, đừng tóm tắt trong quote.
 3. Mỗi sự thật MỘT ý. Ưu tiên: con số (giá, tốc độ, giới hạn, ngày), điều làm được/không làm được,
@@ -90,7 +84,7 @@ LUẬT NGUỒN
 4. Không chắc → ghi vào `caveats`, không đưa vào `facts`. Số do hãng tự công bố → ghi caveat "hãng tự công bố".
 
 GÓC KỂ
-5. `pillar` chọn MỘT: {", ".join(f"{k} ({v})" for k, v in PILLARS.items())}.
+5. `pillar` chọn MỘT: {{pillars}}.
 6. `angle`: vì sao một người Việt đang lướt TikTok phải dừng lại — lợi ích cụ thể (tiết kiệm tiền, làm
    nhanh hơn, biết trước người khác, tránh bị lừa). Không viết kiểu thông cáo báo chí.
 7. `hook_ideas`: 3 câu hook ≤ 12 từ, mỗi câu một kiểu (con số sốc · mâu thuẫn niềm tin · kết quả trước ·
@@ -98,9 +92,35 @@ GÓC KỂ
 
 HÌNH
 8. `visuals`: 2–4 trang nên chụp làm hình bằng chứng — trang hiển thị được KHÔNG cần đăng nhập, có
-   chữ/số người xem đọc được (trang giá, bảng tính năng, bài công bố, model card). `highlight` = cụm chữ
+   chữ/số người xem đọc được ({{visual_examples}}). `highlight` = cụm chữ
    NGUYÊN VĂN ngắn (≤ 60 ký tự) có trên trang cần tô vàng.
 """
+
+SOURCES_AI = """1. Ưu tiên trang CHÍNH CHỦ: blog/help/docs của hãng (openai.com, help.openai.com, blog.google,
+   support.google.com, anthropic.com, microsoft.com…), model card Hugging Face, repo GitHub, arXiv.
+   Báo lớn (vnexpress.net, tuoitre.vn, theverge.com, techcrunch.com, reuters.com) chỉ khi không có chính chủ.
+   KHÔNG dùng: mạng xã hội, diễn đàn, trang tổng hợp SEO, trang cần đăng nhập, video."""
+VISUALS_AI = "trang giá, bảng tính năng, bài công bố, model card"
+
+
+def _system() -> str:
+    from ..channel import current
+
+    ch = current()
+    pillars = ", ".join(f"{k} ({v})" for k, v in _pillars().items())
+    return (SYSTEM.replace("{intro}", ch.text("research_intro", INTRO_AI))
+            .replace("{sources}", ch.text("research_sources", SOURCES_AI))
+            .replace("{pillars}", pillars)
+            .replace("{visual_examples}", ch.text("research_visuals", VISUALS_AI))
+            .replace("{today}", time.strftime("%Y-%m-%d")))
+
+
+def _brief_model() -> type[BriefOut]:
+    """BriefOut với `pillar` là Literal các pillar CỦA KÊNH — SDK ép LLM chọn đúng danh sách."""
+    from pydantic import create_model
+
+    keys = tuple(_pillars())
+    return create_model("BriefOut", __base__=BriefOut, pillar=(Literal[keys], ...))  # type: ignore[valid-type]
 
 
 def _toks(s: str) -> list[str]:
@@ -196,7 +216,7 @@ def verify(brief: BriefOut, *, fetch=None) -> tuple[BriefOut, list[dict]]:
 def brief_for_script(brief: BriefOut | dict) -> str:
     """Brief → đoạn "ĐỀ BÀI" nhét vào prompt scriptwriter."""
     b = brief if isinstance(brief, BriefOut) else BriefOut.model_validate(brief)
-    out = [f"CHỦ ĐỀ: {b.topic}", f"PILLAR: {b.pillar} — {PILLARS[b.pillar]}",
+    out = [f"CHỦ ĐỀ: {b.topic}", f"PILLAR: {b.pillar} — {_pillars().get(b.pillar, '')}",
            f"GÓC KỂ: {b.angle}", f"NGƯỜI XEM: {b.audience}", "",
            "SỰ THẬT ĐÃ KIỂM (chỉ được dùng những điều này; số nào nói ra phải nằm ở đây, "
            "`sources[].url` lấy đúng url kèm theo):"]
@@ -214,15 +234,18 @@ def brief_for_script(brief: BriefOut | dict) -> str:
 
 
 async def research(topic: str, *, state: "State | None" = None, artifact: Path | None = None,
-                   model: str | None = None, max_retry: int = 1) -> BriefOut:
+                   model: str | None = None, max_retry: int = 1, pillar: str | None = None) -> BriefOut:
     from ..team import arun_role
 
-    system = SYSTEM.replace("{today}", time.strftime("%Y-%m-%d"))
-    prompt = f"Chủ đề: {topic}\n\nTìm nguồn và trả về brief theo schema."
+    system = _system()
+    schema = _brief_model()
+    # Kênh mẹo (2026-10-04): ý tưởng trong kho đã gắn pillar → researcher giữ đúng pillar đó.
+    want = f"\nPILLAR BẮT BUỘC: {pillar}." if pillar and pillar in _pillars() else ""
+    prompt = f"Chủ đề: {topic}{want}\n\nTìm nguồn và trả về brief theo schema."
     last_log: list[dict] = []
     for attempt in range(max_retry + 1):
         out = await arun_role(
-            "researcher", prompt, BriefOut, system_prompt=system,
+            "researcher", prompt, schema, system_prompt=system,
             tools=["WebSearch", "WebFetch"], max_turns=40, max_budget_usd=5.0,
             model=model, state=state,
         )
@@ -241,7 +264,7 @@ async def research(topic: str, *, state: "State | None" = None, artifact: Path |
         prompt = (f"Chủ đề: {topic}\n\nLần trước chỉ {len(brief.facts)} sự thật qua kiểm — cần ≥ {MIN_FACTS}. "
                   "Các sự thật bị loại (trích dẫn không có nguyên văn trên trang, hoặc trang không tải được "
                   "bằng HTTP thường):\n" + "\n".join(f"- {x['fact']} ({x['url']}): {x['why']}" for x in bad)
-                  + "\n\nTìm lại: dùng trang tải được không cần JS, chép quote NGUYÊN VĂN từng ký tự.")
+                  + "\n\nTìm lại: dùng trang tải được không cần JS, chép quote NGUYÊN VĂN từng ký tự." + want)
     raise ValueError(f"researcher không đủ {MIN_FACTS} sự thật kiểm được:\n"
                      + "\n".join(f"  - {x}" for x in last_log))
 

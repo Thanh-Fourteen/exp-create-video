@@ -88,11 +88,16 @@ def write_result(out_dir: Path, decision: dict | None = None) -> Path | None:
     script_p = mp4.parent / "script.json" if (mp4.parent / "script.json").exists() else out_dir / "script.json"
     script = json.loads(script_p.read_text(encoding="utf-8")) if script_p.exists() else {}
     job = json.loads((out_dir / "job.json").read_text(encoding="utf-8")) if (out_dir / "job.json").exists() else {}
+    from .channel import activate
+
+    ch = activate(job.get("channel"))   # chạy lẻ `python -m create_video.publish out/<id>` vẫn đúng kênh
     thumb, cover = out_dir / "thumb.webp", out_dir / "cover.jpg"
     _frame(mp4, thumb, THUMB_W, "78")
     _frame(mp4, cover, COVER_W, "3")
     res = {
         "id": out_dir.name,
+        "channel": ch.id,
+        "series_no": job.get("series_no"),
         "topic": job.get("topic") or script.get("topic"),
         "voice": job.get("voice") or "tony",
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(mp4.stat().st_mtime)),
@@ -136,9 +141,19 @@ CHECKLIST = [
 
 
 def build_caption(script: dict) -> str:
-    """Dòng đầu chứa từ khoá (~100 ký tự đầu hiện trước "thêm"), rồi hashtag ngách (≤ 5) ở dòng riêng."""
+    """Dòng đầu chứa từ khoá (~100 ký tự đầu hiện trước "thêm"), rồi hashtag ngách (≤ 5) ở dòng riêng.
+
+    Kênh (2026-10-04): hashtag gốc của kênh luôn có mặt (vẫn ≤ 5) · pillar nhạy cảm (bếp/thực phẩm) thêm câu
+    "thông tin tham khảo" — research/13 §4."""
+    from .channel import current
+
+    cc = current().caption
     cap = (script.get("caption") or script.get("hook") or "").strip()
-    tags = [h.lstrip("#") for h in script.get("hashtags", [])][:HASHTAG_MAX]
+    if cc.get("disclaimer") and script.get("pillar") in (cc.get("disclaimer_for") or []):
+        cap += "\n\n" + cc["disclaimer"]
+    own = [h.lstrip("#") for h in script.get("hashtags", [])]
+    base = [b for b in cc.get("hashtags_base") or [] if b not in own]
+    tags = (own[: max(0, HASHTAG_MAX - len(base))] + base)[:HASHTAG_MAX]
     text = cap + ("\n\n" + " ".join("#" + t for t in tags) if tags else "")
     return text[:CAPTION_MAX]
 
@@ -169,7 +184,15 @@ def write_post_package(out_dir: Path, mp4: Path, script: dict, res: dict) -> dic
         else "Bạn muốn video tiếp theo về gì?")
     (post / "caption.txt").write_text(caption + "\n", encoding="utf-8")
     (post / "ghim.txt").write_text(pin + "\n", encoding="utf-8")
-    (post / "nguon.txt").write_text("\n".join(res.get("sources") or []) + "\n", encoding="utf-8")
+    # stock (2026-10-05): API Pexels xin ghi công tác giả + link khi có thể (research/16) → nguon.txt + caption.
+    cred_p = out_dir / "stock" / "credits.json"
+    creds = json.loads(cred_p.read_text(encoding="utf-8")) if cred_p.exists() else []
+    lines_src = list(res.get("sources") or []) + [f"Cảnh quay: {c['credit']} — {c['url']}" for c in creds]
+    (post / "nguon.txt").write_text("\n".join(lines_src) + "\n", encoding="utf-8")
+    if creds:
+        provs = sorted({c["provider"].capitalize() for c in creds})
+        caption = caption + f"\n🎥 Cảnh quay: {', '.join(provs)}"
+        (post / "caption.txt").write_text(caption + "\n", encoding="utf-8")
     (post / "checklist.txt").write_text("\n".join(f"[ ] {t}" for _, t in CHECKLIST) + "\n", encoding="utf-8")
     return {"cover": "post/cover.jpg" if cover_ok else None, "caption": caption, "pin_comment": pin,
             "cover_text": title, "checklist": [{"key": k, "text": t} for k, t in CHECKLIST],

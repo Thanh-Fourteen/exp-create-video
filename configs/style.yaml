@@ -51,7 +51,9 @@ motion:
   # 2026-10-02: 3-8 → 2.5-5. Tony: "video chưa hấp dẫn". Lý do bác nhịp nhanh hồi 08-14 là
   # GIỌNG đứt quãng (câu ngắn = nhiều mối ghép TTS) — đổi nhịp HÌNH không đụng tới câu/TTS.
   # Research: tần suất cắt cảnh là top-3 yếu tố nhưng chữ U ngược (Xue et al. 2026-04) → vừa phải.
-  shot_duration_sec: [2.5, 5]
+  # 2026-10-04 (D4, research/15 §1): 2.5-5 → 3-7. Video top 2 ngách: trung vị 0,97 cắt/10s (mình 2,9); hình đổi BÊN
+  # TRONG khung (thẻ hiện dần, Ken Burns/parallax) thay vì cắt liên tục.
+  shot_duration_sec: [3, 7]
 
 captions:
   # P3b.S5 (2026-10-01): phụ đề theo CỤM thay cả câu. Lý do từng số:

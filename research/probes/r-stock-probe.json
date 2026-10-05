@@ -1,0 +1,182 @@
+[
+ {
+  "q": "hands holding smartphone reading text message",
+  "total": 8000,
+  "usable": 14,
+  "sample": [
+   "https://www.pexels.com/video/7362704",
+   "https://www.pexels.com/video/9898435"
+  ]
+ },
+ {
+  "q": "person scrolling phone in dark room",
+  "total": 8000,
+  "usable": 13,
+  "sample": [
+   "https://www.pexels.com/video/6586070",
+   "https://www.pexels.com/video/38410501"
+  ]
+ },
+ {
+  "q": "online shopping app on phone",
+  "total": 7911,
+  "usable": 13,
+  "sample": [
+   "https://www.pexels.com/video/6898096",
+   "https://www.pexels.com/video/13441336"
+  ]
+ },
+ {
+  "q": "delivery package at door",
+  "total": 4118,
+  "usable": 14,
+  "sample": [
+   "https://www.pexels.com/video/6994935",
+   "https://www.pexels.com/video/7362808"
+  ]
+ },
+ {
+  "q": "credit card payment on phone",
+  "total": 5737,
+  "usable": 14,
+  "sample": [
+   "https://www.pexels.com/video/6898096",
+   "https://www.pexels.com/video/6633351"
+  ]
+ },
+ {
+  "q": "bank ATM withdrawing cash",
+  "total": 3038,
+  "usable": 13,
+  "sample": [
+   "https://www.pexels.com/video/6282193",
+   "https://www.pexels.com/video/6276983"
+  ]
+ },
+ {
+  "q": "frozen meat thawing in water bowl",
+  "total": 8000,
+  "usable": 15,
+  "sample": [
+   "https://www.pexels.com/video/9460381",
+   "https://www.pexels.com/video/7237203"
+  ]
+ },
+ {
+  "q": "refrigerator open food inside",
+  "total": 8000,
+  "usable": 11,
+  "sample": [
+   "https://www.pexels.com/video/30205992",
+   "https://www.pexels.com/video/9032882"
+  ]
+ },
+ {
+  "q": "washing vegetables in sink",
+  "total": 7395,
+  "usable": 15,
+  "sample": [
+   "https://www.pexels.com/video/12691866",
+   "https://www.pexels.com/video/8801862"
+  ]
+ },
+ {
+  "q": "rain on window",
+  "total": 7988,
+  "usable": 8,
+  "sample": [
+   "https://www.pexels.com/video/12742709",
+   "https://www.pexels.com/video/4536567"
+  ]
+ },
+ {
+  "q": "flooded street motorbikes",
+  "total": 8000,
+  "usable": 13,
+  "sample": [
+   "https://www.pexels.com/video/28116653",
+   "https://www.pexels.com/video/38549952"
+  ]
+ },
+ {
+  "q": "electric fan in hot room",
+  "total": 8000,
+  "usable": 9,
+  "sample": [
+   "https://www.pexels.com/video/8102660",
+   "https://www.pexels.com/video/35847552"
+  ]
+ },
+ {
+  "q": "air conditioner remote control",
+  "total": 8000,
+  "usable": 12,
+  "sample": [
+   "https://www.pexels.com/video/9346239",
+   "https://www.pexels.com/video/7719470"
+  ]
+ },
+ {
+  "q": "office meeting discussion",
+  "total": 8000,
+  "usable": 14,
+  "sample": [
+   "https://www.pexels.com/video/8034705",
+   "https://www.pexels.com/video/8170419"
+  ]
+ },
+ {
+  "q": "friends talking cafe",
+  "total": 8000,
+  "usable": 14,
+  "sample": [
+   "https://www.pexels.com/video/13929626",
+   "https://www.pexels.com/video/8522984"
+  ]
+ },
+ {
+  "q": "laptop typing code",
+  "total": 6479,
+  "usable": 11,
+  "sample": [
+   "https://www.pexels.com/video/12893579",
+   "https://www.pexels.com/video/36628017"
+  ]
+ },
+ {
+  "q": "chatgpt on laptop screen",
+  "total": 6675,
+  "usable": 10,
+  "sample": [
+   "https://www.pexels.com/video/6963412",
+   "https://www.pexels.com/video/28645435"
+  ]
+ },
+ {
+  "q": "phone notification close up",
+  "total": 8000,
+  "usable": 12,
+  "sample": [
+   "https://www.pexels.com/video/7822022",
+   "https://www.pexels.com/video/7821861"
+  ]
+ },
+ {
+  "q": "money vietnamese dong",
+  "total": 2697,
+  "usable": 11,
+  "sample": [
+   "https://www.pexels.com/video/30417930",
+   "https://www.pexels.com/video/6326861"
+  ]
+ },
+ {
+  "q": "street food vietnam",
+  "total": 8000,
+  "usable": 15,
+  "sample": [
+   "https://www.pexels.com/video/32228864",
+   "https://www.pexels.com/video/37266179"
+  ]
+ }
+]

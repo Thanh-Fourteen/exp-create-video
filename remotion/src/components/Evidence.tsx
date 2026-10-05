@@ -5,11 +5,12 @@ import {
   Img,
   interpolate,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { fontStack } from "../fonts";
-import type { ChartData, CodeData, Shot, StatData, VideoSpec } from "../types";
+import type { ChartData, ChatData, CodeData, ListData, Shot, StatData, VideoSpec } from "../types";
 
 /**
  * Shot "bằng chứng" (P3b.S4): stat · chart · code · screenshot.
@@ -35,6 +36,9 @@ const ZONE_TOP = 0.1; // × chiều cao khung
 const ZONE_BOTTOM = 0.56;
 // Shot 0 khi hook có chữ tiêu đề riêng (display_text): thẻ nằm DƯỚI chữ hook, không bị đè.
 const HOOK_ZONE_TOP = 0.32;
+export const LAYOUT_ZONE_TOP = 0.25;   // D2/D3: dưới tiêu đề cố định
+// Headline v2 (2026-10-05, research/18): phụ đề xuống 65% → thẻ dài tới 62% (trước 56%: đáy 40% trống, Tony chê "khung nhỏ").
+const LAYOUT_ZONE_BOTTOM = 0.62;
 
 const TOKEN_COLOR: Record<string, string> = {
   kw: "#C792EA",
@@ -61,7 +65,7 @@ const fmt = (v: number, decimals = 0) =>
   v.toLocaleString("vi-VN", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
 /** Nền chung: gradient + lưới mờ + vệt sáng accent trôi chậm (chống đứng hình). */
-const Backdrop: React.FC<{ spec: VideoSpec; durationInFrames: number }> = ({ spec, durationInFrames }) => {
+export const Backdrop: React.FC<{ spec: VideoSpec; durationInFrames: number }> = ({ spec, durationInFrames }) => {
   const frame = useCurrentFrame();
   const { accent, bg } = spec.style.palette;
   const t = frame / Math.max(durationInFrames, 1);
@@ -87,11 +91,12 @@ const Backdrop: React.FC<{ spec: VideoSpec; durationInFrames: number }> = ({ spe
 };
 
 /** Khung vùng thẻ: vào bằng spring trượt lên, sau đó push-in rất chậm. */
-const Zone: React.FC<{ durationInFrames: number; children: React.ReactNode; justify?: string; top?: number; instant?: boolean }> = ({
+const Zone: React.FC<{ durationInFrames: number; children: React.ReactNode; justify?: string; top?: number; bottom?: number; instant?: boolean }> = ({
   durationInFrames,
   children,
   justify = "center",
   top = ZONE_TOP,
+  bottom = ZONE_BOTTOM,
   instant = false,
 }) => {
   const frame = useCurrentFrame();
@@ -105,7 +110,7 @@ const Zone: React.FC<{ durationInFrames: number; children: React.ReactNode; just
         left: CARD_LEFT,
         width: CARD_W,
         top: height * top,
-        height: height * (ZONE_BOTTOM - top),
+        height: height * (bottom - top),
         display: "flex",
         flexDirection: "column",
         justifyContent: justify,
@@ -145,6 +150,10 @@ const StatCard: React.FC<{ data: StatData; spec: VideoSpec; instant?: boolean }>
   const size = Math.min(320, Math.floor((CARD_W * 0.92) / (0.46 * Math.max(final.length, 1))));
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18, alignItems: "flex-start" }}>
+      {data.icon_path ? (
+        <Img src={staticFile(data.icon_path)} style={{ width: 150, height: 150, transform: `scale(${scale})`,
+                                                       filter: "drop-shadow(0 10px 24px rgba(0,0,0,0.55))" }} />
+      ) : null}
       <Label text={data.label} size={50} />
       <div style={{ height: 8, width: 140, background: accent, borderRadius: 4 }} />
       <div
@@ -264,16 +273,17 @@ const CodeCard: React.FC<{ data: CodeData }> = ({ data }) => {
 };
 
 // ── screenshot ─────────────────────────────────────────────────────────────
-const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFrames: number; spec: VideoSpec; top?: number }> = ({
+const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFrames: number; spec: VideoSpec; top?: number; bottom?: number }> = ({
   src,
   sourceUrl,
   durationInFrames,
   spec,
   top = ZONE_TOP,
+  bottom = ZONE_BOTTOM,
 }) => {
   const frame = useCurrentFrame();
   const { height } = useVideoConfig();
-  const zoneH = height * (ZONE_BOTTOM - top) - 56; // chừa dòng nguồn
+  const zoneH = height * (bottom - top) - 56; // chừa dòng nguồn
   // Ảnh rộng 1080 hiển thị ở CARD_W → cao 1440 thành ~1124px > vùng. Phần ĐẮT nhất
   // nằm ở đầu ảnh (tên model, license, title paper) — bản đầu trượt hết hành trình
   // nên tới 3/4 shot tiêu đề đã trôi khỏi khung. Giữ đầu ảnh 40% thời lượng, rồi
@@ -309,7 +319,157 @@ const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFram
   );
 };
 
-export const EVIDENCE_KINDS = new Set(["stat", "chart", "code", "screenshot"]);
+// ── chat (kênh mẹo, 2026-10-04) ─────────────────────────────────────────────
+// Quy ước "fake text story": bên nhận xám trái, bên gửi màu phải (Kapwing — research/probes/k-research.md).
+// Bên gửi lấy màu accent của kênh. Tin hiện lần lượt trong ~2/3 đầu shot để giọng đọc kịp nói tới.
+const OK_COLOR = "#4ADE80";
+const NO_COLOR = "#F07A6A";
+
+const ChatCard: React.FC<{ data: ChatData; spec: VideoSpec; durationInFrames: number; instant?: boolean }> = ({
+  data,
+  spec,
+  durationInFrames,
+  instant = false,
+}) => {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { accent } = spec.style.palette;
+  const n = data.messages.length;
+  const gap = Math.max(8, Math.min(26, Math.floor((durationInFrames * 0.66) / Math.max(n, 1))));
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      {data.title ? <Label text={data.title} size={44} color="#C9CED8" /> : null}
+      {data.messages.map((m, i) => {
+        const frame = instant ? 999 : f;
+        const at = 4 + i * gap;
+        const g = spring({ frame: frame - at, fps, config: { damping: 14, mass: 0.6 } });
+        const me = m.from === "me";
+        const bg = me ? accent : "#262B36";
+        const fg = me ? "#0A1020" : "#F1F3F7";
+        const border = m.mark === "ok" ? `4px solid ${OK_COLOR}` : m.mark === "no" ? `4px solid ${NO_COLOR}` : "none";
+        return (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              justifyContent: me ? "flex-end" : "flex-start",
+              alignItems: "center",
+              gap: 14,
+              opacity: Math.min(1, g * 1.4),
+              transform: `translateY(${(1 - Math.min(g, 1)) * 30}px) scale(${0.92 + 0.08 * Math.min(g, 1)})`,
+              transformOrigin: me ? "right center" : "left center",
+            }}
+          >
+            {me && m.mark ? <Mark kind={m.mark} size={58} /> : null}
+            <div
+              style={{
+                maxWidth: CARD_W * 0.8,
+                background: bg,
+                color: fg,
+                border,
+                borderRadius: 34,
+                borderBottomRightRadius: me ? 10 : 34,
+                borderBottomLeftRadius: me ? 34 : 10,
+                padding: "20px 30px",
+                fontFamily: LABEL_FONT,
+                fontWeight: 700,
+                fontSize: 42,
+                lineHeight: 1.25,
+                textDecoration: m.mark === "no" ? `line-through ${NO_COLOR} 4px` : "none",
+                boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+              }}
+            >
+              {m.text}
+            </div>
+            {!me && m.mark ? <Mark kind={m.mark} size={58} /> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const Mark: React.FC<{ kind: "ok" | "no" | "num"; size: number; n?: number; accent?: string }> = ({ kind, size, n, accent }) => {
+  const bg = kind === "ok" ? OK_COLOR : kind === "no" ? NO_COLOR : accent ?? "#FFFFFF";
+  const sym = kind === "ok" ? "✓" : kind === "no" ? "✕" : String(n ?? "");
+  return (
+    <div
+      style={{
+        flex: "0 0 auto",
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        background: bg,
+        color: "#0A1020",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: LABEL_FONT,
+        fontWeight: 900,
+        fontSize: size * 0.58,
+        lineHeight: 1,
+      }}
+    >
+      {sym}
+    </div>
+  );
+};
+
+// ── list (kênh mẹo, 2026-10-04) ─────────────────────────────────────────────
+const ListCard: React.FC<{ data: ListData; spec: VideoSpec; durationInFrames: number; instant?: boolean }> = ({
+  data,
+  spec,
+  durationInFrames,
+  instant = false,
+}) => {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const { accent } = spec.style.palette;
+  const n = data.items.length;
+  const gap = Math.max(8, Math.min(30, Math.floor((durationInFrames * 0.7) / Math.max(n, 1))));
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+      {data.title ? (
+        <>
+          <Label text={data.title} size={54} />
+          <div style={{ height: 8, width: 140, background: accent, borderRadius: 4, marginTop: -6 }} />
+        </>
+      ) : null}
+      {data.items.map((it, i) => {
+        const frame = instant ? 999 : f;
+        const g = spring({ frame: frame - (4 + i * gap), fps, config: { damping: 15, mass: 0.7 } });
+        const kind = it.mark ?? "num";
+        return (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 24,
+              background: "rgba(255,255,255,0.06)",
+              border: "2px solid rgba(255,255,255,0.10)",
+              borderRadius: 24,
+              padding: "18px 24px",
+              opacity: Math.min(1, g * 1.4),
+              transform: `translateX(${(1 - Math.min(g, 1)) * -60}px)`,
+            }}
+          >
+            {it.icon_path && kind === "num" ? (
+              <Img src={staticFile(it.icon_path)} style={{ width: 76, height: 76, flex: "0 0 auto", filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.5))" }} />
+            ) : (
+              <Mark kind={kind} size={66} n={i + 1} accent={accent} />
+            )}
+            <div style={{ fontFamily: LABEL_FONT, fontWeight: 800, fontSize: 46, lineHeight: 1.2, color: "#F1F3F7" }}>
+              {it.text}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export const EVIDENCE_KINDS = new Set(["stat", "chart", "code", "screenshot", "chat", "list"]);
 
 export const Evidence: React.FC<{
   shot: Shot;
@@ -319,17 +479,24 @@ export const Evidence: React.FC<{
   belowHook?: boolean;
 }> = ({ shot, spec, durationInFrames, src, belowHook = false }) => {
   const a = shot.asset;
-  const top = belowHook ? HOOK_ZONE_TOP : ZONE_TOP;
+  const lay = spec.style.layout;
+  // Bố cục headline: thẻ nằm DƯỚI tiêu đề cố định (vùng 25%…56%), nền do Video vẽ chung cho cả video.
+  const top = lay ? LAYOUT_ZONE_TOP : belowHook ? HOOK_ZONE_TOP : ZONE_TOP;
+  const bottom = lay ? LAYOUT_ZONE_BOTTOM : ZONE_BOTTOM;
   let body: React.ReactNode = null;
   if (a.kind === "stat" && a.stat) body = <StatCard data={a.stat} spec={spec} instant={belowHook} />;
   else if (a.kind === "chart" && a.chart) body = <ChartCard data={a.chart} spec={spec} instant={belowHook} />;
   else if (a.kind === "code" && a.code) body = <CodeCard data={a.code} />;
+  else if (a.kind === "chat" && a.chat)
+    body = <ChatCard data={a.chat} spec={spec} durationInFrames={durationInFrames} instant={belowHook} />;
+  else if (a.kind === "list" && a.list)
+    body = <ListCard data={a.list} spec={spec} durationInFrames={durationInFrames} instant={belowHook} />;
   else if (a.kind === "screenshot" && src)
-    body = <ScreenshotCard src={src} sourceUrl={a.source_url} durationInFrames={durationInFrames} spec={spec} top={top} />;
+    body = <ScreenshotCard src={src} sourceUrl={a.source_url} durationInFrames={durationInFrames} spec={spec} top={top} bottom={bottom} />;
   return (
     <AbsoluteFill>
-      <Backdrop spec={spec} durationInFrames={durationInFrames} />
-      <Zone durationInFrames={durationInFrames} justify={a.kind === "screenshot" ? "flex-start" : "center"} top={top} instant={belowHook}>
+      {lay ? null : <Backdrop spec={spec} durationInFrames={durationInFrames} />}
+      <Zone durationInFrames={durationInFrames} justify={a.kind === "screenshot" ? "flex-start" : "center"} top={top} bottom={bottom} instant={belowHook && !lay}>
         {body}
       </Zone>
     </AbsoluteFill>

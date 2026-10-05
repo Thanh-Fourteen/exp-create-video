@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-04-2201",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mb619a9",
+   "title": "Fanpage \"hỗ trợ lấy lại tiền bị lừa\": bẫy lừa lần hai vừa bị cảnh báo",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mcd7421",
+   "title": "Gọi \"cập nhật dữ liệu đất đai, mời lên ký\": dấu hiệu giả cán bộ địa chính",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m883fb7",
+   "title": "Cuộc gọi \"đơn hàng lỗi, hoàn tiền\": ba điều tuyệt đối không làm",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mbf3cbe",
+   "title": "iOS 26: hai công tắc chặn cuộc gọi lạ và tin nhắn số lạ",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "mcb5bef",
+   "title": "Android: tắt \"cài app từ nguồn không rõ\" và bật Play Protect",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m0987c3",
+   "title": "Zalo: xem thiết bị nào đang đăng nhập tài khoản của bạn và đăng xuất xa",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "mc2d65d",
+   "title": "Đồ ăn, gạo, đồ hộp ngâm nước lũ: thứ phải bỏ, thứ còn dùng được",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "md4fa72",
+   "title": "Trước khi mua thực phẩm bảo vệ sức khỏe: tra số công bố trên web Cục ATTP",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m830051",
+   "title": "Nước sắp tràn vào nhà: cắt aptomat tổng và 4 việc EVN khuyến cáo",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m4a5be1",
+   "title": "Tháng 10 Trung Bộ có 1–2 đợt lũ: checklist 1 giờ kê đồ, gói giấy tờ",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m733f08",
+   "title": "Họp bị đồng nghiệp nhận công của mình: ba câu lấy lại phần đóng góp",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "m4064bd",
+   "title": "Hỏi thăm người vùng lũ: ba câu nên nhắn, ba câu nên tránh",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 147.38,
+   "input_tokens": 8,
+   "output_tokens": 7479,
+   "cost_usd": 0.684162
+  }
+ ]
+}

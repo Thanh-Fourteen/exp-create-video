@@ -269,15 +269,20 @@ def check_caption_geometry(spec: dict) -> Check:
     measured = True
     worst: tuple[float, str, int] | None = None
     for c in spec["captions"]:
-        style = st["hook"] if c.get("style") == "hook" else st["caption"]
+        # Bố cục headline: Remotion vẽ cả câu hook như phụ đề thường (ChunkCaption, kiểu caption) — đo đúng thứ được vẽ.
+        lay_chunks = bool(st.get("layout") and c.get("chunks"))
+        style = st["hook"] if c.get("style") == "hook" and not lay_chunks else st["caption"]
         size = style["size_px"]
         top_pct = 58.0 if style.get("position") == "center-lower" else (
             safe["top"] + 10.0 if style.get("position") == "top" else 42.0
         )
+        # Bố cục headline v2 (2026-10-05, research/18): Remotion vẽ MỌI caption có chunks ở 65% ("lower").
+        if lay_chunks:
+            top_pct = 65.0
 
         # P3b.S5: caption có `chunks` được vẽ TỪNG CỤM ở `chunk_size_px`, line-height
         # 1,12 (ChunkCaption) — đo đúng thứ được vẽ, không đo cả câu.
-        if c.get("chunks") and c.get("style") != "hook":
+        if c.get("chunks") and (c.get("style") != "hook" or lay_chunks):
             size = style.get("chunk_size_px") or round(style["size_px"] * 1.35)
             texts = [(" ".join(w["w"] for w in c["words"][k["from"]:k["to"]]), round(size * k.get("fit", 1)))
                      for k in c["chunks"]]

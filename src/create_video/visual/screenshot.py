@@ -155,7 +155,43 @@ def capture(urls: list[str], cache_dir: Path = CACHE_DIR, highlight: dict[str, s
 
     if not todo:
         return out
+    # 2026-10-05: MỖI URL một process con, trần cứng PER_URL_SEC. Demo kênh mẹo treo 1 giờ 35 phút ở bước này —
+    # `page.evaluate` của Playwright không có timeout, trang có script đơ luồng chính là treo vĩnh viễn.
+    for i, url, tgt in todo:
+        out[i] = _capture_isolated(url, tgt, cache_dir, highlight.get(url, ""), timeout_ms)
+    return out
 
+
+PER_URL_SEC = 60
+
+
+def _capture_isolated(url: str, tgt: Target, cache_dir: Path, hl: str, timeout_ms: int) -> Shot:
+    import signal
+    import subprocess
+    import sys
+
+    cmd = [sys.executable, "-m", "create_video.visual.screenshot", "--one", url, "--host", tgt.host,
+           "--selector", tgt.selector, "--pad-top", str(tgt.pad_top), "--cache", str(cache_dir),
+           "--timeout-ms", str(timeout_ms)] + (["--highlight", hl] if hl else [])
+    t0 = time.time()
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, start_new_session=True)
+    try:
+        so, _ = p.communicate(timeout=PER_URL_SEC)
+    except subprocess.TimeoutExpired:
+        os.killpg(p.pid, signal.SIGKILL)   # cả Chromium con
+        p.communicate()
+        return Shot(url=url, sec=round(time.time() - t0, 1), error=f"Timeout: quá {PER_URL_SEC}s (trang treo)")
+    try:
+        return Shot(**json.loads(so.strip().splitlines()[-1]))
+    except (json.JSONDecodeError, IndexError, TypeError):
+        return Shot(url=url, sec=round(time.time() - t0, 1), error=f"process chụp hỏng (rc={p.returncode})")
+
+
+def _capture_inproc(todo: list[tuple[int, str, Target]], out: list[Shot], cache_dir: Path,
+                    highlight: dict[str, str], timeout_ms: int) -> list[Shot]:
+    from playwright.sync_api import sync_playwright
+
+    global _last_arxiv
     with sync_playwright() as p:
         browser = p.chromium.launch()
         ctx = browser.new_context(
@@ -244,8 +280,19 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     ap = argparse.ArgumentParser(description="URL → PNG bằng chứng 1080px")
-    ap.add_argument("urls", nargs="+")
+    ap.add_argument("urls", nargs="*")
+    ap.add_argument("--one", help="(nội bộ) chụp đúng 1 URL trong process này, in JSON Shot")
+    ap.add_argument("--host"); ap.add_argument("--selector"); ap.add_argument("--pad-top", type=int, default=0)
+    ap.add_argument("--cache", type=Path, default=CACHE_DIR); ap.add_argument("--timeout-ms", type=int, default=12000)
+    ap.add_argument("--highlight", default="")
     a = ap.parse_args(argv)
+    if a.one:
+        out = [Shot(url=a.one)]
+        a.cache.mkdir(parents=True, exist_ok=True)
+        _capture_inproc([(0, a.one, Target(a.host, a.selector, a.pad_top))], out, a.cache,
+                        {a.one: a.highlight} if a.highlight else {}, a.timeout_ms)
+        print(json.dumps(asdict(out[0]), ensure_ascii=False))
+        return 0
     for s in capture(a.urls):
         flag = "✓" if s.ok else "✗"
         print(f"{flag} {s.sec:5.1f}s {'(cache) ' if s.cached else ''}{s.url}\n    {s.path or s.error}")

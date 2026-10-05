@@ -20,7 +20,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Sequence
 
-EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot")
+EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot", "chat", "list")   # chat/list: kênh mẹo 2026-10-04
+ANCHORED_KINDS = EVIDENCE_KINDS + ("stock",)   # stock (2026-10-05): cảnh quay thật, neo đúng câu như thẻ
 
 
 @dataclass
@@ -45,7 +46,7 @@ def breaks(shots, kept: Sequence[int]) -> set[int]:
     """Chỉ số (trong danh sách câu ĐÃ BỎ câu rỗng) phải mở shot mới: câu có shot bằng chứng."""
     pos = {orig: k for k, orig in enumerate(kept)}
     return {pos[s.line] for s in shots
-            if s.kind in EVIDENCE_KINDS and s.line is not None and s.line in pos and pos[s.line] > 0}
+            if s.kind in ANCHORED_KINDS and s.line is not None and s.line in pos and pos[s.line] > 0}
 
 
 def plan(shots, groups: Sequence[Sequence[int]], kept: Sequence[int]) -> list[Visual]:
@@ -70,7 +71,7 @@ def plan(shots, groups: Sequence[Sequence[int]], kept: Sequence[int]) -> list[Vi
     out: list[Visual] = []
     for g in groups:
         cands = [s for k in g for s in by_line.get(kept[k], [])]
-        ev = next((s for s in cands if s.kind in EVIDENCE_KINDS), None)
+        ev = next((s for s in cands if s.kind in ANCHORED_KINDS), None)
         if ev is not None and kept[g[0]] == ev.line:
             out.append(Visual(ev.kind, prompt=ev.prompt, data=_payload(ev), url=ev.url or "",
                               highlight=ev.highlight or "", line=ev.line))
@@ -123,4 +124,10 @@ def _payload(s) -> dict:
         return dict(s.chart or {})
     if s.kind == "code":
         return dict(s.code or {})
+    if s.kind == "chat":
+        return dict(s.chat or {})
+    if s.kind == "list":
+        return dict(s.list or {})
+    if s.kind == "stock":
+        return {"query": (s.query or s.prompt or "").strip()}
     return {}

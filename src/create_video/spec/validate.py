@@ -26,7 +26,7 @@ SCHEMA_PATH = Path(__file__).with_name("schema.json")
 #  - DRIFT_SEC: 120ms, đúng `t1_technical.captions.max_drift_ms` của thresholds.yaml.
 EPS_SEC = 0.05
 # Kind do Remotion vẽ từ dữ liệu trong spec (P3b.S4) — không có `path`.
-DATA_KINDS = frozenset({"stat", "chart", "code"})
+DATA_KINDS = frozenset({"stat", "chart", "code", "chat", "list"})
 DRIFT_SEC = 0.120
 
 SUPPORTED_MAJOR = "1"

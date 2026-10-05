@@ -1,8 +1,8 @@
-{% extends "base.html" %}{% from "_macros.html" import poster %}
+{% extends "base.html" %}{% from "_macros.html" import poster, kbadge %}
 {% block title %}Thư viện · Xưởng video{% endblock %}
 {% block main %}
 {% set posted = videos|selectattr('review.decision', 'equalto', 'post')|list|length %}
-<p class="eyebrow mb-2.5">{{ videos|length }} video · {{ posted }} đã đăng</p>
+<p class="eyebrow mb-2.5 flex items-center gap-2">{% if kenh != 'all' %}<span class="w-2 h-2 rounded-full bg-primary"></span>{{ ch.name }} · {% else %}Tất cả kênh · {% endif %}{{ videos|length }} video · {{ posted }} đã đăng</p>
 <div class="flex items-end justify-between gap-4"><h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Thư <i class="h-italic">viện</i></h1>
   <a href="/stats" class="btn btn-sm btn-ghost border border-base-300">Thống kê →</a></div>
 <form class="mt-7 flex flex-wrap items-center gap-2" hx-get="/library" hx-trigger="change, keyup changed delay:400ms from:#q" hx-target="body" hx-push-url="true">
@@ -17,6 +17,7 @@
   {% for v in videos %}
   <a href="/library/{{ v.id }}" class="group flex flex-col gap-2">
     <div class="transition-transform duration-300 group-hover:-translate-y-0.5">{{ poster(v) }}</div>
+    {% if kenh == 'all' %}<span>{{ kbadge(v.channel_short, v.channel_accent) }}</span>{% endif %}
     <span class="text-[13.5px] font-medium leading-snug line-clamp-2">{{ v.title }}</span>
     <small class="flex justify-between text-[12px] text-muted"><span>{{ v.created_at[8:10] }}/{{ v.created_at[5:7] }} · {{ v.created_at[11:16] }}</span>
       <span class="num">{{ '%d:%02d'|format((v.duration_sec or 0)//60, (v.duration_sec or 0)%60) }}{{ ' · đã đăng' if v.review.decision == 'post' }}</span></small>

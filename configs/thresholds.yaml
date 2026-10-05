@@ -11,7 +11,10 @@
 t1_technical:
   duration_sec:
     min: 15          # ngắn hơn thì chưa kịp truyền đạt gì
-    max: 60          # dài hơn thì tụt retention trên TikTok
+    # 2026-10-04: 60 → 180. Lý do + ngày (eval-discipline: sửa ngưỡng phải ghi research/): Tony bỏ trần 60s
+    # ("video không nhất thiết dưới 1 phút"); khảo sát 30 kênh VN: độ dài không làm giảm view so với trung vị kênh,
+    # 180s+ = 1,14× (AI) / 1,42× (mẹo) — research/15-khao-sat-tiktok.md §2–§3, D5. Trần 180 = 3 phút, giữ chi phí dựng.
+    max: 180
   resolution:
     width: 1080
     height: 1920     # đúng tuyệt đối, không chấp nhận sai lệch

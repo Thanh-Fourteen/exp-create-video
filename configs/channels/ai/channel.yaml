@@ -1,0 +1,63 @@
+# Kênh 1 — AI (tách ra 2026-10-04, research/13 §5). Khoá nào không khai thì code dùng mặc định cũ —
+# kênh này cố ý gần như rỗng để hành vi KHÔNG đổi so với trước khi tách.
+name: "Xưởng AI"
+short: "AI"
+order: 1
+handle: ""
+accent: "#7FA6FF"            # sapphire — màu nhấn web hiện tại (research/12 §8)
+audience: "người Việt phổ thông quan tâm AI: sinh viên, dân văn phòng, người làm nội dung"
+rubric: configs/rubric.md
+pillars:                     # trước đây định nghĩa 3 lần (researcher, scriptwriter, web/library)
+  tin_nong: {vi: "Tin nóng", desc: "tin AI mới — điều gì vừa xảy ra và nó đổi gì cho người Việt"}
+  cong_cu:  {vi: "Công cụ",  desc: "công cụ AI dùng được NGAY (miễn phí hoặc rẻ) — làm được gì, bắt đầu thế nào"}
+  meo:      {vi: "Mẹo",      desc: "mẹo/prompt dùng AI hằng ngày (học, làm, văn phòng) — người xem làm theo được"}
+  so_sanh:  {vi: "So sánh",  desc: "so sánh hai lựa chọn (model, tool, gói giá) — chọn cái nào"}
+  tu_do:    {vi: "Tự đo",    desc: "tự chạy/tự đo trên máy thật (RTX 2060 6GB) — số đo của chính kênh"}
+  canh_bao: {vi: "Cảnh báo", desc: "bóc tin đồn, cảnh báo lừa đảo/rủi ro khi dùng AI"}
+shot_kinds: [image, stock, stat, chart, code, screenshot]   # stock 2026-10-05 (research/16)
+rules:
+  # 2026-10-05 (Tony: "cần tỷ lệ hình ảnh thật, video thật nhiều hơn"): ≥ 25% shot là `stock` (người dùng điện thoại/
+  # laptop, văn phòng, phố…) — kênh AI còn cần screenshot/stat làm bằng chứng (research/19).
+  real_min_ratio: 0.25
+  keep_english_terms: true   # model, fine-tune, inference… giữ nguyên (T3 V_TERMS)
+trend:
+  scout: trend_scout         # team/trend_scout.py (HF/arXiv/HN/GitHub/RSS)
+
+# R3 (2026-10-04): DẠNG VIDEO — rút từ khảo sát 12 kênh AI Việt, 360 video (research/15-khao-sat-tiktok.md §2). Video
+# bùng nổ (×20–113 trung vị kênh) đều thuộc các dạng dưới. agents/angles.py chọn 1 dạng/video, phạt dạng vừa dùng.
+formats:
+  meo_it_nguoi_biet:
+    label: "Mẹo ít người biết"
+    desc: "mẹo/tính năng dùng được NGAY mà ít người biết (lệnh, cài đặt, công cụ miễn phí) — @hieuanca 1,2M view ×113"
+    structure: "hook = lợi ích cụ thể + 'ít người biết' · từng mẹo: làm gì → kết quả thấy được (ảnh chụp/thẻ list) · mẹo hay nhất để CUỐI · CTA lưu lại"
+  dung_nua:
+    label: "Đừng làm thế nữa"
+    desc: "'Đừng … nữa, dùng cái này' — chỉ ra cách đang làm tốn công và cách thay thế — @hungnpv 645K ×17,9; @ainius.net 90K ×21"
+    structure: "hook = 'Đừng X nữa' · vì sao X tệ (1 câu, có số) · Y làm khác gì (bằng chứng) · khi nào vẫn nên X (thật thà) · CTA"
+  he_qua_nguoi_viet:
+    label: "Tin nóng"
+    desc: "tin AI/công nghệ kể bằng HỆ QUẢ cho người Việt (tiền, việc làm, mạng, học hành) — @aidev.news 247K ×93"
+    structure: "hook = điều vừa xảy ra + ảnh hưởng tới 'bạn' · chuyện gì (2–3 sự thật) · nhưng… (chỗ ngoặt) · bạn nên làm gì"
+  so_sanh_tien:
+    label: "So sánh"
+    desc: "so sánh tiền/thời gian: AI vs cách cũ, gói này vs gói kia — @ai5phut 'thuê trợ lý 8–10 triệu' 266K ×48"
+    structure: "hook = con số tiền/thời gian gây sốc · bên A · bên B (thẻ chart) · nhưng… · kết luận chọn gì cho ai"
+  vi_sao:
+    label: "Vì sao?"
+    desc: "câu hỏi 'Vì sao …?' về một chuyện AI khó hiểu, trả lời dễ hiểu — @ainius.net 'Vì sao model mới vừa khôn vừa rẻ' ×5"
+    structure: "hook = câu hỏi người xem đang thắc mắc · trả lời sai thường gặp · câu trả lời thật (từng bước, có hình) · ý nghĩa với bạn"
+  dem_nguoc:
+    label: "Bảng xếp hạng"
+    desc: "đếm ngược top N (tool, repo, model) có ô '?' lộ dần — @ainius.net Top GitHub 76,9K"
+    structure: "hook = 'N cái tên…' + điều bất ngờ ở số 1 · đếm ngược từ N về 1, mỗi mục 1 câu làm gì + 1 câu vì sao đáng chú ý · số 1 để cuối"
+style:
+  # 2026-10-05 (Tony: "thêm nhân vật animation", research/19): nhân vật SVG vẽ bằng code trong Remotion (0 GPU),
+  # hiện ở câu hook + câu chốt, miệng theo giọng đọc. Bản Kaggle nhép miệng thật (EchoMimicV3) = probe sau.
+  mascot: {kind: robot, name: "Bit"}
+  brand: {label: "Xưởng AI", counter: true}
+  layout: news                 # D2 research/15 §4 — thẻ tin kiểu @aidev.news
+  # D9 (probes/r5-zimage.md): mô tả ảnh chụp — máy ảnh/ống kính/ánh sáng (BFL prompting guide)
+  image_suffix: "realistic photograph, shot on Sony A7 IV, 35mm f/1.8, soft natural light with subtle cool blue accents, shallow depth of field, sharp focus, no text, no people"
+  music: "calm minimal lo-fi electronic background for a tech news explainer, soft pads, light beat, warm bass, 90 bpm, instrumental, no vocals"
+  music_bpm: 90
+duration_default: 75           # D5: độ dài không quyết định view trong kênh (research/15 §2); ainius thắng ở ~2 phút

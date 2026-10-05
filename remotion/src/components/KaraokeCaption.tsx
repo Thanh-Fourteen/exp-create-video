@@ -32,6 +32,10 @@ const posToBox = (
       return { ...common, top: "42%" };
     case "bottom":
       return { ...common, bottom: `${safe.bottom + 2}%` };
+    case "lower":
+      // Bố cục headline v2 (ảnh tràn màn hình, research/18): vật chính của ảnh nằm quanh tâm → phụ đề xuống 65%,
+      // trên dải tối mờ, vẫn trên vùng UI đáy (TikTok che ~25% dưới) và trên overlay "bottom".
+      return { ...common, top: "65%" };
     case "center-lower":
     default:
       // Dưới tâm màn hình nhưng vẫn TRÊN vùng UI: mắt người xem TikTok

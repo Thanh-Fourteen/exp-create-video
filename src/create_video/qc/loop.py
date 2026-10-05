@@ -127,8 +127,56 @@ def run_t2(ctx: dict) -> TierResult:
                                "peak_vram_mib": summ["peak_vram_mib"]}, artifact=str(art))
 
 
+# ── Cổng kịch bản TRƯỚC render (2026-10-05) ─────────────────────────────────
+# Đo 3 video: mỗi vòng sửa sau render tốn 440–630s (sửa kịch bản → đọc lại giọng → render lại), và lý do sửa gần như
+# luôn là T3/T4 — hai tầng chỉ cần KỊCH BẢN, không cần video. Chấm T3+T4 ngay sau khi viết, sửa ≤ 1 lần, lưu kết quả
+# kèm sha kịch bản; vòng QC sau render thấy cùng sha thì dùng lại (không gọi LLM lại, không lật kết quả vì LLM ngẫu nhiên).
+PRE_MAX_REVISE = 1
+
+
+def script_sha(script) -> str:
+    return hashlib.sha256(script.to_json().encode("utf-8")).hexdigest()[:16]
+
+
+def _pre_cached(ctx: dict, tier: str) -> "TierResult | None":
+    g = ctx["out_dir"] / "qc" / "pre" / "gate.json"
+    if not g.exists() or "script" not in ctx:
+        return None
+    d = json.loads(g.read_text(encoding="utf-8"))
+    if d.get("sha") != script_sha(ctx["script"]) or tier not in d:
+        return None
+    return TierResult(**{**d[tier], "reused_from": -1})
+
+
+def pre_gate(out_dir: Path, script, state, revise) -> object:
+    """Chấm T3+T4 trên kịch bản trước TTS/render; sửa ≤ PRE_MAX_REVISE lần. → kịch bản cuối (đã ghi gate.json)."""
+    rdir = out_dir / "qc" / "pre"
+    rdir.mkdir(parents=True, exist_ok=True)
+    g = rdir / "gate.json"
+    if g.exists() and json.loads(g.read_text(encoding="utf-8")).get("sha") == script_sha(script):
+        return script
+    ctx = {"out_dir": out_dir, "script": script, "spec": None, "state": state, "rdir": rdir}
+    revised = 0
+    while True:
+        r3, r4 = run_t3(ctx), run_t4(ctx)
+        notes = list(r4.summary.get("notes") or []) + list(r3.summary.get("notes") or [])
+        print(f"  cổng kịch bản: T3 {r3.summary.get('total')} {'✓' if r3.ok else '✗'} · T4 "
+              f"{r4.summary.get('contradicted')} mâu thuẫn {'✓' if r4.ok else '✗'}", flush=True)
+        if (r3.ok and r4.ok) or revised >= PRE_MAX_REVISE or not notes:
+            break
+        script = revise(script, notes)
+        ctx["script"] = script
+        revised += 1
+    g.write_text(json.dumps({"sha": script_sha(script), "revised": revised, "t3": asdict(r3), "t4": asdict(r4)},
+                            ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return script
+
+
 def run_t3(ctx: dict) -> TierResult:
     from . import t3_appeal
+
+    if (c := _pre_cached(ctx, "t3")) is not None:
+        return c
 
     art = ctx["rdir"] / "t3.json"
     rep = t3_appeal.check(ctx["script"], spec=ctx["spec"], state=ctx["state"], artifact=art)
@@ -142,6 +190,9 @@ def run_t3(ctx: dict) -> TierResult:
 
 def run_t4(ctx: dict) -> TierResult:
     from . import t4_facts
+
+    if (c := _pre_cached(ctx, "t4")) is not None:
+        return c
 
     art = ctx["rdir"] / "t4.json"
     rep = t4_facts.check(ctx["script"], state=ctx["state"], artifact=art)

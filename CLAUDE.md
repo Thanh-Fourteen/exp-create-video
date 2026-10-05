@@ -50,9 +50,11 @@ Ngưỡng đầy đủ: `configs/thresholds.yaml` · Cơ sở: `research/05-deci
 - **Máy `tony`: RTX 2060 6GB.** `tris` mặc định tắt (`configs/machines.yaml`)
 - **Không nạp hai khối GPU cùng lúc** (SDXL offload đỉnh 624 MiB, aligner 1,9GB, VLM ~4GB)
   — tuần tự hoá. GPU dùng chung với dự án khác: `nvidia-smi` trước mọi bước GPU
-- Video dọc 1080×1920, 15–60s, tiếng Việt, khán giả VN
+- Video dọc 1080×1920, tiếng Việt, khán giả VN. Độ dài **không giới hạn 60s** (Tony 2026-10-04) — chọn theo
+  khảo sát từng kênh (`research/15-khao-sat-tiktok.md`)
 - Đăng chế độ **draft** (chưa audit → direct post bị ép `SELF_ONLY`)
-- Trend **không lấy từ TikTok** (Research API siết, Creative Center cấm scrape)
+- Trend **không lấy từ TikTok** (Research API siết, Creative Center cấm scrape). Ngoại lệ: **khảo sát video top bằng trình duyệt
+  của Tony** (Tony cho phép 2026-10-04) để học cách làm — quy mô nhỏ, không dùng làm nguồn trend tự động
 
 ## Hai ranh giới không được phá
 
@@ -85,6 +87,7 @@ Ngưỡng đầy đủ: `configs/thresholds.yaml` · Cơ sở: `research/05-deci
 - Kết quả probe ghi vào `research/probes/`, **không ghi đè** file cũ.
 - Vòng QC **trần cứng 2**. Critic đề xuất, không quyết định.
 - **Tony tự quản git** — không commit hộ.
+- **Không hỏi Tony để chọn phương án** (Tony 2026-10-04): research → tự quyết → ghi lý do vào `research/` → báo kết quả.
 
 ## Nơi lưu
 

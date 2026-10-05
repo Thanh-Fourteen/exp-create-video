@@ -148,3 +148,19 @@ Tài liệu gốc: `research/11-audit-tiktok-ai.md` (research nội dung + audit
 - **Chi phí:** 0đ tiền mặt. Bước Claude trừ hạn mức gói (~2–3 USD quy đổi/video); phần còn lại dùng GPU 6GB + CPU của
   máy, mỗi lúc một video.
 - **Metric chính:** `approve_rate` = video anh bấm Đăng / tổng đã quyết — xem ở trang Thống kê.
+
+---
+
+## 8. Cập nhật 2026-10-05 — 2 kênh + pipeline v2
+
+- **2 kênh** (`configs/channels/<id>/channel.yaml`): `ai` "Xưởng AI" · `meo` "Sống Khéo" (mẹo đời sống). Pillar, dạng video,
+  luật nguồn, allowlist T4, màu, prompt ảnh, nhạc, rubric theo kênh. Web: đổi kênh góc trên trái / thanh trên; trang Ý tưởng.
+- **Khảo sát TikTok thật** 30 kênh VN, ~860 video, đo 12 video bùng nổ (`research/15-khao-sat-tiktok.md`) → quyết định D1–D11.
+- **Mới trong luồng:** ① researcher → **②a chọn góc kể** (`agents/angles.py`: 5 phương án Verbalized Sampling + 🤖 giám khảo
+  so cặp, phạt dạng vừa dùng) → ② scriptwriter theo góc → ③ giọng **đọc cả đoạn** + hậu kỳ EQ/nén → … → ⑦ Remotion bố
+  cục **headline** (nhãn dạng video + tiêu đề cố định + khung hình + đếm cảnh).
+- **Thẻ mới:** `chat` (bong bóng tin nhắn) · `list` (ý hiện dần, ✓/✕/số).
+- **Gợi ý chủ đề:** kênh AI = trend scout; kênh mẹo = lịch mùa + kho ý tưởng + 🤖 `idea_gen` mỗi sáng (WebSearch tin 7–14 ngày).
+- **T4 kênh mẹo:** claim `health`/`food_safety` chỉ đạt khi nguồn tier1 (cơ quan nhà nước/y tế) — không thì chặn.
+- **Độ dài:** bỏ trần 60s (T1 max 180s); mặc định AI 75s · mẹo 60s. Shot 3–7s.
+- **Chống treo:** chụp trang mỗi URL một process, trần 60s.

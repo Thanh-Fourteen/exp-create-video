@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Ý tưởng · {{ ch.name }}{% endblock %}
+{# Kho ý tưởng theo kênh (2026-10-04). Bố cục: research/probes/k-research.md §2 — tab trạng thái ít mục (NN/g Tabs),
+   nút thấy được thay vì vuốt (NN/g contextual swipe), cân pillar = bullet bar (Few 2013): thanh = thực tế, vạch = mục tiêu. #}
+{% block main %}
+<p class="eyebrow mb-2.5 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-primary"></span>Kênh {{ ch.name }}</p>
+<h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Kho <i class="h-italic">ý tưởng</i></h1>
+<p class="text-muted mt-2 max-w-[62ch]">{% if has_bank %}Gợi ý ở trang Tạo video lấy từ đây: ý tưởng đang vào mùa trước, rồi tới mảng đang thiếu so với tỉ lệ mục tiêu. Bấm <b class="font-medium text-base-content">Làm video</b> để điền sẵn chủ đề.{% else %}Kênh này lấy gợi ý từ trend scout mỗi sáng. Ý tưởng anh thêm ở đây vẫn hiện trong danh sách để bấm làm.{% endif %}</p>
+
+<div class="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1.7fr)_minmax(300px,1fr)] lg:items-start">
+  <section class="flex flex-col gap-4 min-w-0">
+    <div role="tablist" class="flex gap-1 border-b border-base-300">
+      {% for key, label in [("new","Chưa làm"),("used","Đã làm"),("skip","Đã bỏ")] %}
+      <a role="tab" href="/ideas?s={{ key }}" aria-selected="{{ 'true' if s == key else 'false' }}"
+         class="px-3.5 py-2.5 -mb-px text-[14px] border-b-2 {{ 'border-primary text-base-content font-medium' if s == key else 'border-transparent text-muted hover:text-base-content' }}">
+        {{ label }} <span class="num text-[12px] {{ 'text-primary' if s == key else '' }}">{{ counts[key] }}</span></a>
+      {% endfor %}
+    </div>
+
+    {% for i in items %}
+    <article class="card-x px-4 py-3.5 grid sm:grid-cols-[1fr_auto] gap-x-4 gap-y-3 items-center">
+      <div class="min-w-0">
+        <b class="font-medium text-[15px] leading-snug">{{ i.title }}</b>
+        <div class="text-[12.5px] text-muted mt-1 flex flex-wrap gap-x-3">
+          <span class="text-base-content/80">{{ i.pillar_vi }}</span>
+          {% if i.hint %}<span class="truncate max-w-[46ch]" title="{{ i.hint }}">nguồn gợi ý: {{ i.hint }}</span>{% endif %}
+          {% if i.source == 'tony' %}<span>anh thêm</span>{% endif %}
+        </div>
+      </div>
+      <div class="flex gap-2 sm:justify-end">
+        {% if s == 'new' %}
+          <a class="btn btn-sm btn-primary" href="/?topic={{ i.title|urlencode }}&pillar={{ i.pillar|urlencode }}&idea={{ i.id|urlencode }}">Làm video</a>
+          <button class="btn btn-sm btn-ghost border border-base-300" hx-post="/ideas/{{ i.id }}/status" hx-vals='{"status":"skip"}'>Bỏ</button>
+        {% elif s == 'skip' %}
+          <button class="btn btn-sm btn-ghost border border-base-300" hx-post="/ideas/{{ i.id }}/status" hx-vals='{"status":"new"}'>Khôi phục</button>
+        {% else %}<span class="badge badge-success badge-soft badge-sm">Đã làm</span>{% endif %}
+      </div>
+    </article>
+    {% else %}
+    <div class="card-x p-6 text-[14px] text-muted">
+      {% if s == 'new' %}Kho trống. Thêm ý tưởng ở khung bên cạnh — mỗi ý tưởng gắn một mảng để máy cân tỉ lệ.
+      {% elif s == 'used' %}Chưa làm video nào từ kho. Bấm “Làm video” ở tab Chưa làm.{% else %}Chưa bỏ ý tưởng nào.{% endif %}
+    </div>
+    {% endfor %}
+  </section>
+
+  <aside class="flex flex-col gap-6 lg:sticky lg:top-10">
+    {% if ch.pillars %}
+    <section class="card-x p-5 flex flex-col gap-3.5">
+      <div><h2 class="text-[21px] m-0">Cân mảng nội dung</h2>
+        <p class="text-[12.5px] text-muted m-0 mt-1">4 tuần qua · thanh = thực tế · vạch = mục tiêu</p></div>
+      {% set top = [0.5] + balance|map(attribute='target')|list + balance|map(attribute='actual')|list %}
+      {% set scale = top|max %}
+      {% for b in balance %}
+      <div class="grid grid-cols-[minmax(84px,120px)_1fr_auto] items-center gap-3 text-[13.5px]">
+        <span class="truncate">{{ b.vi }}</span>
+        <div class="relative h-3 rounded-full bg-base-300" role="img" aria-label="{{ b.vi }}: {{ (b.actual*100)|round|int }}% so với mục tiêu {{ (b.target*100)|round|int }}%">
+          <div class="absolute inset-y-0 left-0 rounded-full {{ 'bg-primary' if b.actual >= b.target - 0.05 else 'bg-primary/55' }}" style="width: {{ (b.actual / scale * 100)|round(1) }}%"></div>
+          <div class="absolute -top-1 -bottom-1 w-[2px] bg-base-content" style="left: calc({{ (b.target / scale * 100)|round(1) }}% - 1px)"></div>
+        </div>
+        <span class="num text-muted text-[12px]">{{ b.count }} · {{ (b.target*100)|round|int }}%</span>
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if seasons %}
+    <section class="flex flex-col gap-2.5">
+      <h2 class="text-[21px] m-0">Đang vào mùa</h2>
+      {% for se in seasons %}
+      <div class="flex justify-between gap-3 border-b border-base-300 pb-2 text-[14px]"><span>{{ se.name }}</span><span class="num text-muted text-[12.5px]">còn {{ se.days_left }} ngày</span></div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <section class="card-x p-5 flex flex-col gap-3">
+      <h2 class="text-[21px] m-0">Thêm ý tưởng</h2>
+      <form method="post" action="/ideas" class="flex flex-col gap-3">
+        <textarea name="title" required minlength="6" maxlength="200" rows="2" class="textarea textarea-bordered w-full bg-base-100" placeholder="Ví dụ: Cách nhắn tin đòi nợ bạn bè mà không mất lòng"></textarea>
+        <select name="pillar" required class="select select-bordered w-full bg-base-100">
+          {% for k, p in ch.pillars.items() %}<option value="{{ k }}">{{ p.vi }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-primary self-start">Thêm vào kho</button>
+      </form>
+    </section>
+  </aside>
+</div>
+{% endblock %}

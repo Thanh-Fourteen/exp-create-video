@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-05-0630",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m9b2920",
+   "title": "Vì sao người tỉnh táo vẫn chuyển tiền: chiêu \"gấp gáp\" trong cuộc gọi lừa đảo",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "mb8ed78",
+   "title": "Sếp nhắn việc lúc 10 giờ đêm: ba cách trả lời giữ được ranh giới",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "m39a4e9",
+   "title": "Lừa đầu tư tiền mã hoá BDOGE: giá bán gấp 10.000 lần, ba dấu hiệu nhận ra",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mb254c9",
+   "title": "Hộ kinh doanh chuyển từ 10 triệu phải quét mặt chủ hộ: quy định mới của NHNN",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mb66f2c",
+   "title": "Đã tích hợp giấy phép lái xe vào VNeID, không mang bản giấy có bị phạt không",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m166b64",
+   "title": "Bấm điện thoại lúc dừng đèn đỏ: có bị phạt không và phạt bao nhiêu",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m6ccf5d",
+   "title": "SIM không chính chủ có thể khoá tài khoản VNeID: cách tra SIM đang đứng tên ai",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "md4bb2f",
+   "title": "Zalo: ẩn cuộc trò chuyện bằng mã PIN và đặt tin nhắn tự xoá sau 7 ngày",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m964841",
+   "title": "Mất điện vì bão: tủ mát để được 4 giờ, tủ đông 48 giờ — món nào phải bỏ",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mebad45",
+   "title": "Nước sinh hoạt sau ngập: vì sao lọc chưa đủ, phải đun sôi mới uống",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m80a1a3",
+   "title": "Không khí lạnh đầu mùa: ba việc kiểm tra bình nóng lạnh trước khi bật lại",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m827786",
+   "title": "Sốt xuất huyết tăng 2,4 lần: năm chỗ đọng nước trong nhà cần dẹp tuần này",
+   "pillar": "theo_mua"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 191.61,
+   "input_tokens": 10,
+   "output_tokens": 9979,
+   "cost_usd": 0.7835494999999999
+  }
+ ]
+}

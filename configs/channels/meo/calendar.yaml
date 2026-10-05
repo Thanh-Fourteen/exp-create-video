@@ -1,0 +1,71 @@
+# Lịch mùa kênh "Sống Khéo" — gợi ý chủ đề khi vào mùa (team/idea_scout.py). research/probes/k-research.md §4.
+# `from`/`to`: MM-DD (lặp hằng năm, được vắt qua năm mới) hoặc YYYY-MM-DD (một lần).
+# Nguồn ngày ghi cạnh từng mục — V verified / R reported (2026-10-04).
+seasons:
+  - id: nom_am
+    name: "Nồm ẩm miền Bắc"
+    from: "02-20"
+    to: "04-30"          # cuối T2 → T4, đỉnh T3 — NCHMF qua Tuổi Trẻ 2025-02-08 (V)
+    pillar: theo_mua
+    ideas:
+      - "Nồm ẩm: 5 việc nên làm ngay để nhà đỡ ướt"
+      - "Vì sao lau nhà ngày nồm càng lau càng ướt"
+      - "Phơi quần áo ngày nồm sao cho khỏi mùi"
+  - id: nang_nong
+    name: "Nắng nóng / cao điểm điện"
+    from: "04-01"
+    to: "07-31"          # EVN cao điểm T4–T7, điều hoà 26–27°C (R, EVNSPC qua Thanh Niên 2026-04-29)
+    pillar: theo_mua
+    ideas:
+      - "Để điều hoà bao nhiêu độ thì tiền điện đỡ nhất"
+      - "Ba thói quen dùng điều hoà làm tiền điện tăng vọt"
+      - "Mùa nóng: đồ ăn để ngoài bao lâu thì phải bỏ"
+  - id: mua_mua_nam
+    name: "Mùa mưa miền Nam"
+    from: "05-01"
+    to: "11-30"          # Nam Bộ T5–T11, đỉnh T9 (V, Wikipedia Khí hậu VN — nguồn thứ cấp)
+    pillar: theo_mua
+    ideas:
+      - "Mùa mưa: cách giữ điện thoại khi bị ướt (và việc tuyệt đối đừng làm)"
+      - "Đi xe máy dưới mưa lớn: những điều nên biết để an toàn"
+  - id: mua_bao
+    name: "Mùa bão"
+    from: "07-01"
+    to: "11-30"          # Bắc T7–T9, Trung T10–T11 (V, NCHMF qua VietnamPlus 2026-06-23)
+    pillar: theo_mua
+    ideas:
+      - "Trước bão: danh sách đồ cần chuẩn bị trong nhà"
+      - "Mất điện vì bão: đồ trong tủ lạnh giữ được bao lâu"
+  - id: ret_dam
+    name: "Rét đậm rét hại"
+    from: "11-15"
+    to: "03-15"          # miền Bắc T11–T3 (V, Wikipedia); rét đậm TB ngày 13–15°C (R)
+    pillar: theo_mua
+    ideas:
+      - "Dùng máy sưởi qua đêm: những điều cần tránh"
+      - "Tắm nước nóng ngày rét: bình nóng lạnh nên để thế nào cho an toàn"
+  - id: mua_sam_cuoi_nam
+    name: "11.11 / Black Friday"
+    from: "10-20"
+    to: "11-30"          # 11.11 cố định; Black Friday 2026-11-27 (R)
+    pillar: tien_bac
+    ideas:
+      - "Săn sale 11.11: mẹo nhận ra giá bị nâng lên rồi giảm"
+      - "Tin nhắn 'trúng thưởng đơn hàng' mùa sale: nhận ra lừa đảo thế nào"
+      - "Mua trả góp 0 phần trăm: phí ẩn nằm ở đâu"
+  - id: tet_2027
+    name: "Tết Đinh Mùi"
+    from: "2027-01-05"
+    to: "2027-02-05"     # mùng 1 Tết = 2027-02-06 (V, Thanh Niên 2026-02-20)
+    pillar: giao_tiep
+    ideas:
+      - "Ba câu hỏi ngày Tết nên tránh và cách đáp khéo khi bị hỏi"
+      - "Lì xì bao nhiêu là vừa: cách nói khéo khi từ chối nhận"
+      - "Dọn nhà đón Tết trong một ngày: thứ tự làm cho đỡ mệt"
+  - id: quyet_toan_thue
+    name: "Quyết toán thuế TNCN"
+    from: "03-01"
+    to: "04-30"          # uỷ quyền 31/3, tự quyết toán 30/4 (R — thuvienphapluat 403)
+    pillar: tien_bac
+    ideas:
+      - "Quyết toán thuế thu nhập cá nhân: ai được hoàn thuế"

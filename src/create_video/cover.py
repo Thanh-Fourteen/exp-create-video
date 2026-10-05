@@ -31,9 +31,9 @@ TEMPLATE = """<!doctype html><html><head><meta charset="utf-8">
 .fr img{{display:block;width:100%}}
 .t{{position:absolute;left:70px;right:70px;top:270px;font-family:Anton,Impact,sans-serif;color:#fff;font-size:{fs}px;line-height:1.02;
     text-align:center;-webkit-text-stroke:10px #000;paint-order:stroke fill;text-shadow:0 10px 40px rgba(0,0,0,.6);text-wrap:balance}}
-.t b{{color:#4DE1C1;font-weight:400}}
+.t b{{color:{hl};font-weight:400}}
 .tag{{position:absolute;left:50%;bottom:300px;transform:translateX(-50%);font-family:'Be Vietnam Pro',sans-serif;font-weight:700;
-      font-size:40px;color:#0A1020;background:#7FA6FF;padding:14px 34px;border-radius:999px;white-space:nowrap}}
+      font-size:40px;color:#0A1020;background:{pill};padding:14px 34px;border-radius:999px;white-space:nowrap}}
 </style></head><body><div class="bg"></div><div class="fr"><img src="data:image/jpeg;base64,{fg}"></div>
 <div class="t">{title}</div>{tag}</body></html>"""
 
@@ -58,7 +58,7 @@ def pick_frame(spec: dict) -> float:
     nó làm ảnh nhỏ thì bìa lặp tiêu đề hai lần (thử 2026-10-02)."""
     shots = spec.get("shots") or []
     for sh in shots[1:]:
-        if sh["asset"]["kind"] in ("stat", "chart", "screenshot"):
+        if sh["asset"]["kind"] in ("stat", "chart", "screenshot", "list", "chat"):
             return round(sh["start_sec"] + min(1.6, (sh["end_sec"] - sh["start_sec"]) * 0.6), 2)
     dur = (spec.get("format") or {}).get("duration_sec") or 10
     return round(dur / 3, 2)
@@ -73,7 +73,11 @@ def make_cover(mp4: Path, dst: Path, title: str, tag: str = "", frame_at: float 
     b64 = base64.b64encode(fg).decode()
     n = len(title)
     fs = 170 if n <= 14 else 150 if n <= 22 else 128 if n <= 32 else 108
-    page = TEMPLATE.format(bg=b64, fg=b64, fs=fs, title=_title_html(title),
+    from .channel import current
+
+    ch = current()   # 2026-10-04: màu nhấn theo kênh; kênh AI giữ teal video + sapphire web như cũ
+    hl = (ch.style.get("palette") or {}).get("accent") or "#4DE1C1"
+    page = TEMPLATE.format(bg=b64, fg=b64, fs=fs, title=_title_html(title), hl=hl, pill=ch.accent,
                            tag=f'<div class="tag">{html.escape(tag)}</div>' if tag else "")
     dst.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as f:

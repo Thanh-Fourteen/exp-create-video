@@ -24,6 +24,9 @@ phần còn lại hay đến mấy cũng không ai xem.
 | Mâu thuẫn với điều người ta tin | "Ai cũng nói cần GPU khủng để chạy AI. Sai." |
 | Câu hỏi người xem đang thắc mắc | "Vì sao Claude viết code giỏi hơn hẳn mấy con khác?" |
 | Kết quả trước, giải thích sau | "Tôi để AI tự làm video này. Đây là kết quả." |
+| Hành động cụ thể + kết quả *(khảo sát 2026-10-04)* | "Nếu bạn gõ /360view vào ChatGPT, nó sẽ tạo…" (@hieuanca 1,2M) |
+| Hệ quả cho người Việt *(khảo sát)* | "Việt Nam vừa mất gần một phần ba đường ra Internet quốc tế." (@aidev.news ×93) |
+| Chặn thói quen, nói thẳng đối tượng *(khảo sát)* | "Giáo viên đừng vội viết sáng kiến kinh nghiệm nếu chưa biết điều này." (@tuhocai ×41) |
 
 **Hook hỏng** — bắt được là fail ngay:
 

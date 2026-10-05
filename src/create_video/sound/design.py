@@ -189,7 +189,7 @@ def sfx_events(spec: dict) -> list[tuple[float, str]]:
     shots = spec["shots"]
     for k, sh in enumerate(shots):
         kind = sh["asset"]["kind"]
-        if kind in ("stat", "chart"):
+        if kind in ("stat", "chart", "chat", "list"):
             cand.append((sh["start_sec"] + 0.12, "pop", 1))
         elif k > 0 and (kind == "image") != (shots[k - 1]["asset"]["kind"] == "image"):
             cand.append((max(0.0, sh["start_sec"] - 0.18), "whoosh", 2))
@@ -255,7 +255,12 @@ def mix(spec_path: Path, *, music: bool = True, sfx: bool = True, target_lufs: f
 
                 pool = acestep_music.SEED_POOL
                 vseed = pool[zlib.crc32(str(spec.get("meta", {}).get("id", "")).encode()) % len(pool)]
-                wav = acestep_music.generate(dur, adir / "music_ace.wav", seed=vseed)
+                from ..channel import current
+
+                st = current().style   # kênh có nhạc riêng (channel.yaml: style.music) — cache theo caption
+                wav = acestep_music.generate(dur, adir / "music_ace.wav", seed=vseed,
+                                             caption=st.get("music") or acestep_music.CAPTION,
+                                             bpm=int(st.get("music_bpm") or 112))
                 m = _read_wav(wav)
                 bed[: min(len(m), len(bed))] += MUSIC_LEVEL * (m / (np.abs(m).max() + 1e-9))[: len(bed)]
                 music_src = "acestep-1.5"

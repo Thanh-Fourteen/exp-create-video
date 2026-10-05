@@ -54,6 +54,10 @@ def _resolve_style() -> dict:
     th = _load_yaml("thresholds.yaml")
     cap, hook = st["typography"]["caption"], st["typography"]["hook"]
     pal = st["palette"]
+    from ..channel import current
+
+    pal = {**pal, **(current().style.get("palette") or {})}   # kênh ghi đè màu (2026-10-04)
+    _brand = current().style.get("brand")
     return {
         "palette": {
             "bg": pal["bg"], "fg": pal["fg"], "accent": pal["accent"], "warn": pal["warn"],
@@ -79,6 +83,7 @@ def _resolve_style() -> dict:
         # Lấy từ thresholds.yaml chứ không chép lại: đây là NGƯỠNG, và ngưỡng
         # chỉ có một bản.
         "safe_area_pct": dict(th["t1_technical"]["safe_area_pct"]),
+        **({"brand": {k: v for k, v in _brand.items() if k in ("label", "counter", "accent")}} if _brand else {}),
     }
 
 
@@ -130,6 +135,44 @@ def _motion_preset(k: int, zoom_lo: float, zoom_hi: float) -> dict:
     ]
     a, b = presets[k % len(presets)]
     return {"type": "ken_burns", "from": a, "to": b}
+
+
+def _mouth_env(wav: Path, a: float, b: float, fps: int) -> list[float]:
+    """Độ mở miệng 0–1 mỗi frame trong [a, b) — RMS giọng đọc, chuẩn theo phân vị 95 của cả file, có cổng lặng.
+    Tính ở Python để Remotion chỉ vẽ theo số trong spec (ranh giới video-spec.json)."""
+    import wave
+
+    import numpy as np
+
+    with wave.open(str(wav), "rb") as f:
+        sr, ch = f.getframerate(), f.getnchannels()
+        x = np.frombuffer(f.readframes(f.getnframes()), dtype=np.int16).reshape(-1, ch).mean(axis=1) / 32768.0
+    hop = sr // fps
+    n = len(x) // hop
+    rms = np.sqrt((x[: n * hop].reshape(n, hop) ** 2).mean(axis=1))
+    ref = float(np.percentile(rms[rms > 1e-4], 95)) if (rms > 1e-4).any() else 1.0
+    env = np.clip(rms / max(ref, 1e-6), 0, 1)
+    env = np.where(env < 0.12, 0.0, env)                         # cổng lặng: miệng khép giữa các từ
+    env = np.convolve(env, [0.25, 0.5, 0.25], mode="same")       # mượt 3 frame, khỏi giật
+    i0, i1 = int(a * fps), min(int(b * fps), n)
+    return [round(float(v), 2) for v in env[i0:i1]]
+
+
+def _mascot(wav: Path, spans: Sequence[LineSpan], cfg: Mapping, fps: int = 30) -> dict:
+    """Nhân vật hoạt hình (2026-10-05, research/19): xuất hiện ở câu hook và câu chốt, miệng theo giọng đọc."""
+    wins = []
+    for sp in (spans[0], spans[-1]):
+        a, b = round(max(0.0, sp.start - 0.1), 3), round(sp.end + 0.25, 3)
+        wins.append({"start_sec": a, "end_sec": b, "mouth": _mouth_env(wav, a, b, fps)})
+    return {"kind": str(cfg.get("kind", "kheo")), **({"name": cfg["name"]} if cfg.get("name") else {}), "fps": fps,
+            "windows": wins}
+
+
+def _layout_on() -> bool:
+    """Kênh có bố cục headline → ảnh tràn màn hình, Ken Burns phẳng, không parallax (research/18, 2026-10-05)."""
+    from ..channel import current as _cur
+
+    return bool(_cur().style.get("layout"))
 
 
 def _parallax_preset(k: int) -> dict:
@@ -218,9 +261,11 @@ def _plan_shots(
                 asset["alt"] = alts[n_img]
 
         dep = None if ev else (depths[n_img] if n_img < len(depths) else None)
-        if ev:
+        if ev and ev.get("kind") == "image":
+            motion = _motion_preset(k + offset, zoom_lo, zoom_hi)   # ảnh chụp thật (stock) cũng cần Ken Burns
+        elif ev:
             motion = {"type": "none"}  # thẻ bằng chứng tự chuyển động trong Remotion
-        elif img is not None and dep is not None:
+        elif img is not None and dep is not None and not _layout_on():
             asset["depth_path"] = f"depth/{dep.name}"
             motion = _parallax_preset(k + offset)
         elif img is not None:
@@ -334,6 +379,24 @@ def build(
     # Phase V3: chữ tiêu đề frame 0 khác lời đọc (research/11 §4.1 — chữ > hình > lời).
     if hook_text.strip() and captions[0].get("style") == "hook":
         captions[0]["display_text"] = hook_text.strip()
+    # D2/D3 (2026-10-04, research/15 §4): bố cục "headline" của kênh — tiêu đề cố định + nhãn dạng video (angles.json).
+    from ..channel import current as _cur
+
+    _lay = _cur().style.get("layout")
+    if _lay:
+        badge = ""
+        ang_p = out_dir / "angles.json"
+        if not ang_p.exists():
+            ang_p = out_dir.parent / "angles.json"   # bản QC (qc/r<n>/) đọc angles của video gốc
+        if ang_p.exists():
+            fmt = json.loads(ang_p.read_text(encoding="utf-8")).get("chosen", {}).get("format", "")
+            badge = ((_cur().raw.get("formats") or {}).get(fmt) or {}).get("label", "")
+        style["layout"] = {"type": "headline", "title": (hook_text.strip() or topic)[:80],
+                           **({"badge": badge[:32]} if badge else {}),
+                           "variant": _lay if _lay in ("news", "minimal") else "news"}
+    _masc = _cur().style.get("mascot")
+    if _masc and len(spans) >= 2:
+        style["mascot"] = _mascot(voice_dst, spans, _masc)
 
     # Cắt ở giữa vẫn hỏng khi aligner đặt nhầm cả một TỪ sang câu kia: 2026-10-01
     # (`out/p3b-s4-demo`) từ đầu câu 6 "ảnh" bị đặt ở 22,00s, dài 0s, lọt giữa câu 5

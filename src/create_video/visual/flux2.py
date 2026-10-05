@@ -37,6 +37,13 @@ STYLE_SUFFIX = ("cinematic vertical photo, well-lit scene with visible detailed 
                 "teal and amber accent lighting, soft contrast, shallow depth of field, no text")
 
 
+def _suffix() -> str:
+    """Đuôi phong cách của kênh đang chạy (channel.yaml: style.image_suffix) — mặc định: kênh AI."""
+    from ..channel import current
+
+    return current().style.get("image_suffix") or STYLE_SUFFIX
+
+
 GGUF_REPO, GGUF_FILE = "unsloth/FLUX.2-klein-4B-GGUF", "flux-2-klein-4b-Q4_K_M.gguf"   # Apache-2.0
 
 
@@ -147,7 +154,7 @@ class Flux2Klein(ImageBackend):
         embeds = None
         if self.offload == "light":
             t0 = time.time()
-            embeds = self._encode_light([f"{sp.prompt}, {STYLE_SUFFIX}" for sp in prompts])
+            embeds = self._encode_light([f"{sp.prompt}, {_suffix()}" for sp in prompts])
             print(f"  mã hoá {len(prompts)} prompt: {time.time() - t0:.0f}s", flush=True)
             pipe = self._load_light()
         else:
@@ -158,7 +165,7 @@ class Flux2Klein(ImageBackend):
             gen = torch.Generator(device="cpu").manual_seed(seed)
             t0 = time.time()
             kw = ({"prompt_embeds": embeds[i].to("cuda")} if embeds is not None
-                  else {"prompt": f"{sp.prompt}, {STYLE_SUFFIX}"})
+                  else {"prompt": f"{sp.prompt}, {_suffix()}"})
             image = pipe(**kw, num_inference_steps=self.steps, guidance_scale=1.0,
                          width=GEN_W, height=GEN_H, generator=gen).images[0]
             dt = time.time() - t0

@@ -47,7 +47,9 @@ tts:
     # 27% demo-02 là lặng). Chưa chốt — Tony nghe mù A/B/C rồi chọn, xem
     # research/probes/p3b-s2-giong.md. Tạm đặt `tight` vì không đổi số lần gọi TTS.
     join:
-      mode: tight                # per_line | tight | grouped
+      # 2026-10-04 (R1, research/14 §3 + probes/r-giong-mau.md): paragraph = cả bài một lần gọi — hết ngữ điệu gãy
+      # do ghép câu (MagpieTTS-LF 2606.18485); kênh tham khảo @ainius.net nói gần như liền.
+      mode: paragraph            # per_line | tight | grouped | paragraph
       group_size: 3              # chỉ dùng cho grouped
     vram_gb: 0                   # ONNX/CPU — không tranh VRAM với khối visual
     # exp-echo KHÔNG trả timestamp. Aligner chạy riêng bằng python của exp-echo:
@@ -55,6 +57,15 @@ tts:
       model: Qwen/Qwen3-ForcedAligner-0.6B   # tiếng Việt KHÔNG chính thức, đo thật thì đúng
       python: /mnt/data1tb/exp-echo/exp/conda-envs/voice/bin/python
       vram_gb: 1.9               # đo thật P1.S2 — tiến trình thoát là nhả sạch
+  # Hậu kỳ giọng (R1, 2026-10-04). tempo: kênh tham khảo đọc ~4 âm tiết/giây, mình 4,86 lúc nói → KHÔNG tăng tốc
+  # (research/probes/r-tham-khao-ainius.md). fx: lọc ù < 80 Hz · giảm đục 300 Hz · khử xì · nén nhẹ 3:1 · sáng 4 kHz
+  # (+1,5 dB, nhẹ vì LavaSR — tăng nhiều lộ tiếng giả). Thông số khởi điểm từ diễn đàn kỹ thuật âm thanh (A).
+  post:
+    tempo: 1.0
+    fx: "highpass=f=80,equalizer=f=300:t=q:w=1.2:g=-2.5,deesser=i=0.4,acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2,equalizer=f=4000:t=q:w=1.5:g=1.5"
+    # 2026-10-05 (Tony: "nhấn nhả nhịp giọng cần tốt hơn", research/19): khoảng lặng SAU dấu câu (giây) — nới cho đủ;
+    # giữa cụm không dấu mà lặng > max_inner → rút về inner. VieNeu tự ngắt 60–650 ms ở dấu phẩy (PR #11 srt-whiteboard).
+    pauses: {",": 0.20, ";": 0.25, ":": 0.28, ".": 0.42, "?": 0.48, "!": 0.42, "…": 0.55, inner: 0.10, max_inner: 0.30}
   # Chuẩn loudness voice 2-pass (P3b.S2). Đích -14 LUFS là đồng thuận blog,
   # TikTok không công bố spec (research/08 §3). Ngưỡng kiểm ở thresholds.yaml.
   loudnorm:
@@ -91,3 +102,14 @@ agent:
   # Docs: code.claude.com/docs/en/agent-sdk
   sdk: claude-agent-sdk
   auth: claude-code                # dùng auth sẵn có -> 0đ, không cần API key
+
+# Clip động image-to-video trên Kaggle 2×T4 (2026-10-05, research/16 §5, probes/k1-wan-kaggle.md).
+# CHỈ vì kênh cá nhân, phi thương mại (điều khoản Kaggle). Kênh kiếm tiền → enabled: false.
+kaggle_anim:
+  enabled: true
+  model: Wan2.2-TI2V-5B (Apache-2.0)
+  max_clips: 2            # ảnh chủ lực đầu tiên của kịch bản — ~5,7 phút/clip trên T4
+  frames: 49              # ~2s @24fps
+  steps: 20
+  max_wait_sec: 1500      # tính từ lúc gửi; quá → dùng ảnh tĩnh, video không hỏng
+  motion: "slow subtle camera push-in, gentle natural motion, realistic"

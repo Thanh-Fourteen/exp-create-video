@@ -68,7 +68,7 @@ def _ok_shots():
         Shot(prompt="p", line=0),
         Shot(prompt="p", kind="stat", line=2, stat={"value": 624, "unit": "MiB", "label": "VRAM đỉnh"}),
         Shot(prompt="p", kind="screenshot", line=4, url="https://huggingface.co/ByteDance/SDXL-Lightning"),
-        Shot(prompt="p", line=6),
+        Shot(prompt="p", line=6, kind="stock", query="person typing on laptop"),
     ]
 
 

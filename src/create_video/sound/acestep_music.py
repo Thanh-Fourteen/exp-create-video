@@ -44,7 +44,9 @@ print("ACE_OUT", json.dumps(r.audios[0]["path"]))
 
 
 CACHE_DIR = REPO_ROOT / "exp" / "music-cache"
-CACHE_SEC = 62.0
+# 2026-10-05: 62 → 182. Video giờ tới 180s (CLAUDE.md bỏ trần 60s); 62s làm MỌI video > 60s (kênh AI mặc định 75s)
+# sinh nhạc lại từ đầu (~5 phút, đo stage "spec" 308s). Sinh một lần bản 182s mỗi seed rồi cắt.
+CACHE_SEC = 182.0
 SEED_POOL = (7, 11, 23, 42)   # đổi bản nhạc giữa các video: seed chọn theo video_id (sound/design.py)
 
 

@@ -61,7 +61,8 @@
   .poster { container-type: inline-size; aspect-ratio: 9 / 16; }
   .h-italic { font-style: italic; color: var(--color-primary); }
   /* nền sáng tạo nhẹ: vệt sáng sapphire trôi rất chậm ở góc — một điểm nhấn duy nhất */
-  .aurora { position: relative; isolation: isolate; }
+  /* overflow-x: clip — vệt sáng (inset âm) từng lòi ra mép phải làm trang cuộn ngang (đo 2026-10-04: 1501px ở 1440) */
+  .aurora { position: relative; isolation: isolate; overflow-x: clip; }
   .aurora::before {
     content: ""; position: absolute; inset: -20% -10% auto auto; width: 60%; height: 60%; z-index: -1;
     background: radial-gradient(closest-side, color-mix(in oklab, var(--color-primary) 16%, transparent), transparent);

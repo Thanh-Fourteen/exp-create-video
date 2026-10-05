@@ -53,7 +53,14 @@ def _spearman(xs: list[float], ys: list[float]) -> tuple[float, float, float] | 
 
 
 def summary(videos: list[dict], voice_names: dict[str, str]) -> dict:
+    from .library import HOOK_VI, pillar_vi
+
     vs = sorted(videos, key=lambda v: v.get("created_at") or "")
+    for v in vs:   # pillar theo kênh (2 kênh có thể trùng mã pillar) — "Kênh · Pillar" khi trộn nhiều kênh
+        v["_pk"] = pillar_vi(v.get("channel"), v.get("pillar"))
+    if len({v.get("channel") or "ai" for v in vs}) > 1:
+        for v in vs:
+            v["_pk"] = f"{v.get('channel_short') or v.get('channel')} · {v['_pk']}"
     overall = _rate(vs)
     decided = [v for v in vs if (v.get("review") or {}).get("decision") in ("post", "drop")]
     rolling = []
@@ -68,7 +75,6 @@ def summary(videos: list[dict], voice_names: dict[str, str]) -> dict:
         rows = [{"name": k, **_rate(x)} for k, x in g.items()]
         return sorted((r for r in rows if r["n"]), key=lambda r: (-r["n"], r["name"]))
 
-    from .library import HOOK_VI, PILLAR_VI
 
     crit = {}
     for c, lab in (("hook", "Hook"), ("voice", "Giọng"), ("visual", "Hình"), ("content", "Nội dung")):
@@ -86,9 +92,21 @@ def summary(videos: list[dict], voice_names: dict[str, str]) -> dict:
             reasons[r["reason"]] = reasons.get(r["reason"], 0) + 1
     return {
         "total": len(vs), "overall": overall, "rolling": rolling,
-        "by_pillar": group("pillar", lambda p: PILLAR_VI.get(p or "", p)),
+        "by_pillar": group("_pk", lambda p: p),
         "by_hook": group("hook_type", lambda h: HOOK_VI.get(h or "", (h or "").replace("_", " "))),
         "by_voice": group("voice", lambda x: voice_names.get(x or "tony", x)),
         "criteria": crit, "corr_t3": corr, "corr_n": len(pairs), "reasons": reasons,
         "target": 0.5, "abort": 0.3,
     }
+
+
+def by_channel(videos: list[dict]) -> list[dict]:
+    """Small multiples (Datawrapper 2024 — research/probes/k-research.md): mỗi kênh một hàng, không gộp approve_rate
+    của hai khán giả khác nhau thành một số."""
+    from ..channel import all_channels
+
+    rows = []
+    for ch in all_channels():
+        vs = [v for v in videos if (v.get("channel") or "ai") == ch.id]
+        rows.append({"id": ch.id, "name": ch.name, "accent": ch.accent, "total": len(vs), **_rate(vs)})
+    return rows

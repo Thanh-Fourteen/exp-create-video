@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AbsoluteFill, Easing, Img, Video, interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Easing, Img, OffthreadVideo, interpolate, useCurrentFrame } from "remotion";
 import type { FrameState, Shot } from "../types";
 import { DepthParallax } from "./DepthParallax";
 
@@ -81,7 +81,8 @@ export const KenBurns: React.FC<{
   return (
     <AbsoluteFill style={{ backgroundColor: bg, overflow: "hidden" }}>
       {shot.asset.kind === "video" ? (
-        <Video src={src} style={inner} muted />
+        // stock (2026-10-05): OffthreadVideo trích đúng frame khi render headless (Video có thể lệch/giật).
+        <OffthreadVideo src={src} style={{ ...inner, objectFit: "cover" }} muted />
       ) : (
         <Img src={src} style={inner} />
       )}

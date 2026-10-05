@@ -59,6 +59,9 @@ NEGATIVE = (
 )
 
 
+from ..channel import current  # noqa: E402 — đuôi prompt theo kênh (2026-10-04)
+
+
 class SdxlLightning(ImageBackend):
     name = "sdxl_lightning"
 
@@ -142,7 +145,7 @@ class SdxlLightning(ImageBackend):
             gen = torch.Generator(device="cuda").manual_seed(seed)
             t0 = time.time()
             image = pipe(
-                prompt=f"{sp.prompt}, {STYLE_SUFFIX}",
+                prompt=f"{sp.prompt}, {current().style.get('image_suffix') or STYLE_SUFFIX}",
                 negative_prompt=sp.negative or NEGATIVE,
                 num_inference_steps=self.steps,
                 guidance_scale=0.0,  # Lightning: bắt buộc 0

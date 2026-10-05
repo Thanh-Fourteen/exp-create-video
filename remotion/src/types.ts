@@ -21,6 +21,8 @@ export interface FrameState {
 
 /** P3b.S4 — shot "bằng chứng" vẽ từ dữ liệu. Chữ số ở đây do code vẽ. */
 export interface StatData {
+  icon?: string;
+  icon_path?: string;
   value: number;
   decimals?: number;
   prefix?: string;
@@ -47,7 +49,19 @@ export interface CodeData {
   tokens?: CodeToken[][];
 }
 
-export type AssetKind = "image" | "video" | "color" | "stat" | "chart" | "screenshot" | "code";
+/** Kênh mẹo (2026-10-04): bong bóng hội thoại. me = phải, them = trái; mark ok/no = nên nói / nên tránh. */
+export interface ChatData {
+  title?: string;
+  messages: { from: "me" | "them"; text: string; mark?: "ok" | "no" }[];
+}
+
+/** Kênh mẹo (2026-10-04): thẻ mẹo hiện dần từng mục. */
+export interface ListData {
+  title?: string;
+  items: { text: string; mark?: "num" | "ok" | "no"; icon?: string; icon_path?: string }[];
+}
+
+export type AssetKind = "image" | "video" | "color" | "stat" | "chart" | "screenshot" | "code" | "chat" | "list";
 
 export interface Shot {
   id: string;
@@ -63,6 +77,8 @@ export interface Shot {
     stat?: StatData;
     chart?: ChartData;
     code?: CodeData;
+    chat?: ChatData;
+    list?: ListData;
   };
   motion?: {
     type: "none" | "ken_burns" | "parallax";
@@ -126,7 +142,7 @@ export interface TextStyle {
   stroke_px?: number;
   color: Hex;
   highlight_color?: Hex;
-  position?: "top" | "center" | "center-lower" | "bottom";
+  position?: "top" | "center" | "center-lower" | "lower" | "bottom";
 }
 
 export interface VideoSpec {
@@ -159,6 +175,12 @@ export interface VideoSpec {
     caption: TextStyle;
     hook: TextStyle;
     safe_area_pct: { top: number; bottom: number; left: number; right: number };
+    /** R4 (2026-10-04): nhãn kênh + bộ đếm cảnh góc trên trái. */
+    brand?: { label?: string; counter?: boolean; accent?: Hex };
+    /** D2/D3 (2026-10-04): tiêu đề cố định + hình trong khung — research/15 §4. */
+    layout?: { type: "headline"; title?: string; badge?: string; variant?: "news" | "minimal" };
+    mascot?: { kind: "kheo" | "robot"; name?: string; fps?: number;
+               windows: { start_sec: number; end_sec: number; mouth: number[] }[] };
   };
 }
 

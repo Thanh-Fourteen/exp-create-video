@@ -26,8 +26,9 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from .. import channel as channels
 from . import db
-from .library import list_videos, load_video, topics_today, voices
+from .library import list_videos, load_video, suggest_meta, suggestions, voices
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OUT = REPO_ROOT / "out"
@@ -72,12 +73,74 @@ async def guard(request: Request, call_next):
     return resp
 
 
+# ── kênh (2026-10-04, research/13 §6 + research/probes/k-research.md) ─────────
+# Kênh đang chọn nhớ bằng cookie `kenh` (đổi ở /k/<id>). "all" = xem mọi kênh — chỉ ở Hàng đợi/Thư viện/Thống kê;
+# Tạo video và Ý tưởng luôn thuộc MỘT kênh (NN/g "Modes": không cho tạo nhầm kênh). Chọn cookie thay vì tiền tố
+# URL /k/<id>/…: route hiện có giữ nguyên, web một người dùng nên link không cần mang kênh.
+COOKIE = "kenh"
+
+
+def _kenh(request: Request) -> str:
+    v = request.cookies.get(COOKIE, "")
+    return v if v == "all" or v in {c.id for c in channels.all_channels()} else channels.DEFAULT
+
+
+def _ch(request: Request) -> channels.Channel:
+    """Kênh cụ thể cho trang cần MỘT kênh — đang ở "Tất cả" thì lấy kênh cụ thể chọn gần nhất."""
+    k = _kenh(request)
+    if k == "all":
+        k = request.cookies.get(COOKIE + "_last", "")
+    try:
+        return channels.get(k or channels.DEFAULT)
+    except ValueError:
+        return channels.get(channels.DEFAULT)
+
+
+def _in(request: Request, cid: str | None) -> bool:
+    k = _kenh(request)
+    return k == "all" or (cid or "ai") == k
+
+
 def _page(request: Request, name: str, **ctx) -> HTMLResponse:
     """Trang đầy đủ, hoặc chỉ phần nội dung khi htmx điều hướng (`hx-boost`)."""
     frag = request.headers.get("hx-request") == "true" and request.headers.get("hx-target") == "main"
+    k = _kenh(request)
+    ch = _ch(request)
+    ctx.setdefault("ch", ch)
     ctx.update(request=request, active=name, frag=frag, queue_count=_queue_count(), now=time.time(),
-               review_count=len(db.list_jobs(("awaiting_approval",))))
+               review_count=len(db.list_jobs(("awaiting_approval",))), kenh=k,
+               channels=[c.to_public() for c in channels.all_channels()],
+               # màu nhấn: kênh của trang (video/ý tưởng/tạo) hoặc kênh đang chọn; "Tất cả" → màu gốc của web
+               accent=ctx["ch"].accent if (k != "all" or name in ("create", "ideas", "video")) else None)
     return tpl.TemplateResponse(request, f"{name}.html", ctx)
+
+
+@app.get("/k/{cid}")
+def switch_channel(request: Request, cid: str, next: str = "/"):
+    if cid != "all" and cid not in {c.id for c in channels.all_channels()}:
+        raise HTTPException(404, "Không có kênh này")
+    if not next.startswith("/") or next.startswith("//"):
+        next = "/"
+    resp = RedirectResponse(next, status_code=303)
+    resp.set_cookie(COOKIE, cid, max_age=3600 * 24 * 365, httponly=True, samesite="lax", secure=not DEV)
+    if cid != "all":
+        resp.set_cookie(COOKIE + "_last", cid, max_age=3600 * 24 * 365, httponly=True, samesite="lax", secure=not DEV)
+    return resp
+
+
+def _job_channel(j: dict) -> dict:
+    c = channels.get(j.get("channel") or "ai") if (j.get("channel") or "ai") in {x.id for x in channels.all_channels()} \
+        else channels.get("ai")
+    j["channel_short"], j["channel_accent"] = c.short, c.accent
+    j["pillar_vi"] = c.pillar_vi(j.get("pillar") or "")
+    if not j["pillar_vi"]:   # để máy xếp → researcher đã chọn trong brief.json (hiện sau, sửa bằng "Viết lại")
+        b = OUT / j["video_id"] / "brief.json"
+        try:
+            pk = json.loads(b.read_text(encoding="utf-8")).get("pillar") if b.exists() else None
+        except (OSError, json.JSONDecodeError):
+            pk = None
+        j["pillar_vi"] = (c.pillar_vi(pk) + " · máy xếp") if pk and c.pillar_vi(pk) else ""
+    return j
 
 
 def _queue_count() -> int:
@@ -92,6 +155,7 @@ def _jobs_view() -> list[dict]:
     jobs = db.list_jobs(("queued", "running", "awaiting_approval"))
     jobs.sort(key=lambda j: (order[j["state"]], j["created_at"]))
     for j in jobs:
+        _job_channel(j)
         j["snap"] = snapshot(OUT / j["video_id"], gate=bool(j["gate"]), hist=hist)
         if j["state"] == "awaiting_approval":
             p = OUT / j["video_id"] / "script.json"
@@ -101,20 +165,124 @@ def _jobs_view() -> list[dict]:
 
 # ── trang ────────────────────────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
-def page_create(request: Request):
-    return _page(request, "create", topics=topics_today(), voices=voices(), jobs=_jobs_view()[:3],
-                 recent=list_videos()[:4])
+def page_create(request: Request, topic: str = "", pillar: str = "", idea: str = ""):
+    ch = _ch(request)
+    pre = {"topic": topic[:400], "pillar": pillar if pillar in ch.pillars else "", "idea": idea[:40]}
+    return _page(request, "create", ch=ch, sg=_suggest_ctx(ch, 0), voices=voices(), jobs=_jobs_view()[:3],
+                 recent=[v for v in list_videos() if v["channel"] == ch.id][:4], pre=pre)
+
+
+# ── gợi ý chủ đề: đổi lô · không quan tâm · tìm mới (2026-10-04, research/probes/k6-goi-y-research.md) ──────
+# YouTube Inspiration: lô thẻ + "Show more" + "Not interested" trên từng thẻ (V). Tìm mới 1–5 phút → chạy NỀN, hiện
+# bước + thời gian đã chạy, không % giả (NN/g long waits, V); xong thì danh sách tự tải lại.
+_REFRESH: dict[str, object] = {}     # kênh → Popen (giữ để poll(), tránh process zombie)
+SUGGEST_N = 6
+DURATIONS = (45, 60, 75, 90, 120)   # D5 research/15 — kênh có mặc định riêng (channel.yaml: duration_default)
+
+
+def _refresh_state(cid: str) -> dict | None:
+    st = db.kv_get(f"refresh:{cid}")
+    if not st:
+        return None
+    p = _REFRESH.get(cid)
+    running = p is not None and p.poll() is None
+    if not running and p is not None:
+        st = {**st, "finished_at": st.get("finished_at") or time.time(), "code": p.returncode}
+        db.kv_set(f"refresh:{cid}", st)
+        _REFRESH.pop(cid, None)
+    st["running"] = running
+    st["elapsed"] = int(time.time() - st["started_at"])
+    return st
+
+
+def _suggest_ctx(ch: channels.Channel, page: int) -> dict:
+    return {"items": suggestions(ch.id, SUGGEST_N, page), "page": page, "meta": suggest_meta(ch.id),
+            "refresh": _refresh_state(ch.id), "ch": ch}
+
+
+@app.get("/p/suggest", response_class=HTMLResponse)
+def frag_suggest(request: Request, page: int = 0, c: str = ""):
+    ch = channels.get(c) if c in {x.id for x in channels.all_channels()} else _ch(request)
+    return tpl.TemplateResponse(request, "_suggest.html", {"request": request, "now": time.time(), "sg": _suggest_ctx(ch, max(0, page))})
+
+
+@app.post("/suggest/dismiss", response_class=HTMLResponse)
+def suggest_dismiss(request: Request, c: str = Form(""), title: str = Form(""), idea: str = Form(""),
+                    page: int = Form(0)):
+    ch = channels.get(c) if c in {x.id for x in channels.all_channels()} else _ch(request)
+    if idea and re.fullmatch(r"[A-Za-z0-9_:.-]{1,40}", idea):
+        db.set_idea(ch.id, idea, status="skip")
+    if title.strip():
+        lst = list(db.kv_get(f"dismiss:{ch.id}", []) or [])
+        db.kv_set(f"dismiss:{ch.id}", (lst + [title.strip()[:200]])[-300:])
+    return tpl.TemplateResponse(request, "_suggest.html", {"request": request, "now": time.time(), "sg": _suggest_ctx(ch, max(0, page))})
+
+
+@app.post("/suggest/refresh", response_class=HTMLResponse)
+def suggest_refresh(request: Request, c: str = Form("")):
+    """Tìm chủ đề mới ngay: kênh trend → trend scout (CPU, không giành GPU với video đang dựng); kênh mẹo → idea_gen."""
+    import subprocess
+    import sys
+
+    ch = channels.get(c) if c in {x.id for x in channels.all_channels()} else _ch(request)
+    st = _refresh_state(ch.id)
+    if not (st and st["running"]):
+        ideas = (ch.raw.get("trend") or {}).get("scout") == "idea_scout"
+        cmd = ([sys.executable, "-m", "create_video.team.idea_gen", "--channel", ch.id] if ideas
+               else [sys.executable, "-m", "create_video.team.trend_scout", "--slot", "r"])
+        logs = REPO_ROOT / "exp" / "web" / "logs"
+        logs.mkdir(parents=True, exist_ok=True)
+        log = logs / f"refresh-{ch.id}-{time.strftime('%Y%m%d-%H%M%S')}.log"
+        env = {**os.environ, "TREND_DEVICE": "cpu"}
+        _REFRESH[ch.id] = subprocess.Popen(cmd, cwd=REPO_ROOT, stdout=open(log, "a"), stderr=subprocess.STDOUT,
+                                          start_new_session=True, env=env)
+        db.kv_set(f"refresh:{ch.id}", {"started_at": time.time(), "log": log.name,
+                                       "kind": "ideas" if ideas else "trend"})
+    return tpl.TemplateResponse(request, "_suggest.html", {"request": request, "now": time.time(), "sg": _suggest_ctx(ch, 0)})
+
+
+@app.get("/ideas", response_class=HTMLResponse)
+def page_ideas(request: Request, s: str = "new"):
+    from ..team import idea_scout
+
+    ch = _ch(request)
+    rows = db.idea_rows(ch.id)
+    items = idea_scout.bank(ch, rows)
+    counts = {k: sum(1 for i in items if i["status"] == k) for k in ("new", "used", "skip")}
+    st = s if s in counts else "new"
+    return _page(request, "ideas", ch=ch, items=[i for i in items if i["status"] == st], s=st, counts=counts,
+                 balance=idea_scout.balance(ch), seasons=idea_scout.seasons_now(ch),
+                 has_bank=(ch.raw.get("trend") or {}).get("scout") == "idea_scout")
+
+
+@app.post("/ideas")
+def add_idea(request: Request, title: str = Form(""), pillar: str = Form("")):
+    ch = _ch(request)
+    title = re.sub(r"\s+", " ", title).strip()
+    if not (6 <= len(title) <= 200) or pillar not in ch.pillars:
+        raise HTTPException(400, "Ý tưởng cần 6–200 ký tự và một pillar của kênh")
+    db.add_idea(ch.id, title, pillar)
+    return _back(request, "/ideas")
+
+
+@app.post("/ideas/{iid}/status")
+def idea_status(request: Request, iid: str, status: str = Form(...)):
+    if status not in ("new", "skip") or not re.fullmatch(r"[A-Za-z0-9_:.-]{1,40}", iid):
+        raise HTTPException(400)
+    db.set_idea(_ch(request).id, iid, status=status)
+    return _back(request, "/ideas" + ("?s=skip" if status == "new" else ""))
 
 
 @app.get("/queue", response_class=HTMLResponse)
 def page_queue(request: Request):
-    done = [j for j in db.list_jobs(("done", "failed", "cancelled"), limit=12)]
-    return _page(request, "queue", jobs=_jobs_view(), history=done)
+    done = [_job_channel(j) for j in db.list_jobs(("done", "failed", "cancelled"), limit=40)
+            if _in(request, j.get("channel"))][:12]
+    return _page(request, "queue", jobs=[j for j in _jobs_view() if _in(request, j.get("channel"))], history=done)
 
 
 @app.get("/library", response_class=HTMLResponse)
 def page_library(request: Request, f: str = "all", q: str = ""):
-    vids = list_videos()
+    vids = [v for v in list_videos() if _in(request, v["channel"])]
     if f == "pass":
         vids = [v for v in vids if (v.get("qc") or {}).get("status") == "pass"]
     elif f == "warn":
@@ -132,15 +300,16 @@ def page_video(request: Request, vid: str):
     v = load_video(vid)
     if v is None:
         raise HTTPException(404, "Không có video này")
-    return _page(request, "video", v=v, voices=voices())
+    return _page(request, "video", v=v, voices=voices(), ch=channels.get(v["channel"]))
 
 
 @app.get("/stats", response_class=HTMLResponse)
 def page_stats(request: Request):
-    from .stats import summary
+    from .stats import by_channel, summary
 
-    s = summary(list_videos(), {v["id"]: v["name"] for v in voices()})
-    return _page(request, "stats", s=s)
+    allv = list_videos()
+    s = summary([v for v in allv if _in(request, v["channel"])], {v["id"]: v["name"] for v in voices()})
+    return _page(request, "stats", s=s, per_channel=by_channel(allv))
 
 
 @app.get("/settings", response_class=HTMLResponse)
@@ -148,13 +317,13 @@ def page_settings(request: Request):
     from .worker import machine
 
     return _page(request, "settings", m=machine(), voices=voices(), night=db.kv_get("night", NIGHT_DEFAULT),
-                 user=request.state.user)
+                 user=request.state.user, chans=channels.all_channels())
 
 
 # ── fragment (htmx polling) ──────────────────────────────────────────────────
 @app.get("/p/jobs", response_class=HTMLResponse)
 def frag_jobs(request: Request, compact: int = 0):
-    jobs = _jobs_view()
+    jobs = [j for j in _jobs_view() if compact or _in(request, j.get("channel"))]
     return tpl.TemplateResponse(request, "_jobs.html", {"request": request, "jobs": jobs[:3] if compact else jobs,
                                                          "compact": bool(compact), "queue_count": len(jobs)})
 
@@ -176,14 +345,23 @@ def _back(request: Request, url: str) -> Response:
 
 @app.post("/jobs")
 def create_job(request: Request, topic: str = Form(""), voice: str = Form("tony"), duration: int = Form(45),
-               gate: str | None = Form(None)):
+               gate: str | None = Form(None), channel: str = Form(""), pillar: str = Form(""),
+               idea: str = Form("")):
     topic = re.sub(r"\s+", " ", topic).strip()
     if not (6 <= len(topic) <= 400):
         raise HTTPException(400, "Chủ đề cần 6–400 ký tự")
     if voice not in {v["id"] for v in voices()}:
         raise HTTPException(400, "Giọng không có trong danh mục")
-    duration = 30 if duration < 38 else 60 if duration > 52 else 45
-    db.add_job(topic, voice=voice, duration=duration, gate=gate is not None)
+    # Kênh do FORM gửi (nút "Tạo video cho <kênh>"), không do cookie — tab cũ mở từ trước khi đổi kênh vẫn đúng.
+    try:
+        ch = channels.get(channel or _ch(request).id)
+    except ValueError:
+        raise HTTPException(400, "Không có kênh này")
+    # D5 (2026-10-04, research/15): bỏ trần 60s — chọn trong các mức web đưa ra.
+    duration = min(DURATIONS, key=lambda d: abs(d - duration))
+    db.add_job(topic, voice=voice, duration=duration, gate=gate is not None, channel=ch.id,
+               pillar=pillar if pillar in ch.pillars else None,
+               idea_id=idea if re.fullmatch(r"[A-Za-z0-9_:.-]{1,40}", idea or "") else None)
     return _back(request, "/queue")
 
 
@@ -281,7 +459,8 @@ def revoice_video(request: Request, vid: str, voice: str = Form(...)):
     from ..pipeline import slugify
 
     db.add_job(v.get("topic") or v["title"], voice=voice, duration=int(round(v.get("duration_sec") or 45)),
-               gate=False, kind="revoice", source=vid, video_id=f"{vid}-{slugify(voice, 12)}")
+               gate=False, kind="revoice", source=vid, video_id=f"{vid}-{slugify(voice, 12)}",
+               channel=v.get("channel") or "ai", pillar=v.get("pillar"))
     return _back(request, "/queue")
 
 

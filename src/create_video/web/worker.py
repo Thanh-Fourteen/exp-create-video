@@ -110,7 +110,10 @@ def _prepare_revoice(job: dict) -> None:
 def command(job: dict) -> list[str]:
     topic = job["topic"]
     cmd = [str(PY), "-m", "create_video.pipeline", topic, "--id", job["video_id"], "--visual", "flux2",
-           "--duration", str(job["duration"]), "--voice", job["voice"]]
+           "--duration", str(job["duration"]), "--voice", job["voice"],
+           "--channel", job.get("channel") or "ai"]
+    if job.get("pillar"):
+        cmd += ["--pillar", job["pillar"]]
     if job["phase"] == "script":
         cmd += ["--stop-after", "script"]
     else:
@@ -163,6 +166,54 @@ def _install_sigterm() -> None:
     signal.signal(signal.SIGTERM, h)
 
 
+# ── Làn chuẩn bị (2026-10-05) ────────────────────────────────────────────────────────────────────────────────
+# Đo: tìm nguồn + góc kể + kịch bản + cổng kịch bản ≈ 8–12 phút, chỉ gọi Claude (mạng + CPU nhẹ, KHÔNG GPU). Trong lúc
+# job A dựng/render, chạy trước phần đó cho job B kế tiếp (`--stop-after script --qc`); tới lượt B pipeline dùng lại
+# brief/angles/script/gate → vào thẳng TTS. Không bao giờ 2 process cùng một thư mục: B bị giữ lại tới khi prep xong.
+_PREP: dict = {"proc": None, "id": None}
+
+
+def _prep_cmd(job: dict) -> list[str]:
+    cmd = [c for c in command(job) if c not in ("--qc",)]
+    if "--stop-after" not in cmd:
+        cmd += ["--stop-after", "script"]
+    return cmd + ["--qc"]
+
+
+def prep_tick(current_id: str | None) -> None:
+    p = _PREP["proc"]
+    if p is not None:
+        if p.poll() is None:
+            return
+        log(f"✓ chuẩn bị trước {_PREP['id']} xong (mã {p.returncode})")
+        _PREP.update(proc=None, id=None)
+    if ram_free_gb() < 4:
+        return
+    for j in reversed(db.list_jobs(("queued",))):          # cũ nhất trước
+        if j["id"] == current_id or j["kind"] != "new" or db.kv_get(f"prep:{j['id']}"):
+            continue
+        if (OUT / j["video_id"] / "qc" / "pre" / "gate.json").exists():
+            continue
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        f = open(LOG_DIR / f"{j['id']}.log", "a", encoding="utf-8")
+        f.write(f"\n=== {time.strftime('%Y-%m-%d %H:%M:%S')} CHUẨN BỊ TRƯỚC (song song job khác)\n")
+        f.flush()
+        _PREP.update(proc=subprocess.Popen(_prep_cmd(j), cwd=REPO_ROOT, stdout=f, stderr=subprocess.STDOUT,
+                                           stdin=subprocess.DEVNULL, start_new_session=True, env=_env()), id=j["id"])
+        db.kv_set(f"prep:{j['id']}", time.time())
+        log(f"▷ chuẩn bị trước {j['id']} (kịch bản + cổng) trong lúc {current_id} chạy")
+        return
+
+
+def wait_prep(job_id: str) -> None:
+    """Job sắp chạy đang được chuẩn bị → đợi xong (không để 2 process ghi chung out/<id>)."""
+    p = _PREP["proc"]
+    if p is not None and _PREP["id"] == job_id:
+        log(f"… đợi phần chuẩn bị trước của {job_id} xong")
+        p.wait()
+        prep_tick(None)
+
+
 def run_job(job: dict) -> str:
     """Chạy một lượt của job. Trả trạng thái cuối của lượt: awaiting_approval | done | failed | cancelled."""
     jid = job["id"]
@@ -181,6 +232,10 @@ def run_job(job: dict) -> str:
     while proc.poll() is None:
         time.sleep(HEARTBEAT_SEC)
         db.update_job(jid, heartbeat_at=time.time())
+        try:
+            prep_tick(jid)
+        except Exception as e:   # làn phụ hỏng không được làm hỏng job chính
+            log(f"⚠ làn chuẩn bị lỗi: {e}")
         cur = db.get_job(jid)
         if cur and cur["cancel_requested"]:
             log(f"✗ huỷ {jid}")
@@ -239,11 +294,16 @@ def night_auto_ok() -> bool:
 
 
 _TREND = {"proc": None}
+_IDEAS: list = []      # idea_gen sáng nay (giữ Popen để poll, tránh zombie)
 TREND_HOUR = 6        # 6:30 sáng: gợi ý chủ đề mới cho trang Tạo video
 
 
 def daily_trends() -> None:
     """Chạy trend scout một lần mỗi sáng (không GPU) — process riêng, KHÔNG chặn hàng đợi video."""
+    for q in list(_IDEAS):
+        if q.poll() is not None:
+            log(f"✓ idea_gen xong (mã {q.returncode})")
+            _IDEAS.remove(q)
     p = _TREND["proc"]
     if p is not None:
         if p.poll() is None:
@@ -263,6 +323,42 @@ def daily_trends() -> None:
     _TREND["proc"] = subprocess.Popen([str(PY), "-m", "create_video.team.trend_scout", "--slot", "am"], cwd=REPO_ROOT,
                                       stdout=f, stderr=subprocess.STDOUT, start_new_session=True, env=_env())
     log("▶ trend scout buổi sáng")
+    # Kênh không có nguồn trend (kênh mẹo, 2026-10-04): mỗi sáng idea_gen bổ sung kho ý tưởng — Tony: "chủ đề gợi ý
+    # sẽ update hằng ngày". Chỉ gọi Claude (không GPU) nên chạy song song trend scout được.
+    from ..channel import all_channels
+
+    for ch in all_channels():
+        if (ch.raw.get("trend") or {}).get("scout") == "idea_scout":
+            g = open(LOG_DIR / f"ideas-{ch.id}-{today}.log", "a", encoding="utf-8")
+            _IDEAS.append(subprocess.Popen([str(PY), "-m", "create_video.team.idea_gen", "--channel", ch.id],
+                                           cwd=REPO_ROOT, stdout=g, stderr=subprocess.STDOUT, start_new_session=True,
+                                           env=_env()))
+            log(f"▶ idea_gen kênh {ch.id}")
+
+
+_MUSIC: dict = {"proc": None, "done": False}
+
+
+def idle_music() -> None:
+    """Sinh sẵn nhạc nền (ACE-Step ~13GB RAM CPU) CHỈ khi hàng đợi trống — chạy chồng job đang dựng làm RAM còn 4GB
+    (2026-10-05). Job mới vào hàng → dừng ngay (lần sau sinh tiếp phần còn thiếu: cache theo seed)."""
+    p = _MUSIC["proc"]
+    busy = bool(db.list_jobs(("queued", "running")))
+    if p is not None:
+        if p.poll() is None:
+            if busy:
+                os.killpg(p.pid, signal.SIGTERM)   # cả process con ACE
+                log("■ dừng sinh sẵn nhạc — có job mới")
+                _MUSIC["proc"] = None
+            return
+        _MUSIC.update(proc=None, done=p.returncode == 0)
+        log(f"✓ sinh sẵn nhạc xong (mã {p.returncode})")
+    if busy or _MUSIC["done"] or ram_free_gb() < 18:
+        return
+    f = open(LOG_DIR / "sinh-san-nhac.log", "a", encoding="utf-8")
+    _MUSIC["proc"] = subprocess.Popen(["nice", "-n", "19", str(PY), "scripts/sinh_san_nhac.py"], cwd=REPO_ROOT,
+                                      stdout=f, stderr=subprocess.STDOUT, start_new_session=True, env=_env())
+    log("▶ sinh sẵn nhạc nền (hàng đợi trống)")
 
 
 def loop(once: bool = False) -> None:
@@ -290,6 +386,10 @@ def loop(once: bool = False) -> None:
                 daily_trends()
             except Exception as e:
                 log(f"⚠ việc buổi sáng lỗi: {e}")
+            try:
+                idle_music()
+            except Exception as e:
+                log(f"⚠ sinh sẵn nhạc lỗi: {e}")
             time.sleep(3)
             continue
         why = admit(job)
@@ -302,6 +402,7 @@ def loop(once: bool = False) -> None:
             time.sleep(ADMIT_WAIT_SEC)
             continue
         waiting_reason = None
+        wait_prep(job["id"])
         run_job(job)
         if once:
             return

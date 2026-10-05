@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -77,6 +78,9 @@ def run(
     voice_join: str | None = None,
     research: bool = True,
     stop_after: str | None = None,
+    channel: str | None = None,
+    pillar: str | None = None,
+    qc_gate: bool = False,
 ) -> dict:
     t_start = time.time()
     video_id = video_id or f"{slugify(topic)}"
@@ -94,13 +98,22 @@ def run(
     job_path = out_dir / "job.json"
     job = json.loads(job_path.read_text(encoding="utf-8")) if job_path.exists() else {}
     voice = voice if voice is not None else job.get("voice")
-    job.update({"topic": topic, "voice": voice, "duration_sec": duration_sec, "visual": visual})
+    # Kênh (2026-10-04, research/13 §5): MỘT process = MỘT kênh. Lưu ở job.json như giọng — vòng QC sửa gọi lại
+    # run() không truyền kênh vẫn dựng đúng kênh. Kênh khai giọng riêng thì dùng khi job không chọn giọng.
+    from .channel import activate
+
+    ch = activate(channel or job.get("channel"))
+    pillar = pillar or job.get("pillar")
+    if voice is None and ch.voice:
+        voice = ch.voice
+    job.update({"topic": topic, "voice": voice, "duration_sec": duration_sec, "visual": visual,
+                "channel": ch.id, **({"pillar": pillar} if pillar else {})})
     job_path.write_text(json.dumps(job, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     try:
         return _run(topic, state=state, out_dir=out_dir, video_id=video_id, t_start=t_start,
                     duration_sec=duration_sec, visual=visual, voice=voice, style=style,
                     force=force, render=render, voice_join=voice_join, research=research,
-                    stop_after=stop_after)
+                    stop_after=stop_after, pillar=pillar, qc_gate=qc_gate)
     except BaseException as e:  # cả KeyboardInterrupt: ghi lại rồi ném tiếp
         if state.stage:
             state.fail(state.stage, e)
@@ -111,11 +124,11 @@ def _run(
     topic: str, *, state: State, out_dir: Path, video_id: str, t_start: float,
     duration_sec: int, visual: str, voice: str | None, style: str | None,
     force: bool, render: bool, voice_join: str | None, research: bool = True,
-    stop_after: str | None = None,
+    stop_after: str | None = None, pillar: str | None = None, qc_gate: bool = False,
 ) -> dict:
     # ── 0. researcher (Phase V2): chủ đề → sự thật đã kiểm ─────────────────
     t = time.time()
-    brief_txt = _brief(topic, out_dir, state, force=force, research=research)
+    brief_txt = _brief(topic, out_dir, state, force=force, research=research, pillar=pillar)
     if brief_txt:
         t = _stamp(t, "researcher")
 
@@ -145,12 +158,39 @@ def _run(
             state.begin("script", h_script)
             state.done("script", [script_path])
     else:
+        # R3 (2026-10-04): chọn góc kể — 5 phương án + chấm so cặp — rồi mới viết. Kênh không khai `formats` → bỏ qua.
+        from .agents.angles import angle_for_script, choose_angle
+
+        ang_path = out_dir / "angles.json"
+        ang = json.loads(ang_path.read_text(encoding="utf-8")) if ang_path.exists() and not force else None
+        if ang is None:
+            state.begin("angle", hash_inputs(topic))
+            try:
+                ang = choose_angle(topic, brief_txt, state=state, artifact=ang_path)
+            except Exception as e:   # góc kể là bước PHỤ — hỏng/treo thì viết kịch bản không có góc, đừng bỏ cả video
+                print(f"  ⚠ chọn góc kể hỏng ({type(e).__name__}: {str(e)[:160]}) — viết không có góc", flush=True)
+                ang = None
+            state.done("angle", [ang_path] if ang else [])
+        if ang:
+            print(f"  góc kể: [{ang['chosen']['format']}] {ang['chosen']['hook']}", flush=True)
+            brief_txt = (brief_txt or f"CHỦ ĐỀ: {topic}") + angle_for_script(ang)
         state.begin("script", h_script)
         script = write_script_sync(topic, brief=brief_txt, duration_sec=duration_sec, state=state,
                                    artifact=script_path)
         state.done("script", [script_path])
     print(f"  hook: {script.hook}", flush=True)
     t = _stamp(t, "kịch bản")
+    if qc_gate:
+        # 2026-10-05: T3+T4 chấm KỊCH BẢN trước TTS/render — sửa ở đây rẻ hơn 7–10 phút so với sửa sau render.
+        from .agents.scriptwriter import revise_script_sync
+        from .qc.loop import pre_gate
+
+        state.begin("pre_gate", "")
+        script = pre_gate(out_dir, script, state, lambda s, notes: revise_script_sync(
+            s, notes, duration_sec=duration_sec, state=state, artifact=script_path))
+        state.done("pre_gate", [])
+        t = _stamp(t, "cổng kịch bản")
+
     if stop_after == "script":
         # W1: cổng duyệt kịch bản — dừng TRƯỚC mọi bước GPU. Chạy lại không có cờ này là tiếp tục
         # (script.json đã có → dùng lại, qua đúng cổng `_check`; web có thể sửa script.json trước đó).
@@ -161,6 +201,9 @@ def _run(
         state.save()
         return {"id": video_id, "topic": topic, "stopped_after": "script",
                 "script": str(script_path), "wall_sec": round(time.time() - t_start, 1)}
+
+    # ── 1c. clip động trên Kaggle (2026-10-05) — gửi đi NGAY, không chờ; lấy về trước khi dựng spec ──────────
+    hero = _hero_submit(script, out_dir, state, visual) if render else None
 
     lines = [
         Line(text=l, is_hook=(i == 0))
@@ -197,6 +240,9 @@ def _run(
             seed=_echo.get("seed"),
             out_dir=out_dir / "tts",
         )
+    _post = _tts_cfg.get("post") or {}
+    be.tempo, be.voice_fx = float(_post.get("tempo") or 1.0), str(_post.get("fx") or "")
+    be.pauses = _post.get("pauses") or None
     print(f"  giọng: {be.voice} · {be.style}", flush=True)
     _join = _echo.get("join", {})
     join_mode = voice_join or _join.get("mode", "per_line")
@@ -206,7 +252,7 @@ def _run(
 
     h_tts = hash_inputs(
         [l.text for l in lines], be.voice, be.style, _echo.get("seed"), join_mode,
-        int(_join.get("group_size", 3)), _ln,
+        int(_join.get("group_size", 3)), _ln, _post,
         getattr(be, "_ref_sha", None), _tts_cfg.get("vieneu_local", {}).get("bwe"),
         # ĐÃ PARSE, không bytes file — chú thích trong yaml không được kích hoạt TTS lại.
         _yaml.safe_load((REPO_ROOT / "configs" / "pronounce.yaml").read_text(encoding="utf-8"))
@@ -283,6 +329,7 @@ def _run(
         ShotPrompt(id=f"s{k + 1}", prompt=v.prompt)
         for k, v in enumerate(visuals) if k not in evidence
     ] if script.shots else []
+    img_ks = [k for k, _v in enumerate(visuals) if k not in evidence] if script.shots else []
     n_shots = len(prompts)
 
     img_dir = out_dir / "gen"
@@ -345,7 +392,11 @@ def _run(
     # motion.parallax: false — khi đó lùi về Ken Burns phẳng.
     depths: list[Path] = []
     _style = _yaml.safe_load((REPO_ROOT / "configs" / "style.yaml").read_text(encoding="utf-8"))
-    if images and visual != "color" and _style["motion"].get("parallax", False):
+    # Kênh có bố cục headline (ảnh tràn màn hình, research/18): KHÔNG parallax — Tony 2026-10-05 thấy ảnh "bị bóp méo";
+    # parallax kéo mép vật theo depth map. Bỏ luôn bước depth (đỡ một lần nạp GPU).
+    from .channel import current as _cur_ch
+
+    if images and visual != "color" and _style["motion"].get("parallax", False) and not _cur_ch().style.get("layout"):
         from .visual.depth import DepthEstimator
 
         state.begin("depth", "")
@@ -376,6 +427,8 @@ def _run(
         )
 
     state.begin("spec", "")
+    if hero:
+        images, depths, prompts = _hero_apply(hero, visuals, evidence, img_ks, images, depths, prompts, out_dir)
     spec, spec_path = build(
         video_id=video_id, topic=topic, lines=lines, tts=tts, spans=spans,
         images=images, depths=depths, breaks=brk, evidence=evidence,
@@ -464,7 +517,8 @@ def _run(
     return result
 
 
-def _brief(topic: str, out_dir: Path, state: State, *, force: bool, research: bool) -> str | None:
+def _brief(topic: str, out_dir: Path, state: State, *, force: bool, research: bool,
+           pillar: str | None = None) -> str | None:
     """brief.json (cache) → đoạn ĐỀ BÀI cho scriptwriter. Đăng ký url trong brief cho screenshot.
 
     Không có brief và `research=False` → None (kiểu cũ: viết từ chủ đề trần, dùng cho demo dán brief tay).
@@ -480,7 +534,7 @@ def _brief(topic: str, out_dir: Path, state: State, *, force: bool, research: bo
         print(f"  ↻ dùng lại brief.json ({len(b.facts)} sự thật)", flush=True)
     elif research and (force or not (out_dir / "script.json").exists()):
         state.begin("research", hash_inputs(topic))
-        b = research_sync(topic, state=state, artifact=path)
+        b = research_sync(topic, state=state, artifact=path, pillar=pillar)
         state.done("research", [path])
     else:
         return None
@@ -570,6 +624,80 @@ def _clean(d):
     return d
 
 
+def _hero_cfg() -> dict:
+    return (_load_model_cfg().get("kaggle_anim") or {})
+
+
+def _hero_submit(script, out_dir: Path, state, visual: str) -> dict | None:
+    """Ảnh chủ lực (shot `image` đầu tiên của kịch bản) → sinh FLUX → gửi Kaggle tạo clip. Không chặn; lỗi → None."""
+    from .visual import kaggle_anim
+
+    cfg = _hero_cfg()
+    if not cfg.get("enabled") or visual != "flux2" or not kaggle_anim.available():
+        return None
+    hdir = out_dir / "hero"
+    hp = hdir / "handle.json"
+    if hp.exists():                                   # chạy lại (vòng QC, nối tiếp) → dùng lại lần gửi cũ
+        return json.loads(hp.read_text(encoding="utf-8"))
+    shots = sorted((s for s in script.shots if s.kind == "image" and s.prompt),
+                   key=lambda s: s.line if s.line is not None else 99)[: int(cfg.get("max_clips", 2))]
+    if not shots:
+        return None
+    try:
+        from .visual.flux2 import Flux2Klein
+
+        hdir.mkdir(parents=True, exist_ok=True)
+        state.begin("hero", "")
+        with Flux2Klein() as gen:
+            imgs = gen.generate([ShotPrompt(id=f"h{i}", prompt=s.prompt) for i, s in enumerate(shots)], hdir / "img")
+        items = [{"name": f"h{i}", "image": p, "prompt": f"{s.prompt}, {cfg.get('motion', 'slow subtle camera push-in, natural motion')}"}
+                 for i, (s, p) in enumerate(zip(shots, imgs))]
+        h = kaggle_anim.submit(items, frames=int(cfg.get("frames", 49)), steps=int(cfg.get("steps", 20)))
+        h["prompts"] = {f"h{i}": s.prompt for i, s in enumerate(shots)}
+        hp.write_text(json.dumps(h, ensure_ascii=False, indent=1), encoding="utf-8")
+        state.done("hero", [hp])
+        print(f"  🎞 gửi Kaggle {len(items)} clip (chạy song song, lấy về trước khi dựng spec)", flush=True)
+        return h
+    except Exception as e:   # Kaggle hỏng không được làm hỏng video
+        print(f"  ⚠ Kaggle clip bỏ qua: {type(e).__name__}: {e}"[:300], flush=True)
+        return None
+
+
+def _hero_apply(hero: dict, visuals, evidence: dict, img_ks: list[int], images, depths, prompts, out_dir: Path):
+    """Clip Kaggle về kịp → thay ảnh của shot cùng prompt bằng clip (bỏ ảnh/depth tương ứng khỏi danh sách)."""
+    from .visual import kaggle_anim
+
+    hdir = out_dir / "hero"
+    have = {p.stem: p for p in hdir.glob("h*.mp4")}
+    if not have:
+        deadline = hero["pushed_at"] + float(_hero_cfg().get("max_wait_sec", 1500))
+        have = kaggle_anim.collect(hero, hdir, deadline=deadline)
+    if not have:
+        return images, depths, prompts
+    # Clip 2s < shot 3–7s → phát quá đuôi ra khung đen. Ping-pong (tới + lùi) ×2 ≈ 8s, chuyển động liền mạch.
+    ff = os.environ.get("FFMPEG_BIN") or "/home/tony/miniconda3/bin/ffmpeg"
+    for name, mp4 in list(have.items()):
+        pp = mp4.with_name(f"{name}-pp.mp4")
+        if not pp.exists():
+            subprocess.run([ff, "-y", "-loglevel", "error", "-i", str(mp4), "-filter_complex",
+                            "[0:v]split[a][b];[b]reverse[r];[a][r]concat=n=2:v=1[p];[p]split[p1][p2];[p1][p2]concat=n=2:v=1",
+                            "-an", "-c:v", "libx264", "-pix_fmt", "yuv420p", str(pp)], check=False)
+        if pp.exists():
+            have[name] = pp
+    drop: set[int] = set()
+    for name, mp4 in have.items():
+        want = hero["prompts"].get(name, "")
+        for pos, k in enumerate(img_ks):
+            if k not in evidence and visuals[k].prompt.split(" | ")[0] == want:
+                evidence[k] = {"kind": "video", "path": f"hero/{mp4.name}"}
+                drop.add(pos)
+                print(f"  🎞 shot {k}: clip động Kaggle thay ảnh tĩnh", flush=True)
+                break
+    keep = [i for i in range(len(images)) if i not in drop]
+    return ([images[i] for i in keep], [depths[i] for i in keep if i < len(depths)] if depths else depths,
+            [prompts[i] for i in keep])
+
+
 def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
     """Shot bằng chứng → asset đúng schema spec, theo chỉ số nhóm.
 
@@ -603,9 +731,54 @@ def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
                 v.prompt = router.fallback_prompt(visuals, k, script.shots)
                 print(f"  ⚠ screenshot hỏng → b-roll: {v.url} — {c.error}", flush=True)
         state.done("screenshots", saved)
+    # stock (2026-10-05): cảnh quay thật Pexels → Pixabay; không có → lùi về ảnh FLUX bằng `prompt` của shot.
+    stocks = [(k, v) for k, v in enumerate(visuals) if v.kind == "stock"]
+    if stocks:
+        from .visual import stock as _stock
+
+        state.begin("stock", "")
+        used: set[str] = set()
+        credits = []
+        for k, v in stocks:
+            c = _stock.fetch(v.data.get("query") or v.prompt, out_dir / "stock" / f"{k:02d}.mp4", exclude=used)
+            if c.ok:
+                used.add(f"{c.provider}:{c.id}")
+                evidence[k] = {"kind": "video", "path": f"stock/{k:02d}.mp4", "source_url": c.page_url}
+                credits.append({"shot": k, "query": c.query, "provider": c.provider, "url": c.page_url,
+                                "author": c.author, "credit": c.credit()})
+                print(f"  🎥 {c.provider} {c.width}×{c.height} {c.duration:.0f}s · {c.query}", flush=True)
+            else:
+                # Không có clip → ẢNH CHỤP THẬT (Pexels/Pixabay) trước, ảnh AI là đường cuối (research/19).
+                ph = _stock.fetch_photo(v.data.get("query") or v.prompt, out_dir / "stock" / f"{k:02d}.jpg",
+                                        exclude=used)
+                if ph.ok:
+                    used.add(f"{ph.provider}:{ph.id}")
+                    evidence[k] = {"kind": "image", "path": f"stock/{k:02d}.jpg", "source_url": ph.page_url}
+                    credits.append({"shot": k, "query": ph.query, "provider": ph.provider, "url": ph.page_url,
+                                    "author": ph.author, "credit": ph.credit()})
+                    print(f"  📷 {ph.provider} ảnh thật · {ph.query}", flush=True)
+                    continue
+                v.kind, v.note = "image", c.error
+                print(f"  ⚠ stock không có → ảnh AI: {v.data.get('query')} — {c.error}; {ph.error}", flush=True)
+        (out_dir / "stock").mkdir(exist_ok=True)
+        (out_dir / "stock" / "credits.json").write_text(json.dumps(credits, ensure_ascii=False, indent=1) + "\n",
+                                                       encoding="utf-8")
+        state.done("stock", [])
+    from .visual import emoji as _emoji
+
     for k, v in enumerate(visuals):
         data = _clean(v.data)
-        if v.kind in ("stat", "chart"):
+        # Fluent Emoji 3D (MIT) cho icon của thẻ (2026-10-05, research/17) — không có ảnh thì bỏ icon.
+        if v.kind == "stat" and data.get("icon"):
+            ip = _emoji.place(data["icon"], out_dir)
+            data = {**data, "icon_path": ip} if ip else {k2: x for k2, x in data.items() if k2 != "icon"}
+        if v.kind == "list":
+            items = []
+            for it in data.get("items") or []:
+                ip = _emoji.place(it.get("icon"), out_dir)
+                items.append({**it, "icon_path": ip} if ip else {k2: x for k2, x in it.items() if k2 != "icon"})
+            data = {**data, "items": items}
+        if v.kind in ("stat", "chart", "chat", "list"):
             evidence[k] = {"kind": v.kind, v.kind: data}
         elif v.kind == "code":
             evidence[k] = {"kind": "code", "code": {**data, "tokens": tokenize(data["lang"], data["lines"])}}
@@ -654,6 +827,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="dừng sau bước kịch bản (cổng duyệt); chạy lại không có cờ này để tiếp tục")
     ap.add_argument("--no-research", action="store_true",
                     help="bỏ vai researcher (viết từ chủ đề trần — chủ đề phải tự chứa sự thật)")
+    ap.add_argument("--channel", default=None, help="kênh: configs/channels/<id> (mặc định: job.json hoặc 'ai')")
+    ap.add_argument("--pillar", default=None, help="pillar bắt buộc (vd. ý tưởng từ kho đã gắn pillar)")
     ap.add_argument("--qc", action="store_true",
                     help="dựng xong chạy vòng lặp QC T1→T4 (P4.S4, trần cứng 2 vòng sửa)")
     a = ap.parse_args(argv)
@@ -662,9 +837,10 @@ def main(argv: list[str] | None = None) -> int:
         a.topic, video_id=a.video_id, duration_sec=a.duration, visual=a.visual,
         voice=a.voice, style=a.style, force=a.force, render=not a.no_render,
         voice_join=a.voice_join, research=not a.no_research, stop_after=a.stop_after,
+        channel=a.channel, pillar=a.pillar, qc_gate=a.qc and not a.no_render,
     )
     if res.get("stopped_after"):
-        return 0
+        return 0   # --stop-after script --qc: worker "chuẩn bị trước" (kịch bản + cổng kịch bản), không dựng
     if a.qc and not a.no_render:
         from .qc import loop
 

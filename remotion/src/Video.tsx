@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Audio, Easing, interpolate, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import { EVIDENCE_KINDS, Evidence } from "./components/Evidence";
+import { Backdrop, CARD_W, EVIDENCE_KINDS, Evidence } from "./components/Evidence";
+import { MascotLayer } from "./components/Mascot";
 import { Hook } from "./components/Hook";
 import { ChunkCaption, KaraokeCaption } from "./components/KaraokeCaption";
 import { KenBurns } from "./components/KenBurns";
@@ -55,6 +56,97 @@ const PunchZoom: React.FC<{ times: number[]; children: React.ReactNode }> = ({ t
   return <AbsoluteFill style={{ transform: `scale(${s})` }}>{children}</AbsoluteFill>;
 };
 
+/**
+ * R4 (2026-10-04): nhãn kênh + bộ đếm cảnh "03 / 12" góc trên trái — kênh tham khảo @ainius.net (76.900 view) dùng bộ
+ * đếm như thanh tiến độ ngầm: người xem biết còn bao nhiêu (research/probes/r-tham-khao-ainius.md). Đặt ngay dưới mép
+ * an toàn trên (T1 safe_area top 8%) và trong lề trái 4%; chữ nhỏ, mờ — không tranh với hook.
+ */
+const BrandBar: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
+  const frame = useCurrentFrame();
+  const { fps, width, height } = useVideoConfig();
+  const t = frame / fps;
+  const b = spec.style.brand ?? {};
+  const n = spec.shots.length;
+  const idx = Math.max(0, spec.shots.findIndex((s) => s.start_sec <= t && t < s.end_sec));
+  const accent = b.accent ?? spec.style.palette.accent;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: (width * spec.style.safe_area_pct.left) / 100 + 14,
+        top: (height * spec.style.safe_area_pct.top) / 100 + 18,
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        fontFamily: '"Be Vietnam Pro", sans-serif',
+        fontWeight: 800,
+        fontSize: 30,
+        letterSpacing: 2,
+        color: "rgba(255,255,255,0.78)",
+        textShadow: "0 2px 10px rgba(0,0,0,0.7)",
+      }}
+    >
+      {b.label ? (
+        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ width: 14, height: 14, borderRadius: 7, background: accent }} />
+          {b.label.toUpperCase()}
+        </span>
+      ) : null}
+      {b.counter && n > 1 ? (
+        <span style={{ fontVariantNumeric: "tabular-nums", color: accent }}>
+          {String(idx + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}
+        </span>
+      ) : null}
+    </div>
+  );
+};
+
+/**
+ * D2/D3 (2026-10-04, research/15 §4): bố cục "headline". Video top của cả hai ngách giữ CHỦ ĐỀ luôn trên màn hình
+ * (@aidev.news thẻ tin ×93, @ainius.net, @sidotech.ai, @tamlyhocthanhcong 425K) và gần như không cắt cảnh — hình đổi BÊN
+ * TRONG một khung. Nhãn dạng video + tiêu đề cố định ở 12–23% chiều cao; ảnh trong khung bo góc 25–56%; phụ đề 58%+.
+ */
+const FRAME_LEFT = 62;   // = Evidence CARD_LEFT — mép phải 874px < lề UI phải 18% (886px)
+
+const Headline: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
+  const frame = useCurrentFrame();
+  const { fps, height } = useVideoConfig();
+  const lay = spec.style.layout!;
+  const accent = spec.style.palette.accent;
+  const enter = interpolate(frame, [0, Math.round(fps * 0.35)], [0, 1], { extrapolateRight: "clamp" });
+  const title = lay.title ?? "";
+  const size = title.length > 34 ? 66 : title.length > 22 ? 78 : 92;
+  return (
+    <div style={{ position: "absolute", left: FRAME_LEFT, width: CARD_W, top: height * 0.115, display: "flex",
+                  flexDirection: "column", gap: 14, opacity: 0.35 + 0.65 * enter }}>
+      {lay.badge ? (
+        <div style={{ alignSelf: "flex-start", background: accent, color: "#0A1020", fontFamily: '"Be Vietnam Pro", sans-serif',
+                      fontWeight: 900, fontSize: 30, letterSpacing: 1.5, padding: "6px 16px", borderRadius: 8 }}>
+          {lay.badge.toUpperCase()}
+        </div>
+      ) : null}
+      <div style={{ fontFamily: '"Be Vietnam Pro", sans-serif', fontWeight: 900, fontSize: size, lineHeight: 1.08,
+                    color: "#FFFFFF", textShadow: "0 6px 30px rgba(0,0,0,0.6)", textWrap: "balance" as never,
+                    transform: `translateY(${(1 - enter) * 24}px)` }}>
+        {title}
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Bố cục headline v2 (2026-10-05, research/18): ảnh/clip TRÀN TOÀN MÀN HÌNH 9:16. Bản v1 nhốt ảnh dọc trong khung
+ * 812×595 ở 25–56% chiều cao → chỉ thấy ~45% ảnh, phóng to, đáy 40% trống (Tony: "bị bóp méo, khung nhỏ"). Video top
+ * dùng ảnh/người thật đều phủ 89–100% chiều cao. Hai dải tối mờ giữ tiêu đề (trên) và phụ đề (dưới) đọc được.
+ */
+const Scrim: React.FC = () => (
+  <AbsoluteFill style={{ pointerEvents: "none",
+    // Đáy tối tối đa 0,5: bản 0,8 phủ ảnh vốn tối thành dải đen PHẲNG ở mép dưới → T1 "viền đen" bắt (video thử 2026-10-05,
+    // 32px lúc 3,4s). Phụ đề có viền + bóng nên không cần nền đậm.
+    background: "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.45) 24%, rgba(0,0,0,0) 40%, " +
+                "rgba(0,0,0,0) 52%, rgba(0,0,0,0.4) 68%, rgba(0,0,0,0.5) 100%)" }} />
+);
+
 /** Hiệu màu nhẹ cho lớp hình: sáng/bão hoà hơn — "brightness" là top-3 yếu tố (cùng nguồn trên). */
 const GRADE = "saturate(1.18) contrast(1.06) brightness(1.05)";
 
@@ -87,9 +179,12 @@ export const VideoFromSpec: React.FC<VideoSpec> = (spec) => {
     }
   }
 
+  const lay = spec.style.layout;
+  const totalFrames = Math.round(spec.format.duration_sec * fps);
   return (
     <AbsoluteFill style={{ backgroundColor: palette.bg }}>
-      <PunchZoom times={emphTimes}>
+      {lay ? <Backdrop spec={spec} durationInFrames={totalFrames} /> : null}
+      <PunchZoom times={lay ? [] : emphTimes}>
       <AbsoluteFill style={{ filter: GRADE }}>
       {spec.shots.map((shot, k) => {
         const from = secToFrames(shot.start_sec, fps);
@@ -114,6 +209,17 @@ export const VideoFromSpec: React.FC<VideoSpec> = (spec) => {
                   src={resolve(shot.asset.path)}
                   belowHook={k === 0 && Boolean(spec.captions[0]?.display_text)}
                 />
+              ) : lay ? (
+                <>
+                  <KenBurns
+                    shot={shot}
+                    durationInFrames={dur}
+                    src={shot.asset.kind === "color" ? null : resolve(shot.asset.path)}
+                    depthSrc={null}
+                    bg={palette.bg}
+                  />
+                  <Scrim />
+                </>
               ) : (
                 <KenBurns
                   shot={shot}
@@ -166,7 +272,16 @@ export const VideoFromSpec: React.FC<VideoSpec> = (spec) => {
         };
         return (
           <Sequence key={`cap-${i}`} from={from} durationInFrames={dur} name={`caption ${i}`}>
-            {cap.style === "hook" && cap.display_text && shifted.chunks?.length ? (
+            {lay && shifted.chunks?.length ? (
+              // Bố cục headline: tiêu đề cố định đã mang chữ hook → câu đầu chỉ là phụ đề thường.
+              <ChunkCaption
+                caption={shifted}
+                style={{ ...spec.style.caption, position: "lower" }}
+                safe={safe}
+                accent={palette.accent}
+                emphColor={palette.accent}
+              />
+            ) : cap.style === "hook" && cap.display_text && shifted.chunks?.length ? (
               <>
                 <Hook
                   text={cap.display_text}
@@ -204,6 +319,10 @@ export const VideoFromSpec: React.FC<VideoSpec> = (spec) => {
           </Sequence>
         );
       })}
+
+      {spec.style.mascot ? <MascotLayer spec={spec} /> : null}
+      {lay ? <Headline spec={spec} /> : null}
+      {spec.style.brand ? <BrandBar spec={spec} /> : null}
 
       {resolve(spec.audio.voice.path) ? (
         <Audio src={resolve(spec.audio.voice.path)!} volume={dbToGain(spec.audio.voice.gain_db)} />

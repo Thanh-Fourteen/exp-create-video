@@ -168,12 +168,14 @@
                   "stat",
                   "chart",
                   "screenshot",
-                  "code"
+                  "code",
+                  "chat",
+                  "list"
                 ]
               },
               "path": {
                 "type": "string",
-                "description": "Tương đối so với thư mục spec. kind=color thì là mã màu. Không dùng cho stat/chart/code."
+                "description": "Tương đối so với thư mục spec. kind=color thì là mã màu. Không dùng cho stat/chart/code/chat/list."
               },
               "alt": {
                 "type": "string",
@@ -216,6 +218,15 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 40
+                  },
+                  "icon": {
+                    "type": "string",
+                    "maxLength": 16,
+                    "description": "emoji Unicode (2026-10-05, research/17)"
+                  },
+                  "icon_path": {
+                    "type": "string",
+                    "description": "PNG 3D Fluent Emoji (MIT) đã chép vào thư mục video"
                   }
                 }
               },
@@ -328,6 +339,101 @@
                           "v": {
                             "type": "string"
                           }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "chat": {
+                "type": "object",
+                "required": [
+                  "messages"
+                ],
+                "additionalProperties": false,
+                "description": "Kênh mẹo (2026-10-04): bong bóng hội thoại kiểu tin nhắn — me bên phải, them bên trái; mark ok/no = câu nên nói / nên tránh.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "messages": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 5,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "from",
+                        "text"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "from": {
+                          "enum": [
+                            "me",
+                            "them"
+                          ]
+                        },
+                        "text": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "mark": {
+                          "enum": [
+                            "ok",
+                            "no"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "list": {
+                "type": "object",
+                "required": [
+                  "items"
+                ],
+                "additionalProperties": false,
+                "description": "Kênh mẹo (2026-10-04): thẻ mẹo hiện dần từng mục — num đánh số, ok tích xanh, no chéo đỏ.",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "maxLength": 32
+                  },
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 5,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "text"
+                      ],
+                      "additionalProperties": false,
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 34
+                        },
+                        "mark": {
+                          "enum": [
+                            "num",
+                            "ok",
+                            "no"
+                          ]
+                        },
+                        "icon": {
+                          "type": "string",
+                          "maxLength": 16,
+                          "description": "emoji Unicode (2026-10-05, research/17)"
+                        },
+                        "icon_path": {
+                          "type": "string",
+                          "description": "PNG 3D Fluent Emoji (MIT) đã chép vào thư mục video"
                         }
                       }
                     }
@@ -764,6 +870,106 @@
               "type": "number",
               "minimum": 0,
               "maximum": 50
+            }
+          }
+        },
+        "brand": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "R4 (2026-10-04): nhãn kênh + bộ đếm cảnh 'NN/MM' góc trên trái (kênh tham khảo @ainius.net — research/probes/r-tham-khao-ainius.md). Nằm trong vùng an toàn T1.",
+          "properties": {
+            "label": {
+              "type": "string",
+              "maxLength": 24
+            },
+            "counter": {
+              "type": "boolean"
+            },
+            "accent": {
+              "type": "string"
+            }
+          }
+        },
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "description": "D2/D3 (2026-10-04, research/15 §4): 'headline' = nhãn dạng video + tiêu đề cố định phía trên suốt video, hình trong khung bo góc ở giữa (thẻ tin @aidev.news, @ainius, @tamlyhocthanhcong). Thiếu = bố cục cũ (ảnh tràn khung).",
+          "properties": {
+            "type": {
+              "enum": [
+                "headline"
+              ]
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "badge": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "variant": {
+              "enum": [
+                "news",
+                "minimal"
+              ]
+            }
+          }
+        },
+        "mascot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "windows"
+          ],
+          "description": "2026-10-05 (research/19): nhân vật hoạt hình SVG vẽ trong Remotion, hiện ở câu hook + câu chốt; mouth = độ mở miệng 0–1 mỗi frame (RMS giọng, Python tính).",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "kheo",
+                "robot"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "fps": {
+              "type": "integer"
+            },
+            "windows": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "start_sec",
+                  "end_sec",
+                  "mouth"
+                ],
+                "properties": {
+                  "start_sec": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "end_sec": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "mouth": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              }
             }
           }
         }

@@ -152,6 +152,47 @@ Luật:
 3. `line` = chỉ số câu chứa claim. `type`: model_name | benchmark_number | number |
    release_date | date | org_name | license | other."""
 
+# Kênh mẹo (2026-10-04, research/13 §4): thêm loại claim sức khoẻ / an toàn thực phẩm — loại nào nằm trong
+# `channel.yaml: t4.require_tier1_for` thì chỉ đạt khi nguồn thuộc tier1 (cơ quan nhà nước / tổ chức y tế).
+EXTRA_TYPES = ("health", "food_safety")
+
+
+def _claim_types() -> tuple[str, ...]:
+    from ..channel import current
+
+    base = ClaimType.__args__
+    return base + EXTRA_TYPES if current().t4.get("require_tier1_for") else base
+
+
+def _extract_model() -> type[ExtractOut]:
+    from pydantic import create_model
+
+    claim = create_model("ExtractedClaim", __base__=ExtractedClaim,
+                         type=(Literal[_claim_types()], ...))  # type: ignore[valid-type]
+    return create_model("ExtractOut", __base__=ExtractOut, claims=(list[claim], ...))
+
+
+def extract_system() -> str:
+    from ..channel import current
+
+    ch = current()
+    if ch.id == "ai" or not ch.t4.get("require_tier1_for"):
+        return EXTRACT_SYSTEM
+    s = EXTRACT_SYSTEM.replace("video TikTok tiếng Việt về AI.", f"video TikTok tiếng Việt về "
+                               f"{ch.text('topic_of_video', ch.name)}.")
+    i, j = s.index("Claim kiểm chứng được ="), s.index("KHÔNG rút:")
+    s = s[:i] + ("Claim kiểm chứng được = khẳng định về sự thật có thể đối chiếu với tài liệu: con số (thời gian bảo "
+                 "quản, nhiệt độ, số tiền, phí, mức phạt, phần trăm), điều một cơ quan/ngân hàng/hãng quy định hay "
+                 "khuyến cáo, việc một ứng dụng có/không có một tính năng, tác động lên sức khoẻ, an toàn thực phẩm.\n\n"
+                 "KHÔNG rút thêm: lời khuyên giao tiếp mang tính gợi ý (\"nên nói…\"), trừ khi gán cho một nguồn.\n") + s[j:]
+    s = s.replace("release_date | date | org_name | license | other.",
+                  "release_date | date | org_name | license | health | food_safety | other.\n"
+                  "4. `health` = khẳng định về tác động lên SỨC KHOẺ (gây bệnh, tốt cho tim…). `food_safety` = "
+                  "khẳng định về an toàn thực phẩm (bảo quản bao lâu, nhiệt độ, vi khuẩn, hoá chất, độc tố). "
+                  "Câu có con số về thực phẩm/sức khoẻ vẫn là health/food_safety, không phải number.")
+    return s
+
+
 CHECK_SYSTEM = """Bạn là FACT-CHECKER. Đối chiếu từng claim với các NGUỒN đã lưu bên dưới — chỉ nguồn
 đó, KHÔNG dùng hiểu biết riêng, kể cả khi bạn "biết" claim đúng hay sai.
 
@@ -306,6 +347,15 @@ def build_report(script: "Script", claims: list[ExtractedClaim], verdicts: list[
     contra = [r for r in results if r.verdict == "contradicted"]
     unver = [r for r in results if r.verdict == "inconclusive"]
     n = len(script.lines)
+    # Kênh mẹo: claim sức khoẻ/an toàn thực phẩm chỉ đạt khi nguồn tier1 — không thì CHẶN như mâu thuẫn.
+    from ..channel import current
+
+    ch = current()
+    need_t1 = set(ch.t4.get("require_tier1_for") or [])
+    tier_fail = [r for r in results if r.type in need_t1 and r.verdict != "contradicted"
+                 and not (r.verdict == "supported" and ch.tier(r.source_url) == 1)]
+    for r in tier_fail:
+        r.gate = (r.gate + "; " if r.gate else "") + "cần nguồn tier1 (cơ quan nhà nước/tổ chức y tế)"
 
     def where(line: int) -> str:
         return "hook (câu 0)" if line == 0 else (f"CTA (câu {line})" if line == n - 1 else f"câu {line}")
@@ -313,8 +363,12 @@ def build_report(script: "Script", claims: list[ExtractedClaim], verdicts: list[
     issues = [{"where": where(r.line), "line": r.line, "claim": r.claim,
                "why": f"mâu thuẫn nguồn {r.source_url}: «{r.quote}»" + (f" — {r.reason}" if r.reason else ""),
                "suggested_fix": "sửa theo đúng nguồn đã trích, hoặc bỏ câu"} for r in contra]
+    issues += [{"where": where(r.line), "line": r.line, "claim": r.claim,
+                "why": f"claim {r.type} không có nguồn tier1 xác nhận" + (f" (nguồn hiện có: {r.source_url})"
+                                                                         if r.source_url else ""),
+                "suggested_fix": "chỉ nói điều cơ quan y tế/an toàn thực phẩm nói, hoặc bỏ câu"} for r in tier_fail]
     return T4Report(
-        verdict="block" if len(contra) > thr["max_contradictions"] else "pass",
+        verdict="block" if len(contra) > thr["max_contradictions"] or tier_fail else "pass",
         contradicted=[asdict(r) for r in contra],
         unverified=[asdict(r) for r in unver],
         flag_unverified=len(unver) > thr["max_unverified_claims"],
@@ -349,6 +403,16 @@ def screen_claims(script: "Script") -> list[ExtractedClaim]:
                 out.append(ExtractedClaim(line=line, type="number",
                                           claim=f"[trên hình] {ch.get('title', '')} — {b.get('label', '')}: "
                                                 f"{fmt(b.get('value', 0))} {ch.get('unit') or ''}".strip()))
+        elif sh.kind == "list" and sh.list:
+            # Kênh mẹo (2026-10-04): mỗi mục trên thẻ là một khẳng định ("Cà chua — đừng cho vào tủ lạnh").
+            lt = sh.list
+            for it in lt.get("items", []):
+                out.append(ExtractedClaim(line=line, type="other",
+                                          claim=f"[trên hình] {lt.get('title') or ''}: {it.get('text', '')}".strip()))
+        elif sh.kind == "chat" and sh.chat:
+            for m in sh.chat.get("messages", []):
+                if _re.search(r"\d", m.get("text", "")):
+                    out.append(ExtractedClaim(line=line, type="number", claim=f"[trên hình] {m.get('text', '')}"))
     for o in script.overlays:
         if _re.search(r"\d", o.get("text", "")):
             out.append(ExtractedClaim(line=int(o["line"]) if 0 <= int(o["line"]) < n else 0, type="number",
@@ -370,8 +434,8 @@ async def acheck(script: "Script", *, state: "State | None" = None, model: str |
     snaps, meta = _snaps if _snaps is not None else load_sources(source_urls(script))
     llm: list[dict] = []
     n0 = len(state.llm_calls) if state is not None else 0
-    ext = await arun_role("claim_extractor", extract_prompt(script), ExtractOut,
-                          system_prompt=EXTRACT_SYSTEM, tools=[], max_turns=4, max_budget_usd=1.0,
+    ext = await arun_role("claim_extractor", extract_prompt(script), _extract_model(),
+                          system_prompt=extract_system(), tools=[], max_turns=4, max_budget_usd=1.0,
                           model=model, state=state, _query=_query)
     llm.append(_last_call(state, n0))
     claims = [c for c in ext.claims if 0 <= c.line < len(script.lines)] + screen_claims(script)

@@ -1,0 +1,41 @@
+# Kho ý tưởng evergreen kênh "Sống Khéo" (2026-10-04). team/idea_scout.py lấy dần, cân theo `mix` của pillar.
+# `hint` = nguồn chính thống researcher nên tìm trước (đã thấy trang có nội dung này — research/probes/k-research.md
+# §6, V = đã fetch 2026-10-04). Trạng thái (bỏ / đã làm) lưu ở DB web, KHÔNG sửa file này.
+# Loại có chủ ý: "cho đồ ăn còn nóng vào tủ lạnh" — Viện Dinh dưỡng và BV Tâm Anh nói ngược nhau (k-research §6).
+ideas:
+  # ── bếp & thực phẩm: chỉ "biết/tránh", nguồn tier1 ──────────────────────────────────────────────────────
+  - {id: b01, pillar: bep_an_toan, title: "Đông đá không giết được vi khuẩn — chỉ làm chúng ngủ", hint: "viendinhduong.vn (V)"}
+  - {id: b02, pillar: bep_an_toan, title: "Thịt đã rã đông có được cấp đông lại không", hint: "viendinhduong.vn (V)"}
+  - {id: b03, pillar: bep_an_toan, title: "Cắt bỏ chỗ mốc rồi ăn phần còn lại: vì sao không an toàn", hint: "suckhoedoisong.vn (V), fsis.usda.gov"}
+  - {id: b04, pillar: bep_an_toan, title: "Ngâm rau nước muối có rửa được thuốc trừ sâu không", hint: "cơ quan ATTP tỉnh (V, cũ 2015) — tìm nguồn mới hơn"}
+  - {id: b05, pillar: bep_an_toan, title: "Có nên rửa trứng trước khi cất tủ lạnh", hint: "fsis.usda.gov / foodsafety.gov"}
+  - {id: b06, pillar: bep_an_toan, title: "Rửa thịt sống dưới vòi nước: thói quen nên bỏ", hint: "fsis.usda.gov, cdc.gov"}
+  - {id: b07, pillar: bep_an_toan, title: "Rã đông thịt đúng cách: ba cách an toàn, một cách nên tránh", hint: "fsis.usda.gov"}
+  - {id: b08, pillar: bep_an_toan, title: "Đồ ăn thừa để tủ lạnh được mấy ngày", hint: "fsis.usda.gov (FoodKeeper), foodsafety.gov"}
+  - {id: b09, pillar: bep_an_toan, title: "Bột ngọt có gây ung thư không: cơ quan an toàn thực phẩm nói gì", hint: "fda.gov, suckhoedoisong.vn (V)"}
+  # ── tiền bạc & chống lừa đảo ────────────────────────────────────────────────────────────────────────────
+  - {id: t01, pillar: tien_bac, title: "Ngân hàng không gửi đường link qua tin nhắn: nhận ra tin giả thế nào", hint: "sbv.gov.vn (V — Thông tư 50/2024)"}
+  - {id: t02, pillar: tien_bac, title: "Năm kịch bản lừa đảo qua mạng phổ biến nhất năm 2026", hint: "bocongan.gov.vn (V, 2026-09-08)"}
+  - {id: t03, pillar: tien_bac, title: "Cho thuê tài khoản ngân hàng có thể bị phạt tới trăm triệu", hint: "sbv.gov.vn, chinhphu.vn"}
+  - {id: t04, pillar: tien_bac, title: "Cuộc gọi video giả người quen bằng AI: ba cách kiểm tra", hint: "bocongan.gov.vn (V)"}
+  - {id: t05, pillar: tien_bac, title: "Quy tắc năm mươi ba mươi hai mươi cho lương mười triệu", hint: "trang giáo dục tài chính của ngân hàng"}
+  - {id: t06, pillar: tien_bac, title: "Rút tiền mặt từ thẻ tín dụng: phí và lãi tính thế nào", hint: "biểu phí ngân hàng (vietcombank, techcombank…)"}
+  - {id: t07, pillar: tien_bac, title: "Đừng đưa dữ liệu khuôn mặt cho người lạ: thủ đoạn sinh trắc học mới", hint: "sbv.gov.vn"}
+  # ── điện thoại & ứng dụng ───────────────────────────────────────────────────────────────────────────────
+  - {id: d01, pillar: dien_thoai, title: "Sạc điện thoại qua đêm có làm chai pin không", hint: "support.apple.com/vi-vn/108055 (V)"}
+  - {id: d02, pillar: dien_thoai, title: "Bật giới hạn sạc tám mươi phần trăm trên iPhone", hint: "support.apple.com/vi-vn (V)"}
+  - {id: d03, pillar: dien_thoai, title: "Kiểm tra app nào đang dùng vị trí của bạn trên Android", hint: "support.google.com/android (V)"}
+  - {id: d04, pillar: dien_thoai, title: "Bật bảo mật hai lớp cho Zalo trong một phút", hint: "help.zalo.me (R — 403 với bot, chụp trình duyệt được)"}
+  - {id: d05, pillar: dien_thoai, title: "Điện thoại bị mất: việc cần làm trong năm phút đầu", hint: "support.apple.com, support.google.com"}
+  - {id: d06, pillar: dien_thoai, title: "Tắt quyền truy cập danh bạ của app lạ", hint: "support.apple.com, support.google.com"}
+  # ── giao tiếp & ứng xử: "gợi ý", không "khoa học chứng minh" ───────────────────────────────────────────
+  - {id: g01, pillar: giao_tiep, title: "Từ chối cho bạn vay tiền mà không mất lòng", hint: "bài của chuyên gia tâm lý/trường đại học"}
+  - {id: g02, pillar: giao_tiep, title: "Khi sếp hỏi việc chưa xong: nói thế này thay vì xin lỗi", hint: "Harvard Business Review, trang hướng nghiệp đại học"}
+  - {id: g03, pillar: giao_tiep, title: "Ba câu nên tránh khi đi phỏng vấn xin việc", hint: "trang hướng nghiệp đại học"}
+  - {id: g04, pillar: giao_tiep, title: "Đòi lại tiền bạn bè đã mượn: cách nhắn tin khéo", hint: "chuyên gia tài chính cá nhân/tâm lý"}
+  - {id: g05, pillar: giao_tiep, title: "Lắng nghe chủ động: một mẹo nhỏ làm người khác thích nói chuyện với bạn", hint: "trang tâm lý học có tác giả"}
+  - {id: g06, pillar: giao_tiep, title: "Nhận lời phê bình mà không cãi: câu mở đầu nên dùng", hint: "trang hướng nghiệp đại học"}
+  - {id: g07, pillar: giao_tiep, title: "Xin nghỉ phép sao cho sếp dễ duyệt", hint: "trang nhân sự/hướng nghiệp"}
+  # ── nhà cửa (ngoài mùa) ─────────────────────────────────────────────────────────────────────────────────
+  - {id: n01, pillar: theo_mua, title: "Đừng trộn nước tẩy javel với giấm: vì sao nguy hiểm", hint: "cdc.gov, poison control"}
+  - {id: n02, pillar: theo_mua, title: "Rút sạc khỏi ổ điện khi không dùng: có tiết kiệm điện thật không", hint: "evn.com.vn, energy.gov"}
