@@ -15,6 +15,9 @@ replace:
   # 2026-10-02, VieNeu SDK 3.8.3 giọng Thiện Minh, ASR exp-echo (out/demo-giong/pa_*.wav):
   # thô "GPT-6.1 Sol" → ASR "gpt gạch nối sáu một sôi"; thay → "gpt sáu một son" ✓
   # "Gemini 4 Argon" để thô là tốt nhất (ASR "gemini bốn aon") — KHÔNG thay.
+  # 2026-10-07 (research/21 §8 B6), giọng Tony clone, ASR Qwen3, 2 seed: thô "PDF" → "fdf" / "hoặc gì đấy"; "pi đi ép" →
+  # "Hiệp Bảy Đế hẹp" / "phát video"; "pê đê ép" → "pdf" ✓ cả 2. File nghe: scratchpad phiên 2026-10-07 (chờ Tony nghe).
+  pdf: "pê đê ép"
   gpt-6.1: "GPT sáu chấm một"
   gpt-6: "GPT sáu"
 

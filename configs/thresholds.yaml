@@ -72,6 +72,12 @@ t1_retention_warn:
   first_info_max_sec: 3.0    # từ mang thông tin (số/tên riêng/từ nhấn) đầu tiên của hook
   ai_image_max_share: 0.5    # thời lượng ảnh AI / tổng
   max_idea_sec: 12           # một shot (một ý hình) dài nhất
+  # 2026-10-06 (research/21) — THÊM (không sửa ngưỡng cũ), viết trước khi dựng video nào với chúng. Lấy từ 38 video
+  # viral VN: từ đầu tiên ≤ 0,24s ở 19/19 AI, ≤ 0,8s ở 19/19 mẹo; từ trong 3s đầu p25 = 9 (AI) / 6 (mẹo);
+  # đổi hình mỗi 2–4s (AI trung vị shot 4,2s; mẹo không mặt 2,6 cắt/10s).
+  first_word_max_sec: 0.5    # giây của từ đầu tiên
+  words_3s_min: 7            # số từ được đọc trong 3s đầu
+  max_static_sec: 6.0        # khoảng dài nhất hình không đổi (ranh giới shot hoặc đổi khung `motion.segments`)
 
 # ─────────────────────────────────────────────────────────────
 # T2 — chất lượng hình ảnh (VLM). ĐỀ XUẤT render lại, không chặn.

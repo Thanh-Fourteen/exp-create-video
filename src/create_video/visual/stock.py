@@ -80,6 +80,7 @@ def _pexels(q: str, key: str, want_sec: float) -> list[dict]:
             continue
         f = min(files, key=lambda f: f["height"])          # nhỏ nhất ≥ 1280 — đủ nét, đỡ nặng
         out.append({"provider": "pexels", "id": str(v["id"]), "page_url": v["url"], "link": f["link"],
+                    "text": v["url"].rstrip("/").rsplit("/", 1)[-1],
                     "author": (v.get("user") or {}).get("name", ""), "author_url": (v.get("user") or {}).get("url", ""),
                     "width": f["width"], "height": f["height"], "duration": float(v["duration"])})
     # Clip đủ dài cho shot lên trước (không phải lặp), rồi giữ thứ tự liên quan của Pexels.
@@ -97,10 +98,94 @@ def _pixabay(q: str, key: str, want_sec: float) -> list[dict]:
             f = (v.get("videos") or {}).get(size) or {}
             if f.get("url") and f.get("height", 0) >= MIN_H and f["height"] > f.get("width", 0):
                 out.append({"provider": "pixabay", "id": str(v["id"]), "page_url": v.get("pageURL", ""),
+                            "text": v.get("tags", ""),
                             "link": f["url"], "author": v.get("user", ""), "author_url": "",
                             "width": f["width"], "height": f["height"], "duration": float(v["duration"])})
                 break
     return sorted(out, key=lambda c: c["duration"] < want_sec)
+
+
+# Độ liên quan (2026-10-05): Pexels trả "an-electric-car-charging" cho "charging cable plugged into smartphone" ở vị trí
+# đầu → video sạc điện thoại mở bằng đầu sạc ô tô. Chấm theo mô tả có sẵn (slug trang Pexels / tag Pixabay): từ trùng
+# với query (+ đồng nghĩa) cộng điểm, từ "lạc đề" (xe cộ…) mà query không có thì trừ — chọn điểm cao nhất, không lấy bừa
+# kết quả đầu.
+_SYN = {"phone": {"smartphone", "cellphone", "mobile", "iphone"}, "money": {"cash", "banknotes", "banknote", "dong"},
+        "laptop": {"computer", "notebook"}, "kitchen": {"cooking", "cook"}, "food": {"meal", "dish"}}
+_STOP = {"a", "an", "the", "of", "on", "in", "into", "with", "and", "up", "close", "closeup", "shot", "view", "video",
+         "person", "people", "hands", "hand", "using", "while", "at", "to", "her", "his", "their", "its",
+         "two", "three", "four", "five", "some", "few"}
+_OFF = {"car", "cars", "vehicle", "vehicles", "ev", "truck", "bus", "motorcycle", "scooter", "bike", "electric"}
+
+
+def _words(t: str) -> set[str]:
+    import re as _re
+
+    return {w for w in _re.split(r"[^a-z0-9]+", t.lower()) if w and w not in _STOP}
+
+
+def _norm(ws: set[str]) -> set[str]:
+    out = set(ws)
+    for k, syn in _SYN.items():
+        if k in ws or ws & syn:
+            out |= {k} | syn
+    return out
+
+
+def _concepts(ws: set[str]) -> set[str]:
+    """Mỗi nhóm đồng nghĩa là MỘT khái niệm (2026-10-06): bản cũ nở "smartphone" thành 5 từ rồi đếm cả 5 → clip
+    "a-person-putting-a-smartphone-on-the-tiles" (thật ra quay Apple Watch) thắng clip đúng chủ đề "sạc"."""
+    out = set()
+    for w in ws:
+        out.add(next((k for k, syn in _SYN.items() if w == k or w in syn), w))
+    return out
+
+
+def _head(query: str) -> str | None:
+    """Khái niệm của từ nội dung ĐẦU TIÊN trong query = VẬT CHÍNH (quy ước trong prompt scriptwriter, 2026-10-06)."""
+    import re as _re
+
+    for w in _re.split(r"[^a-z0-9]+", query.lower()):
+        if w and w not in _STOP:
+            return next(iter(_concepts({w})))
+    return None
+
+
+def relevance(query: str, text: str) -> int:
+    """2 điểm / khái niệm của query có trong mô tả, −3 / từ lạc đề (xe cộ) mà query không có.
+
+    Thiếu VẬT CHÍNH (từ đầu query) → tối đa 1 điểm, dưới mọi ngưỡng (2026-10-06, research/21 §8 C5): "hand opening
+    refrigerator door" từng chọn clip "person-opening-the-door" (khớp mở + cửa = 4 điểm) — cửa nhà cho câu về tủ lạnh."""
+    q, t = _concepts(_words(query)), _concepts(_words(text))
+    score = 2 * len(q & t) - 3 * len((_words(text) & _OFF) - _words(query))
+    head = _head(query)
+    if head is not None and head not in t:
+        score = min(score, 1)
+    return score
+
+
+# Ngưỡng (viết 2026-10-06, research/20 §4, trước khi chạy): clip phải khớp ≥ 1 khái niệm; cảnh mở đầu (hook — 1–2 giây
+# quyết định lướt) ≥ 2. Không đạt → ảnh chụp thật cùng ngưỡng → ảnh AI vẽ đúng prompt.
+MIN_SCORE, MIN_SCORE_HOOK = 2, 4
+
+
+def _dark_edge_photo(jpg: Path) -> bool:
+    """Ảnh chụp có mép TỐI PHẲNG sau khi render (2026-10-07, research/21 §8 D2): ảnh "điện thoại bàn trong phòng tối" làm T1
+    chặn cả video (dải 32px mép dưới). Mép dưới bị scrim phủ tối thêm ~50% (Video.tsx) → ngưỡng mép dưới gấp đôi."""
+    import numpy as np
+    from PIL import Image
+
+    try:
+        im = Image.open(jpg).convert("L")
+    except Exception:
+        return False
+    w, h = im.size
+    k = max(1080 / w, 1920 / h)
+    im = im.resize((round(w * k), round(h * k)))
+    x0, y0 = (im.width - 1080) // 2, (im.height - 1920) // 2
+    a = np.asarray(im.crop((x0, y0, x0 + 1080, y0 + 1920)), dtype=np.float32)
+    side = any(b.mean() < 22 and b.std() < 3 for b in (a[:, :48], a[:, -48:]))
+    bottom = a[-48:, :]
+    return side or (bottom.mean() < 44 and bottom.std() < 6)
 
 
 def _dark_edge(mp4: Path) -> bool:
@@ -118,7 +203,9 @@ def _dark_edge(mp4: Path) -> bool:
     except ValueError:
         dur = 4.0
     # Đầu clip luôn được dùng (shot bắt đầu ở frame 0 của clip) → lấy mẫu ngay đầu + rải trong 6s đầu.
-    for at in (0.05, min(1.0, dur * 0.2), min(2.5, dur * 0.45), min(4.5, dur * 0.7)):
+    # 2026-10-07 (research/21 §8 D2): lấy mẫu tới ~10s (shot dài dùng tới đó — clip "điện thoại nền tối" tối ở giây 6+, lọt
+    # bộ lọc cũ chỉ xem 4,5s đầu → T1 chặn cả video).
+    for at in (0.05, min(1.0, dur * 0.15), min(2.5, dur * 0.3), min(4.5, dur * 0.45), min(7.0, dur * 0.65), min(10.0, dur * 0.85)):
         r = subprocess.run([ff, "-v", "error", "-ss", f"{at:.2f}", "-i", str(mp4), "-frames:v", "1", "-vf",
                             "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,format=gray",
                             "-f", "rawvideo", "-"], capture_output=True)
@@ -126,19 +213,24 @@ def _dark_edge(mp4: Path) -> bool:
         if a.size != 1080 * 1920:
             continue
         a = a.reshape(1920, 1080).astype(np.float32)
-        for band in (a[:, :48], a[:, -48:], a[-48:, :]):
+        for band in (a[:, :48], a[:, -48:]):
             if band.mean() < 22 and band.std() < 3:
                 return True
+        # Mép DƯỚI nằm dưới scrim tối ~50% (Video.tsx) → ngưỡng gấp đôi, như ảnh chụp (_dark_edge_photo).
+        bottom = a[-48:, :]
+        if bottom.mean() < 44 and bottom.std() < 6:
+            return True
         # Mép TRÊN nằm dưới dải tối mờ của bố cục headline (×~0,4 độ sáng) → clip tối vừa cũng thành dải đen phẳng.
         top = a[:48, :]
-        if top.mean() < 40 and top.std() < 12:
+        if top.mean() < 55 and top.std() < 12:   # 40→55 (2026-10-08: clip mép trên 42,6/1,9 lọt → T1 chặn; 0/60 clip khác bị loại)
             return True
         if a.mean() < 28:            # cả khung quá tối (clip "dark room" độ sáng TB ~15) — trên điện thoại chỉ thấy đen
             return True
     return False
 
 
-def fetch(query: str, dst: Path, *, want_sec: float = 5.0, exclude: set[str] | None = None) -> Clip:
+def fetch(query: str, dst: Path, *, want_sec: float = 5.0, exclude: set[str] | None = None,
+          min_score: int = MIN_SCORE) -> Clip:
     """query → mp4 dọc ở `dst`. Không ném lỗi: hỏng thì `ok=False` để pipeline lùi về ảnh FLUX."""
     env = _env()
     exclude = exclude or set()
@@ -150,11 +242,14 @@ def fetch(query: str, dst: Path, *, want_sec: float = 5.0, exclude: set[str] | N
             continue
         try:
             cands = [c for c in fn(query, key, want_sec) if f"{c['provider']}:{c['id']}" not in exclude]
+            # điểm liên quan trước, giữ thứ tự cũ (đủ dài + thứ hạng nhà cung cấp) khi bằng điểm
+            cands.sort(key=lambda c: -relevance(query, c.get("text", "")))
+            cands = [c for c in cands if relevance(query, c.get("text", "")) >= min_score]
         except Exception as e:   # 429/403/mạng — thử nguồn kế
             errs.append(f"{prov}: {type(e).__name__}: {e}"[:160])
             continue
         if not cands:
-            errs.append(f"{prov}: không có clip dọc ≥ {MIN_H}px dài {MIN_SEC}–{MAX_SEC}s")
+            errs.append(f"{prov}: không có clip dọc ≥ {MIN_H}px dài {MIN_SEC}–{MAX_SEC}s khớp ≥ {min_score} điểm")
             continue
         cache = None
         for c in cands[:4]:                                 # bỏ clip mép tối phẳng, thử ứng viên kế
@@ -191,6 +286,7 @@ def _pexels_photo(q: str, key: str) -> list[dict]:
         # Pexels cho thêm tham số Imgix vào `src.original` → cắt sẵn 1080×1920, đỡ tải ảnh gốc 20MB.
         link = ph["src"]["original"] + "?auto=compress&cs=tinysrgb&fit=crop&w=1080&h=1920"
         out.append({"provider": "pexels", "id": f"p{ph['id']}", "page_url": ph["url"], "link": link,
+                    "text": (ph.get("alt") or "") + " " + ph["url"].rstrip("/").rsplit("/", 1)[-1],
                     "author": ph.get("photographer", ""), "author_url": ph.get("photographer_url", ""),
                     "width": 1080, "height": 1920, "duration": 0.0})
     return out
@@ -201,12 +297,13 @@ def _pixabay_photo(q: str, key: str) -> list[dict]:
         {"key": key, "q": q[:100], "per_page": 20, "safesearch": "true", "image_type": "photo",
          "orientation": "vertical"}), {})
     return [{"provider": "pixabay", "id": f"p{h['id']}", "page_url": h.get("pageURL", ""), "link": h["largeImageURL"],
+             "text": h.get("tags", ""),
              "author": h.get("user", ""), "author_url": "", "width": h.get("imageWidth", 0),
              "height": h.get("imageHeight", 0), "duration": 0.0}
             for h in d.get("hits", []) if h.get("largeImageURL") and h.get("imageHeight", 0) >= MIN_H]
 
 
-def fetch_photo(query: str, dst: Path, *, exclude: set[str] | None = None) -> Clip:
+def fetch_photo(query: str, dst: Path, *, exclude: set[str] | None = None, min_score: int = MIN_SCORE) -> Clip:
     """query → ẢNH CHỤP THẬT dọc (jpg) — dự phòng khi không có clip (2026-10-05, research/19): ảnh thật trước, ảnh AI sau."""
     env = _env()
     exclude = exclude or set()
@@ -218,18 +315,27 @@ def fetch_photo(query: str, dst: Path, *, exclude: set[str] | None = None) -> Cl
             continue
         try:
             cands = [c for c in fn(query, key) if f"{c['provider']}:{c['id']}" not in exclude]
+            cands.sort(key=lambda c: -relevance(query, c.get("text", "")))
+            cands = [c for c in cands if relevance(query, c.get("text", "")) >= min_score]
         except Exception as e:
             errs.append(f"{prov}: {type(e).__name__}: {e}"[:160])
             continue
         if not cands:
-            errs.append(f"{prov}: không có ảnh dọc ≥ {MIN_H}px")
+            errs.append(f"{prov}: không có ảnh dọc ≥ {MIN_H}px khớp ≥ {min_score} điểm")
             continue
-        c = cands[0]
-        cache = CACHE / f"{c['provider']}-{c['id']}.jpg"
-        if not cache.exists():
-            req = urllib.request.Request(c["link"], headers={"User-Agent": UA})
-            with urllib.request.urlopen(req, timeout=60) as r:
-                cache.write_bytes(r.read())
+        cache = None
+        for c in cands[:4]:                                 # bỏ ảnh mép tối phẳng, thử ứng viên kế (như clip)
+            cache = CACHE / f"{c['provider']}-{c['id']}.jpg"
+            if not cache.exists():
+                req = urllib.request.Request(c["link"], headers={"User-Agent": UA})
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    cache.write_bytes(r.read())
+            if not _dark_edge_photo(cache):
+                break
+            cache = None
+        if cache is None:
+            errs.append(f"{prov}: ảnh khớp đều có mép tối phẳng (T1 viền đen)")
+            continue
         dst.parent.mkdir(parents=True, exist_ok=True)
         dst.write_bytes(cache.read_bytes())
         return Clip(ok=True, query=query, path=str(dst), **{k: c[k] for k in (

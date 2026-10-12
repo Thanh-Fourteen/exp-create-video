@@ -3,7 +3,9 @@
 name: "Sống Khéo"
 short: "Mẹo"
 order: 2
-handle: ""                   # TikTok ID — songkheo.meo đã có người dùng (2026-10-04)
+handle: "songkheo.vn"        # TikTok ID — tạo 2026-10-04 20:49 (đọc từ trang kênh 2026-10-06)
+buffer_channel_id: "6ac766a56a5c39ccb64eda36"   # đăng 1 nút qua Buffer — research/22
+tiktok_sec_uid: "MS4wLjABAAAAtDXXfdIyxOKIsvOyYddZjfxIK8kHiFLNOz8h4ZL9sEIkChaa9lY4ddv61sZKwzPV"   # ID kênh cho yt-dlp (tiktokuser:…) — tự theo dõi số, research/23
 accent: "#F2B544"            # vàng mật ong (avatar out/kenh-meo/avatar/)
 audience: "người Việt 18–45, phổ thông: dân văn phòng, sinh viên, người nội trợ, người mới đi làm"
 tone: "thân thiện, chắc chắn, như người anh hiểu chuyện mách nhỏ — không giảng đạo, không hù doạ"
@@ -11,16 +13,19 @@ rubric: configs/channels/meo/rubric.md
 series: {prefix: "Sống Khéo #"}
 
 # research/13 §1 — lọc theo "làm được không cần quay". `mix` là tỉ lệ khởi đầu (A), chỉnh sau 20 video theo
-# approve_rate từng pillar. Sức khoẻ để sau; lau chùi trước/sau, DIY, làm đẹp, kỹ thuật nấu: KHÔNG làm.
+# approve_rate từng pillar. 2026-10-10 (research/26): BỎ luật cấm mẹo bếp/nhà cửa — đó là dạng bùng nổ nhất (×47).
+# Vẫn KHÔNG: chữa bệnh/"thần dược", trộn hoá chất, làm đẹp.
 pillars:
   # 2026-10-04 (research/15 §3): tâm lý học "sự thật / vì sao" 425–557K (×27–29) → gộp vào giao tiếp; thêm pháp luật đời
   # thường (truongnamcao trung vị 57K, luatvietnam 25K). Tỉ lệ chỉnh lại theo khảo sát (A).
-  giao_tiep:   {vi: "Giao tiếp & tâm lý", mix: 0.25, desc: "giao tiếp, ứng xử, sự thật tâm lý học đời thường — nói gì, tránh nói gì, vì sao người ta hành xử vậy"}
-  tien_bac:    {vi: "Tiền bạc",       mix: 0.20, desc: "tiền & tiết kiệm & chống lừa đảo — phí ẩn, quy tắc chi tiêu, dấu hiệu lừa đảo"}
-  phap_luat:   {vi: "Pháp luật đời thường", mix: 0.15, desc: "hỏi–đáp pháp luật đời thường — làm thế này có bị phạt không, quyền của bạn, mức phạt mới (có văn bản)"}
-  dien_thoai:  {vi: "Điện thoại",     mix: 0.15, desc: "điện thoại & ứng dụng đời thường — cài đặt, tính năng ẩn, bảo mật (iPhone, Android, Zalo, VNeID)"}
-  bep_an_toan: {vi: "Bếp & thực phẩm", mix: 0.15, desc: "chọn, bảo quản, an toàn thực phẩm — dạng BIẾT/TRÁNH, KHÔNG dạy kỹ thuật nấu"}
-  theo_mua:    {vi: "Theo mùa",       mix: 0.10, desc: "nhà cửa theo mùa — nồm ẩm, nắng nóng, mùa mưa, Tết: việc nên làm ngay"}
+  # 2026-10-10 (research/26 — khảo sát 6 kênh mẹo VN, 270 video): mẹo bếp/nhà cửa làm ngay bùng nổ nhất (×47, 4,4M);
+  # app đời thường (Zalo, VNeID) ×10–14; pháp luật đời thường ×9; tiền bạc tính cụ thể ×16–93. Tỉ lệ (A).
+  bep_an_toan: {vi: "Mẹo bếp",        mix: 0.30, desc: "mẹo bếp làm ngay: sơ chế, nấu nhanh – ngon hơn, chọn đồ tươi, bảo quản, an toàn thực phẩm"}
+  theo_mua:    {vi: "Nhà cửa",        mix: 0.20, desc: "mẹo nhà cửa: giặt giũ, dọn dẹp, khử mùi, tiết kiệm điện nước, việc nên làm theo mùa"}
+  dien_thoai:  {vi: "Điện thoại",     mix: 0.20, desc: "điện thoại & ứng dụng đời thường — cài đặt, tính năng ẩn, mẹo dùng (iPhone, Android, Zalo, VNeID, app ngân hàng)"}
+  tien_bac:    {vi: "Tiền bạc",       mix: 0.15, desc: "tiền & tiết kiệm & chống lừa đảo — mẹo tiết kiệm, phí ẩn, tính lãi, dấu hiệu lừa đảo"}
+  phap_luat:   {vi: "Pháp luật đời thường", mix: 0.10, desc: "hỏi–đáp pháp luật đời thường — làm thế này có bị phạt không, quyền của bạn (có văn bản)"}
+  giao_tiep:   {vi: "Giao tiếp & tâm lý", mix: 0.05, desc: "câu nói, cách ứng xử dùng được ngay trong tình huống cụ thể"}
 
 # Loại hình scriptwriter được dùng. `chat` (bong bóng hội thoại) và `list` (thẻ mẹo đánh số / nên–tránh) là
 # bằng chứng của kênh này: mảng giao tiếp không có số liệu hay trang để chụp. Không `code`.
@@ -29,7 +34,7 @@ shot_kinds: [image, stock, stat, chart, screenshot, chat, list]   # stock 2026-1
 # R3/D6 (2026-10-04): DẠNG VIDEO rút từ khảo sát 18 kênh mẹo (research/15 §3). angles.py chọn 1/video, luân phiên.
 formats:
   su_that:
-    label: "Sự thật tâm lý"
+    label: "Sự thật"          # 2026-10-06: nhãn hiện trên video — dạng này dùng cả cho thực phẩm/điện thoại (research/21)
     desc: "'Sự thật tâm lý học về …' / 'Vì sao …' — 3–5 ý đánh số, mỗi ý một câu — @tamlyhocthanhcong 425K ×27"
     structure: "hook = 'Sự thật về <người/hiện tượng>' · ý 1, 2, 3… (thẻ list hiện dần, mỗi ý 1 câu + 1 câu ví dụ đời thường) · ý bất ngờ nhất để cuối · CTA gửi cho người đó"
   dung_neu_chua_biet:
@@ -56,7 +61,9 @@ formats:
 # research/13 §4 — allowlist theo tầng. tier1 là căn cứ DUY NHẤT cho claim sức khoẻ/an toàn thực phẩm.
 sources:
   tier1: [vfa.gov.vn, viendinhduong.vn, moh.gov.vn, who.int, fsis.usda.gov, foodsafety.gov, fda.gov, cdc.gov]
-  tier2: [thuvienphapluat.vn, vbpl.vn, luatvietnam.vn, moj.gov.vn, xaydungchinhsach.chinhphu.vn,
+  # 2026-10-10: mẹo bếp/nhà cửa (KHÔNG phải sức khoẻ/an toàn thực phẩm — hai loại đó vẫn bắt tier1) cần nguồn hướng dẫn
+  # nấu ăn/gia dụng uy tín.
+  tier2: [bachhoaxanh.com, dienmayxanh.com, cooky.vn, thegioididong.com, thuvienphapluat.vn, vbpl.vn, luatvietnam.vn, moj.gov.vn, xaydungchinhsach.chinhphu.vn,
           mayoclinic.org, health.harvard.edu, suckhoedoisong.vn, sbv.gov.vn, chinhphu.vn, baochinhphu.vn,
           bocongan.gov.vn, ais.gov.vn, khonggianmang.vn, evn.com.vn, nchmf.gov.vn,
           support.apple.com, support.google.com, help.zalo.me, samsung.com,
@@ -85,14 +92,14 @@ style:
   # hiện ở câu hook + câu chốt, miệng theo giọng đọc. Bản Kaggle nhép miệng thật (EchoMimicV3) = probe sau.
   mascot: {kind: kheo, name: "bé Khéo"}
   palette: {accent: "#F2B544"}
-  brand: {label: "Sống Khéo", counter: true}
+  brand: {label: "Sống Khéo", counter: false}   # 2026-10-06 research/21 §3: bộ đếm "01/16" = thêm 1 lớp chữ + báo trước video dài
   layout: minimal              # D3 research/15 §4 — nền tối, tiêu đề cố định, ý hiện dần (@tamlyhocthanhcong 425K)
   # D9: mô tả ảnh chụp (BFL guide; probes/r5-zimage.md) — FLUX cùng prompt kiểu này gần như ảnh chụp thật
   image_suffix: "realistic photograph in a Vietnamese home, shot on Fujifilm X-T5, 35mm f/1.8, soft natural window daylight, warm honey tones, shallow depth of field, sharp focus, no text, no people"
   # @tamlyhocthanhcong dùng lo-fi êm ("Cozy Rain Beats"); Tony muốn "nhịp nhẹ nhàng"
   music: "cozy lo-fi hip hop background music, soft rain ambience, mellow electric piano, gentle vinyl crackle, relaxed, 80 bpm, instrumental, no vocals"
   music_bpm: 80
-duration_default: 60           # D5: tổng hợp/dài thắng ở kênh mẹo (research/15 §3) — 60s mặc định, tới 120s khi dạng tổng hợp
+duration_default: 55           # 2026-10-06 research/21: trung vị 19 video viral mẹo 53s (cũ 60s, D5 research/15) — tổng hợp vẫn được dài
 
 voice: tony
 
@@ -100,9 +107,28 @@ trend:
   scout: idea_scout            # team/idea_scout.py — lịch mùa + kho ý tưởng (không có API trend mẹo cho VN)
 
 prompts:
+  # 2026-10-10 (research/26): ý tưởng = MẸO HAY làm ngay. Thay IDEA_SEARCH/SCOPE mặc định trong team/idea_gen.py.
+  idea_search: >-
+    Dùng WebSearch để tìm MẸO HAY người Việt dùng được ngay hôm nay: mẹo bếp (sơ chế cá/thịt/rau, nấu nhanh mà ngon hơn,
+    chọn đồ tươi ở chợ, bảo quản), mẹo nhà cửa (giặt, tẩy vết bẩn, khử mùi, tiết kiệm điện nước), mẹo điện thoại/ứng
+    dụng (Zalo, VNeID, iPhone, Android, app ngân hàng), mẹo tiền bạc (tiết kiệm, tính lãi, tránh phí, nhận ra lừa đảo),
+    pháp luật đời thường. Học từ dạng video mẹo Việt bùng nổ: "Mẹo rán cá, luộc ốc, xào mực" (4,4 triệu view),
+    "Đừng uống nước dừa nếu chưa biết 3 tuyệt chiêu này", "Tất cả ai dùng Zalo phải biết…", "Bị đánh, đánh lại có phạm
+    tội không?". Nguồn: bachhoaxanh.com, dienmayxanh.com, cooky.vn, support.apple.com, support.google.com, help.zalo.me,
+    trang ngân hàng, thuvienphapluat.vn; tin 7–14 ngày gần đây chỉ để bắt chuyện đang nóng (lừa đảo mới, mùa, Tết).
+  idea_scope: |-
+    2. MỖI Ý TƯỞNG LÀ MỘT MẸO CỤ THỂ LÀM ĐƯỢC NGAY, kết quả thấy được trong vài phút, đồ có sẵn trong nhà. `title` NÓI
+       LUÔN MẸO ("Rán cá không bắn dầu: thấm khô rồi lăn qua lớp bột mỏng", "Áo trắng ố vàng: ngâm nước ấm với baking
+       soda 30 phút") hoặc dạng "N mẹo …" có lợi ích rõ ("3 mẹo luộc rau xanh giòn"). KHÔNG chủ đề cảnh báo chung chung,
+       KHÔNG tin tức thuần, KHÔNG "vì sao/sự thật" không có việc để làm.
+       CẤM: chữa bệnh/"thần dược"/thay thuốc, trộn hoá chất tẩy rửa, làm đẹp, mẹo nguy hiểm (điện, gas, lửa), mẹo dân
+       gian không có nguồn. Mẹo dính sức khoẻ/an toàn thực phẩm chỉ khi cơ quan y tế/ATTP nói.
+    2b. (research/28) Ưu tiên dạng DANH SÁCH "N mẹo / N lệnh / N bước / N trang…" (bùng ×1,64) và góc "ít người biết"
+        (×1,37); tiêu đề KHÔNG mở bằng tên riêng tiếng Anh (×0,71) — tên công cụ để sau dấu ":".
+    3. Phải có NGUỒN kiểm chứng (trang hướng dẫn uy tín, hãng, cơ quan) — ghi domain vào `hint`. Không chắc → bỏ.
   research_intro: >-
     Bạn là RESEARCHER của kênh TikTok tiếng Việt "Sống Khéo" — mẹo đời sống cho người Việt phổ thông
-    (giao tiếp, tiền bạc, điện thoại, an toàn thực phẩm, nhà cửa theo mùa).
+    (mẹo bếp, mẹo nhà cửa, điện thoại, tiền bạc, pháp luật đời thường — 2026-10-10 research/26).
   research_sources: |-
     1. Ưu tiên nguồn CHÍNH THỐNG:
        - Thực phẩm/sức khoẻ: CHỈ cơ quan nhà nước và tổ chức y tế — vfa.gov.vn (Cục An toàn thực phẩm),
@@ -112,11 +138,14 @@ prompts:
          chính ngân hàng.
        - Điện thoại/app: support.apple.com, support.google.com, help.zalo.me, trang hỗ trợ của hãng.
        - Nhà cửa theo mùa: nchmf.gov.vn (khí tượng), evn.com.vn (điện).
+       - Mẹo bếp (sơ chế, nấu, chọn đồ, bảo quản — KHÔNG phải claim sức khoẻ/an toàn thực phẩm) và mẹo nhà cửa (giặt,
+         tẩy, khử mùi, tiết kiệm): bachhoaxanh.com, dienmayxanh.com, cooky.vn, thegioididong.com — trang hướng dẫn
+         có tác giả (2026-10-10, research/26). Mẹo đụng tới an toàn thực phẩm vẫn chỉ theo nguồn y tế ở trên.
        - Giao tiếp: sách/bài của tác giả có tên tuổi, trang trường đại học, tổ chức tâm lý — nói là "gợi ý", KHÔNG
          nói là "khoa học chứng minh" nếu nguồn không phải nghiên cứu.
        Báo (vnexpress, tuoitre, dantri, thanhnien…) chỉ khi không có nguồn chính thống — và KHÔNG BAO GIỜ làm căn
        cứ cho claim sức khoẻ/an toàn thực phẩm.
-       KHÔNG dùng: mạng xã hội, diễn đàn, trang tổng hợp mẹo/SEO, trang bán hàng, video.
+       KHÔNG dùng: mạng xã hội, diễn đàn, trang tổng hợp mẹo/SEO không tác giả, video.
        Mẹo nghe hay mà không tìm được nguồn chính thống → BỎ, đừng đưa vào facts. Mẹo nguy hiểm (trộn hoá chất,
        dùng điện/lửa sai cách, chữa bệnh tại nhà) → KHÔNG làm, kể cả khi có nguồn.
   # 2026-10-04 (demo 1): chụp trang umassd.edu tiếng Anh → chữ nhỏ, khán giả phổ thông không đọc được → chỉ trang TIẾNG VIỆT.
@@ -161,3 +190,12 @@ prompts:
   json_stat_example: '{"value": 2, "unit": "giờ", "label": "Thịt để ngoài tủ lạnh tối đa"}'
   topic_of_video: "mẹo đời sống (giao tiếp, tiền bạc, điện thoại, an toàn thực phẩm, nhà cửa)"
   critic_terms_note: "giọng thân mật, câu ngắn, tên app/tính năng giữ nguyên (Zalo, Face ID) là CHUẨN của kênh, không phải lỗi"
+
+# Lịch đăng (2026-10-08, research/probes/w7-lich-dang-research.md). Giờ VN; `slots` theo THỨ TỰ ƯU TIÊN.
+posting:
+  slots: ["12:30", "17:30", "08:30", "20:00"]   # 2026-10-09 (§7): 6 kênh đời sống VN, 270 video — 12–14h ×1,42 (n=24), 17–19h ×1,10; 20–22h ×0,77
+  per_day: 4                  # 2026-10-10 Tony: thêm khung tối 20:00/20:30 → 4 video/ngày (khung tối ×0,77 view, §7 — Tony vẫn muốn)
+  min_gap_hours: 2            # 2026-10-10: 17:30 → 20:00 cách 2,5h (trước 3h làm khung 20:00 kênh mẹo không bao giờ trống)
+  mode: automatic
+  ai_label: false             # 2026-10-11 Tony: THỬ NGHIỆM bỏ nhãn "Nội dung do AI tạo" (research/28 §6) — true để bật lại
+  order: oldest               # mẹo không hết hạn → video dựng trước đăng trước

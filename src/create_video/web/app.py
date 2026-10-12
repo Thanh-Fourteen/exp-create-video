@@ -31,16 +31,40 @@ from . import db
 from .library import list_videos, load_video, suggest_meta, suggestions, voices
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-OUT = REPO_ROOT / "out"
+from ..paths import channel_root, find_web_video
+
+LOG_DIR = REPO_ROOT / "exp" / "web" / "logs"
+
+
+def _jdir(j: dict) -> Path:
+    """Thư mục video của job web: videos/<kênh>/<video_id> (2026-10-05)."""
+    return channel_root(j.get("channel") or "ai") / j["video_id"]
 HERE = Path(__file__).parent
 
 # Allowlist danh tính Tailscale. `XUONG_DEV=1` cho phép gọi thẳng 127.0.0.1 không header (chỉ để test local).
 ALLOW = {x.strip().lower() for x in os.environ.get("XUONG_ALLOW", "thanh-fourteen@github").split(",") if x.strip()}
 DEV = os.environ.get("XUONG_DEV") == "1"
 
+# 2026-10-09: web treo im lặng lần 2 (sau 06/10) — trang động không trả lời, file tĩnh vẫn trả, 16 luồng chờ futex. ptrace_scope=1
+# chặn py-spy → `kill -USR1 <pid>` in ngăn xếp MỌI luồng ra journal (xuong-watchdog làm trước khi restart).
+import faulthandler
+import signal as _signal
+
+faulthandler.register(_signal.SIGUSR1, all_threads=True)
+
 app = FastAPI(title="Xưởng video", docs_url=None, redoc_url=None, openapi_url=None)
+
+
+@app.on_event("startup")
+def _keep_db_open() -> None:
+    db.keep_open()   # 2026-10-10: tránh dọn WAL + fsync mỗi request (gốc của web treo — xem db.connect)
 app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
 tpl = Jinja2Templates(directory=HERE / "templates")
+# Phiên bản CSS = mtime của file (2026-10-08): `?v=` theo giờ làm điện thoại giữ CSS cũ sau khi build lại → thanh đáy
+# 6 cột (grid-cols-6 chỉ có trong CSS mới) đổ thành 1 cột dọc.
+tpl.env.globals["css_v"] = lambda: int((HERE / "static" / "app.css").stat().st_mtime)
+tpl.env.filters["tg"] = lambda t: time.strftime("%H:%M %d/%m", time.localtime(t)) if t else ""
+tpl.env.filters["so"] = lambda n: "–" if n is None else (f"{n/1000:.1f}k".replace(".0k", "k").replace(".", ",") if n >= 10000 else f"{int(n):,}".replace(",", "."))
 
 
 def _login(request: Request) -> str | None:
@@ -121,6 +145,13 @@ def switch_channel(request: Request, cid: str, next: str = "/"):
         raise HTTPException(404, "Không có kênh này")
     if not next.startswith("/") or next.startswith("//"):
         next = "/"
+    # Đang xem một video của kênh khác → về Thư viện của kênh vừa chọn (2026-10-08, Tony: "vào 1 video chuyển kênh AI qua
+    # mẹo hoặc ngược lại không được" — trước đây quay lại đúng video cũ, trang video luôn hiện theo kênh CỦA VIDEO).
+    m = re.match(r"^/library/([^/?#]+)", next)
+    if m and cid != "all":
+        v = load_video(m.group(1))
+        if v is not None and v.get("channel") != cid:
+            next = "/library"
     resp = RedirectResponse(next, status_code=303)
     resp.set_cookie(COOKIE, cid, max_age=3600 * 24 * 365, httponly=True, samesite="lax", secure=not DEV)
     if cid != "all":
@@ -134,7 +165,7 @@ def _job_channel(j: dict) -> dict:
     j["channel_short"], j["channel_accent"] = c.short, c.accent
     j["pillar_vi"] = c.pillar_vi(j.get("pillar") or "")
     if not j["pillar_vi"]:   # để máy xếp → researcher đã chọn trong brief.json (hiện sau, sửa bằng "Viết lại")
-        b = OUT / j["video_id"] / "brief.json"
+        b = _jdir(j) / "brief.json"
         try:
             pk = json.loads(b.read_text(encoding="utf-8")).get("pillar") if b.exists() else None
         except (OSError, json.JSONDecodeError):
@@ -156,9 +187,9 @@ def _jobs_view() -> list[dict]:
     jobs.sort(key=lambda j: (order[j["state"]], j["created_at"]))
     for j in jobs:
         _job_channel(j)
-        j["snap"] = snapshot(OUT / j["video_id"], gate=bool(j["gate"]), hist=hist)
+        j["snap"] = snapshot(_jdir(j), gate=bool(j["gate"]), hist=hist)
         if j["state"] == "awaiting_approval":
-            p = OUT / j["video_id"] / "script.json"
+            p = _jdir(j) / "script.json"
             j["script"] = json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
     return jobs
 
@@ -177,7 +208,7 @@ def page_create(request: Request, topic: str = "", pillar: str = "", idea: str =
 # bước + thời gian đã chạy, không % giả (NN/g long waits, V); xong thì danh sách tự tải lại.
 _REFRESH: dict[str, object] = {}     # kênh → Popen (giữ để poll(), tránh process zombie)
 SUGGEST_N = 6
-DURATIONS = (45, 60, 75, 90, 120)   # D5 research/15 — kênh có mặc định riêng (channel.yaml: duration_default)
+DURATIONS = (45, 55, 75, 90, 120)   # D5 research/15; 60→55 2026-10-06 (research/21: trung vị viral 52–53s) — mặc định theo channel.yaml
 
 
 def _refresh_state(cid: str) -> dict | None:
@@ -283,6 +314,14 @@ def page_queue(request: Request):
 @app.get("/library", response_class=HTMLResponse)
 def page_library(request: Request, f: str = "all", q: str = ""):
     vids = [v for v in list_videos() if _in(request, v["channel"])]
+    for v in vids:                                   # bài Buffer còn dở → hỏi lại (thường 0–1 bài)
+        rv = v.get("review") or {}
+        if rv.get("buffer_post_id") and rv.get("buffer_status") not in ("sent", "error"):
+            sync_tiktok(v["id"], rv)
+            v["review"] = db.get_review(v["id"])
+    tk = db.latest_stats()
+    for v in vids:
+        v["tk"] = tk.get(v["id"])
     if f == "pass":
         vids = [v for v in vids if (v.get("qc") or {}).get("status") == "pass"]
     elif f == "warn":
@@ -297,19 +336,38 @@ def page_library(request: Request, f: str = "all", q: str = ""):
 
 @app.get("/library/{vid}", response_class=HTMLResponse)
 def page_video(request: Request, vid: str):
-    v = load_video(vid)
-    if v is None:
+    if load_video(vid) is None:
         raise HTTPException(404, "Không có video này")
-    return _page(request, "video", v=v, voices=voices(), ch=channels.get(v["channel"]))
+    err = sync_tiktok(vid)
+    v = load_video(vid)
+    return _page(request, "video", v=v, voices=voices(), ch=channels.get(v["channel"]), err=err, ts=db.stats_for(vid),
+                 tk_last=db.kv_get("tiktok_stats_last") or {}, **_sched_ctx(v))
+
+
+@app.post("/stats/tiktok/refresh")
+def refresh_tiktok_stats(request: Request, back: str = Form("/library")):
+    """Nút "Cập nhật ngay": chạy một lượt create_video.tiktok_stats (~10 giây, không GPU) ngay trong request."""
+    from .. import tiktok_stats
+
+    tiktok_stats.run()
+    return _back(request, back if back.startswith("/") else "/library")
 
 
 @app.get("/stats", response_class=HTMLResponse)
-def page_stats(request: Request):
+def page_stats(request: Request, d: str = "28"):
+    """Thống kê = phân tích kênh TikTok (research/24) + vòng duyệt nội bộ (W5, gập ở cuối)."""
+    from . import analytics
     from .stats import by_channel, summary
 
     allv = list_videos()
-    s = summary([v for v in allv if _in(request, v["channel"])], {v["id"]: v["name"] for v in voices()})
-    return _page(request, "stats", s=s, per_channel=by_channel(allv))
+    vn = {v["id"]: v["name"] for v in voices()}
+    days = None if d == "all" else max(1, min(365, int(d))) if d.isdigit() else 28
+    k = _kenh(request)
+    chans = [c for c in channels.all_channels() if k == "all" or c.id == k]
+    an = {c.id: analytics.build(c.id, days, allv, vn) for c in chans}
+    s = summary([v for v in allv if _in(request, v["channel"])], vn)
+    return _page(request, "stats", s=s, per_channel=by_channel(allv), an=an, chans=chans, d=d if days else "all",
+                 tk_last=db.kv_get("tiktok_stats_last") or {})
 
 
 @app.get("/settings", response_class=HTMLResponse)
@@ -390,7 +448,7 @@ def rewrite_job(request: Request, jid: str, note: str = Form("")):
     """Viết lại kịch bản: bỏ script.json (giữ brief = nguồn đã kiểm), quay về lượt kịch bản."""
     j = db.get_job(jid)
     if j and j["state"] == "awaiting_approval":
-        d = OUT / j["video_id"]
+        d = _jdir(j)
         sp = d / "script.json"
         if sp.exists():
             sp.rename(d / f"script.bo-{int(time.time())}.json")
@@ -436,18 +494,302 @@ def metrics_video(request: Request, vid: str, tiktok_url: str = Form(""), views:
     return _back(request, f"/library/{vid}")
 
 
+def _sched_ctx(v: dict) -> dict:
+    """Hộp "Hẹn đăng" trên trang video (2026-10-08): lịch hiện có, 8 ô trống gần nhất, cảnh báo."""
+    from .. import lich
+
+    sch = db.get_schedule(v["id"])
+    return {"sch": sch, "fmt": lich.fmt, "slots": lich.free_slots(v["channel"], lich.earliest(v["channel"]), 7)[:8],
+            "sch_warn": lich.warnings(v["channel"], sch["due_at"], exclude=v["id"]) if sch and sch["status"] == "scheduled" else [],
+            "post_mode": lich.mode_for(v["channel"])}
+
+
+def _tiktok_frag(request: Request, vid: str, err: str | None = None) -> HTMLResponse:
+    v = load_video(vid)
+    return tpl.TemplateResponse(request, "_tiktok.html", {"request": request, "v": v, "r": db.get_review(vid),
+                                                          "ch": channels.get(v["channel"]), "err": err,
+                                                          "ts": db.stats_for(vid), "now": time.time(),
+                                                          "tk_last": db.kv_get("tiktok_stats_last") or {},
+                                                          **_sched_ctx(v)})
+
+
+@app.post("/videos/{vid}/tiktok", response_class=HTMLResponse)
+def tiktok_post(request: Request, vid: str):
+    """Đăng 1 nút qua Buffer (research/22). Chặn đăng trùng: đã có bài chưa lỗi thì không gửi lại."""
+    from .. import tiktok_post as tp
+
+    if load_video(vid) is None:
+        raise HTTPException(404)
+    r = db.get_review(vid)
+    if (r.get("buffer_post_id") and r.get("buffer_status") != "error") or \
+            (r.get("decision") == "post" and not r.get("buffer_post_id")):
+        return _tiktok_frag(request, vid)
+    sch = db.get_schedule(vid)
+    if sch and sch["status"] == "posting":   # timer lịch đang đăng đúng video này — tránh gửi 2 lần (2026-10-09)
+        return _tiktok_frag(request, vid, err="Lịch hẹn đang đăng video này — chờ 1–2 phút rồi tải lại trang.")
+    # 2026-10-10 (rà soát): giành quyền NGUYÊN TỬ — bấm 2 lần / timer cùng lúc thì chỉ một bên gửi Buffer.
+    if not db.claim_post(vid):
+        return _tiktok_frag(request, vid, err="Video này đang được gửi hoặc đã đăng — tải lại trang sau 1–2 phút.")
+    db.cancel_schedule_if(vid, "đã bấm Đăng tay")
+    try:
+        p = tp.post_video(vid)
+    except Exception as e:
+        msg = str(e)[:300]
+        if tp.definitely_not_posted(msg):
+            db.release_post(vid, msg)
+        else:   # mơ hồ (hết giờ, 5xx…) — giữ khoá, không cho bấm lại ngay để khỏi đăng trùng
+            db.set_review(vid, buffer_status="error", buffer_error=msg + " — KIỂM Buffer/TikTok trước khi bấm Đăng lại")
+        return _tiktok_frag(request, vid, err=msg)
+    db.set_review_retry(vid, buffer_post_id=p["post_id"], buffer_status=p["status"], buffer_error=None,
+                            ai_label=int(p.get("ai_label", True)), pub_file=p["pub_file"])
+    return _tiktok_frag(request, vid)
+
+
+def sync_tiktok(vid: str, r: dict | None = None) -> str | None:
+    """Hỏi Buffer trạng thái bài đang đăng (logic ở tiktok_post.sync_review — timer lịch đăng dùng chung)."""
+    from .. import tiktok_post as tp
+
+    return tp.sync_review(vid, r)
+
+
+@app.get("/videos/{vid}/tiktok", response_class=HTMLResponse)
+def tiktok_status(request: Request, vid: str):
+    """htmx thăm dò 10s/lần khi đang đăng. Vừa xong → tải lại cả trang để trạng thái, nút, số 72h đổi theo."""
+    if load_video(vid) is None:
+        raise HTTPException(404)
+    before = db.get_review(vid).get("buffer_status")
+    err = sync_tiktok(vid)
+    after = db.get_review(vid).get("buffer_status")
+    if after != before and after in ("sent", "error"):
+        return Response(status_code=204, headers={"HX-Refresh": "true"})
+    return _tiktok_frag(request, vid, err=err)
+
+
+# ── lịch đăng (2026-10-08, research/probes/w7-lich-dang-research.md) ─────────────
+DOW = ("T2", "T3", "T4", "T5", "T6", "T7", "CN")
+
+
+def _lich_view(request: Request, w: int) -> dict:
+    """Tuần (T2→CN, giờ VN) của kênh đang chọn: bài đã hẹn, bài đã đăng, ô trống; cột phải: video chờ xếp."""
+    import datetime as _dt
+
+    from .. import lich
+
+    now = time.time()
+    today = _dt.datetime.fromtimestamp(lich.day_start(now), lich.TZ)
+    w0 = (today - _dt.timedelta(days=today.weekday()) + _dt.timedelta(weeks=w)).timestamp()
+    w1 = w0 + 7 * 86400
+    k = _kenh(request)
+    cids = [c.id for c in channels.all_channels() if c.raw.get("buffer_channel_id") and (k == "all" or c.id == k)]
+    vids = {v["id"]: v for v in list_videos()}
+    tk = db.latest_stats()
+    days = [{"ts": w0 + i * 86400, "dow": DOW[i], "date": _dt.datetime.fromtimestamp(w0 + i * 86400, lich.TZ).strftime("%d/%m"),
+             "today": abs(w0 + i * 86400 - today.timestamp()) < 3600, "list": []} for i in range(7)]
+
+    def put(t: float, item: dict) -> None:
+        i = int((lich.day_start(t) - w0) // 86400 + 0.5)
+        if 0 <= i < 7:
+            days[i]["list"].append({"t": t, "hm": _dt.datetime.fromtimestamp(t, lich.TZ).strftime("%H:%M"), **item})
+
+    in_sched = set()
+    for s in db.list_schedule(w0, w1):
+        v = vids.get(s["video_id"])
+        if v is None or v["channel"] not in cids:
+            continue
+        in_sched.add(v["id"])
+        put(s["due_at"], {"kind": "sched", "s": s, "v": v, "tk": tk.get(v["id"]),
+                          "warn": lich.warnings(v["channel"], s["due_at"], exclude=v["id"]) if s["status"] == "scheduled" else []})
+    for v in vids.values():
+        pt = (v.get("review") or {}).get("posted_at")
+        if pt and w0 <= pt < w1 and v["id"] not in in_sched and v["channel"] in cids:
+            put(pt, {"kind": "posted", "v": v, "tk": tk.get(v["id"])})
+    backlog = {c: lich.backlog(c) for c in cids}
+    for c in cids:
+        st = max(w0, lich.earliest(c, now))
+        for t in lich.free_slots(c, st, max(0, int((w1 - st) // 86400) + 1)):
+            if t < w1:
+                put(t, {"kind": "free", "cid": c, "ch": channels.get(c)})
+    for d in days:
+        d["list"].sort(key=lambda x: x["t"])
+    hold = lich.hold_until()
+    from .. import kiem_dang
+
+    kd = kiem_dang.last() or {}
+    kd_bad = [c for c in kd.get("checks", []) if not c.get("ok")]
+    kd_stale = not kd or now - kd.get("ts", 0) > 3 * 3600
+    return {"kd": kd, "kd_bad": kd_bad, "kd_stale": kd_stale, "days": days, "w": w, "cids": cids, "backlog": backlog, "cfg": {c: lich.cfg(c) for c in cids},
+            "chs": {c: channels.get(c) for c in cids}, "hold": hold if hold > now else None,
+            "wrange": f"{days[0]['date']} – {days[-1]['date']}", "fmt": lich.fmt}
+
+
+@app.get("/lich", response_class=HTMLResponse)
+def page_lich(request: Request, w: int = 0):
+    return _page(request, "lich", **_lich_view(request, max(-8, min(8, w))))
+
+
+def _parse_due(due: str, when: str) -> float | None:
+    """`due` = epoch (ô gợi ý) hoặc `when` = datetime-local "2026-10-10T20:00" (giờ VN)."""
+    import datetime as _dt
+
+    from .. import lich
+
+    if due.strip():
+        try:
+            return float(due)
+        except ValueError:
+            return None
+    try:
+        return _dt.datetime.fromisoformat(when.strip()).replace(tzinfo=lich.TZ).timestamp()
+    except ValueError:
+        return None
+
+
+@app.post("/videos/{vid}/schedule")
+def schedule_video(request: Request, vid: str, due: str = Form(""), when: str = Form(""), back: str = Form("")):
+    v = load_video(vid)
+    if v is None:
+        raise HTTPException(404)
+    t = _parse_due(due, when)
+    # lỗi trả chữ thường (htmx:responseError hiện thẳng thành thông báo) — 2026-10-08: điện thoại gửi giờ trống, chỉ thấy JSON
+    if t is None:
+        return Response("Chưa chọn giờ hẹn", status_code=400, media_type="text/plain; charset=utf-8")
+    if t < time.time() + 60:
+        return Response("Giờ hẹn đã qua", status_code=400, media_type="text/plain; charset=utf-8")
+    r = v.get("review") or {}
+    if r.get("decision") in ("post", "drop") or (r.get("buffer_post_id") and r.get("buffer_status") != "error"):
+        return Response("Video đã đăng hoặc đã bỏ", status_code=409, media_type="text/plain; charset=utf-8")
+    cur = db.get_schedule(vid)
+    if (cur and cur["status"] == "posting") or r.get("buffer_status") == db.CLAIMED:
+        return Response("Video đang được đăng — chờ 1–2 phút", status_code=409, media_type="text/plain; charset=utf-8")
+    from .. import lich
+
+    # 2026-10-09: Tony hẹn 17:00 trong lúc tạm giữ → lịch chắc chắn "lỡ giờ". Chặn ngay lúc hẹn thay vì chỉ cảnh báo.
+    if lich.mode_for(v["channel"]) == "automatic" and t < lich.hold_until():
+        return Response(f"Đang tạm giữ tự đăng tới {lich.fmt(lich.hold_until())} (chờ kiểm view 24h) — giờ này sẽ không đăng. "
+                         "Chọn giờ sau mốc đó, hoặc bỏ giữ ở trang Lịch.", status_code=409, media_type="text/plain; charset=utf-8")
+    db.set_schedule(vid, v["channel"], t)
+    return _back(request, back if back.startswith("/") else f"/library/{vid}")
+
+
+@app.post("/videos/{vid}/schedule/cancel")
+def unschedule_video(request: Request, vid: str, back: str = Form("")):
+    s = db.get_schedule(vid)
+    if s and s["status"] in ("scheduled", "missed", "failed", "cancelled"):
+        db.delete_schedule(vid)
+    return _back(request, back if back.startswith("/") else f"/library/{vid}")
+
+
+@app.post("/lich/assign")
+def lich_assign(request: Request, vid: str = Form(...), due: str = Form(...), w: int = Form(0)):
+    """Ô trống trên trang lịch → chọn video chờ."""
+    return schedule_video(request, vid, due=due, when="", back=f"/lich?w={w}")
+
+
+@app.post("/lich/move")
+def lich_move(request: Request, vid: str = Form(...), target: str = Form(""), due: str = Form(""), w: int = Form(0)):
+    """Đổi chỗ trên trang Lịch (2026-10-10, Tony: "đổi vị trí đăng các video chưa đăng một cách dễ dàng").
+    `target` = video khác → đổi giờ cho nhau; `due` = ô trống → chuyển sang giờ đó. Chỉ video 'scheduled', cùng kênh."""
+    from .. import lich
+
+    def no(msg: str, code: int = 409) -> Response:
+        return Response(msg, status_code=code, media_type="text/plain; charset=utf-8")
+
+    a = db.get_schedule(vid)
+    if not a or a["status"] != "scheduled":
+        return no("Video này không còn ở trạng thái Đã hẹn (đang đăng hoặc đã đăng)")
+    now = time.time()
+    if target:
+        b = db.get_schedule(target)
+        if not b or b["status"] != "scheduled":
+            return no("Video kia không còn ở trạng thái Đã hẹn")
+        if b["channel"] != a["channel"]:
+            return no("Chỉ đổi chỗ được hai video cùng kênh")
+        if min(a["due_at"], b["due_at"]) < now + 60:
+            return no("Một trong hai giờ đã tới — không đổi được nữa")
+        if not db.swap_schedule(vid, target):
+            return no("Không đổi được — một trong hai video vừa đổi trạng thái, tải lại trang")
+    else:
+        t = _parse_due(due, "")
+        if t is None or t < now + 60:
+            return no("Giờ mới không hợp lệ hoặc đã qua", 400)
+        if lich.mode_for(a["channel"]) == "automatic" and t < lich.hold_until():
+            return no(f"Đang tạm giữ tự đăng tới {lich.fmt(lich.hold_until())}")
+        busy = [s for s in db.list_schedule(t - 60, t + 60, lich.ACTIVE) if s["channel"] == a["channel"] and s["video_id"] != vid]
+        if busy:
+            return no("Giờ đó đã có video khác — kéo lên video đó để đổi chỗ")
+        if not db.move_schedule(vid, t):
+            return no("Không chuyển được — video vừa đổi trạng thái, tải lại trang")
+    return _back(request, f"/lich?w={w}")
+
+
+@app.post("/lich/plan")
+def lich_plan(request: Request, channel: str = Form(...), days: int = Form(7), w: int = Form(0)):
+    from .. import lich
+
+    if channel not in {c.id for c in channels.all_channels()}:
+        raise HTTPException(400)
+    lich.plan(channel, max(1, min(14, days)))
+    return _back(request, f"/lich?w={w}")
+
+
+@app.post("/lich/slots")
+def lich_slots(request: Request, channel: str = Form(...), op: str = Form(...), slot: str = Form(""),
+               per_day: str = Form(""), w: int = Form(0)):
+    """Thêm / bớt khung giờ, đổi số bài mỗi ngày của kênh (ghi kv `posting:<kênh>`, đè lên channel.yaml)."""
+    from .. import lich
+
+    if channel not in {c.id for c in channels.all_channels()}:
+        raise HTTPException(400)
+    cur = lich.cfg(channel)["slots"]
+    try:
+        if op == "add":
+            lich.set_slots(channel, slots=cur + [slot.strip()])
+        elif op == "remove":
+            lich.set_slots(channel, slots=[s for s in cur if s != slot.strip()])
+        elif op == "per_day":
+            lich.set_slots(channel, per_day=int(per_day))
+        else:
+            raise ValueError("thao tác lạ")
+    except (ValueError, TypeError) as e:
+        return Response(f"Không đổi được: {e}", status_code=400, media_type="text/plain; charset=utf-8")
+    return _back(request, f"/lich?w={w}")
+
+
+@app.post("/lich/hold")
+def lich_hold(request: Request, until: str = Form(""), w: int = Form(0)):
+    """Tạm giữ đăng tự động tới mốc (giờ VN, datetime-local) — rỗng = bỏ giữ. research/22 §10."""
+    t = _parse_due("", until) if until.strip() else 0
+    if t is None:
+        return Response("Giờ tạm giữ không hợp lệ", status_code=400, media_type="text/plain; charset=utf-8")
+    db.kv_set("auto_hold_until", t or 0)
+    return _back(request, f"/lich?w={w}")
+
+
 @app.post("/videos/{vid}/delete")
 def delete_video(request: Request, vid: str):
-    """Xoá khỏi thư viện = CHUYỂN vào thư mục rác (không rm — quy ước repo), lấy lại được."""
+    """Xoá HẲN video (Tony 2026-10-05: "xóa toàn bộ video đó đi, folder đó luôn"): cả thư mục videos/<kênh>/<vid>,
+    log và lịch sử job của nó, phần chấm/số liệu. Chỉ xoá trong videos/ — out/ thử nghiệm không đụng tới."""
+    import shutil
+
+    from ..paths import VIDEOS
+
     d = _vid_dir(vid)
-    trash = Path(os.environ.get("XUONG_TRASH", "/mnt/data1tb/_trash-exp-create-video-2026-10-01/out-web"))
-    trash.mkdir(parents=True, exist_ok=True)
-    dst = trash / vid
-    if dst.exists():
-        dst = trash / f"{vid}-{int(time.time())}"
-    d.rename(dst) if d.stat().st_dev == trash.stat().st_dev else __import__("shutil").move(str(d), str(dst))
+    if VIDEOS.resolve() not in d.resolve().parents:
+        raise HTTPException(400)
+    from .. import tiktok_post as tp
+
+    tp.unstage(db.get_review(vid).get("pub_file"))   # file công khai đang mở (nếu có) — không để lộ mãi (2026-10-10)
+    shutil.rmtree(d)
     with db.db() as con:
+        jids = [r[0] for r in con.execute("SELECT id FROM jobs WHERE video_id=? AND state NOT IN ('queued','running')",
+                                          (vid,))]
         con.execute("DELETE FROM reviews WHERE video_id=?", (vid,))
+        # 2026-10-10: xoá video mà để lại lịch → 08:30 timer cố đăng "Không thấy video" và báo Lỗi
+        con.execute("DELETE FROM schedule WHERE video_id=?", (vid,))
+        for jid in jids:
+            con.execute("DELETE FROM jobs WHERE id=?", (jid,))
+    for jid in jids:
+        (LOG_DIR / f"{jid}.log").unlink(missing_ok=True)
     return _back(request, "/library")
 
 
@@ -479,8 +821,8 @@ def set_night(request: Request, enabled: str | None = Form(None), start: int = F
 def _vid_dir(vid: str) -> Path:
     if not re.fullmatch(r"[A-Za-z0-9._-]{1,120}", vid):
         raise HTTPException(404)
-    d = OUT / vid
-    if not (d / "result.json").exists():
+    d = find_web_video(vid)
+    if d is None or not (d / "result.json").exists():
         raise HTTPException(404)
     return d
 

@@ -29,7 +29,19 @@ from pathlib import Path
 from . import db
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-OUT = REPO_ROOT / "out"
+from ..paths import VIDEOS, channel_root
+
+
+def job_dir(job: dict) -> Path:
+    """Thư mục của job web: `videos/<kênh>/<video_id>` (2026-10-05 — tách khỏi out/ thử nghiệm)."""
+    return channel_root(job.get("channel") or "ai") / job["video_id"]
+
+
+def _job_env(job: dict) -> dict:
+    """Env cho process pipeline của job: thư mục gốc = videos/<kênh> (paths.out_root đọc CV_OUT_ROOT)."""
+    e = _env()
+    e["CV_OUT_ROOT"] = str(channel_root(job.get("channel") or "ai"))
+    return e
 LOG_DIR = REPO_ROOT / "exp" / "web" / "logs"
 PY = REPO_ROOT / ".venv" / "bin" / "python"
 
@@ -71,7 +83,7 @@ def machine() -> dict:
         used, total, util = (int(x) for x in q.strip().splitlines()[0].split(","))
     except Exception:
         used = total = util = None
-    du = shutil.disk_usage(OUT)
+    du = shutil.disk_usage(REPO_ROOT)
     return {"gpu_used_mib": used, "gpu_total_mib": total, "gpu_util": util,
             "ram_used_gb": round((vm.total - vm.available) / 2**30, 1), "ram_total_gb": round(vm.total / 2**30, 1),
             "disk_free_gb": round(du.free / 2**30, 1)}
@@ -91,8 +103,8 @@ def admit(job: dict) -> str | None:
 def _prepare_revoice(job: dict) -> None:
     """Đổi giọng: chép kịch bản + hình + nhạc của video gốc sang thư mục mới → pipeline chỉ chạy lại
     giọng → spec → dựng → QC (~8 phút thay vì ~25)."""
-    src = OUT / job["source"] if job.get("source") else None
-    dst = OUT / job["video_id"]
+    src = channel_root(job.get("channel") or "ai") / job["source"] if job.get("source") else None
+    dst = job_dir(job)
     if src is None or dst.exists():
         return
     dst.mkdir(parents=True)
@@ -192,14 +204,14 @@ def prep_tick(current_id: str | None) -> None:
     for j in reversed(db.list_jobs(("queued",))):          # cũ nhất trước
         if j["id"] == current_id or j["kind"] != "new" or db.kv_get(f"prep:{j['id']}"):
             continue
-        if (OUT / j["video_id"] / "qc" / "pre" / "gate.json").exists():
+        if (job_dir(j) / "qc" / "pre" / "gate.json").exists():
             continue
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         f = open(LOG_DIR / f"{j['id']}.log", "a", encoding="utf-8")
         f.write(f"\n=== {time.strftime('%Y-%m-%d %H:%M:%S')} CHUẨN BỊ TRƯỚC (song song job khác)\n")
         f.flush()
         _PREP.update(proc=subprocess.Popen(_prep_cmd(j), cwd=REPO_ROOT, stdout=f, stderr=subprocess.STDOUT,
-                                           stdin=subprocess.DEVNULL, start_new_session=True, env=_env()), id=j["id"])
+                                           stdin=subprocess.DEVNULL, start_new_session=True, env=_job_env(j)), id=j["id"])
         db.kv_set(f"prep:{j['id']}", time.time())
         log(f"▷ chuẩn bị trước {j['id']} (kịch bản + cổng) trong lúc {current_id} chạy")
         return
@@ -223,8 +235,9 @@ def run_job(job: dict) -> str:
     logf = open(LOG_DIR / f"{jid}.log", "a", encoding="utf-8")
     logf.write(f"\n=== {time.strftime('%Y-%m-%d %H:%M:%S')} phase={job['phase']} attempt={job['attempts']}\n")
     logf.flush()
+    channel_root(job.get("channel") or "ai").mkdir(parents=True, exist_ok=True)
     proc = subprocess.Popen(command(job), cwd=REPO_ROOT, stdout=logf, stderr=subprocess.STDOUT,
-                            stdin=subprocess.DEVNULL, start_new_session=True, env=_env())
+                            stdin=subprocess.DEVNULL, start_new_session=True, env=_job_env(job))
     db.update_job(jid, pid=proc.pid, heartbeat_at=time.time())
     _CURRENT.update(proc=proc, id=jid, attempts=job["attempts"])
     log(f"▶ {jid} {job['video_id']} phase={job['phase']} pid={proc.pid}")
@@ -243,7 +256,7 @@ def run_job(job: dict) -> str:
             cancelled = True
     logf.close()
     _CURRENT.clear()
-    out_dir = OUT / job["video_id"]
+    out_dir = job_dir(job)
     st = json.loads((out_dir / "state.json").read_text(encoding="utf-8")) if (out_dir / "state.json").exists() else {}
     if cancelled:
         new, err = "cancelled", None
@@ -260,9 +273,19 @@ def run_job(job: dict) -> str:
         new = "failed"
     db.update_job(jid, state=new, pid=None, error=err,
                   finished_at=time.time() if new in ("done", "failed", "cancelled") else None)
+    if new == "done" and job.get("kind") != "revoice":   # bản đổi giọng = cùng nội dung → không tự lịch (đăng trùng)
+        # 2026-10-09 (Tony): dựng xong → tự gắn khung đăng trống gần nhất (lich.assign_next); Tony sửa giờ sau nếu cần.
+        try:
+            from .. import lich
+
+            t = lich.assign_next(job["video_id"], job.get("channel") or "ai")
+            if t:
+                log(f"⏰ {job['video_id']} → hẹn đăng {lich.fmt(t)}")
+        except Exception as e:   # lịch là việc phụ — hỏng không làm hỏng job
+            log(f"⚠ tự gắn lịch hỏng: {e}")
     if new == "awaiting_approval" and night_auto_ok():
         # W5: chạy đêm — tự duyệt kịch bản (nguồn đã qua cổng code của researcher; QC T4 vẫn CHẶN mâu thuẫn
-        # sự thật ở lượt full, video không bao giờ tự đăng). w5-research.md §4.
+        # sự thật ở lượt full). w5-research.md §4. Từ 2026-10-09 video xong TỰ có lịch đăng (Tony yêu cầu).
         db.approve(jid)
         db.update_job(jid, auto_approved=1)
         log(f"☾ tự duyệt (chạy đêm) {jid}")
@@ -298,12 +321,50 @@ _IDEAS: list = []      # idea_gen sáng nay (giữ Popen để poll, tránh zomb
 TREND_HOUR = 6        # 6:30 sáng: gợi ý chủ đề mới cho trang Tạo video
 
 
-def daily_trends() -> None:
-    """Chạy trend scout một lần mỗi sáng (không GPU) — process riêng, KHÔNG chặn hàng đợi video."""
+IDEA_RETRY_SEC = 2 * 3600   # chưa có lô ý tưởng thành công hôm nay → thử lại sau 2 giờ
+IDEA_MAX_TRIES = 3
+
+
+def daily_ideas() -> None:
+    """Mỗi ngày mỗi kênh một lô ý tưởng (idea_gen, chỉ gọi Claude). 2026-10-10 (rà soát): 06:30 hai kênh chạy CÙNG LÚC
+    cùng trend scout và cả hai hỏng ("error result: success") rồi cả ngày không ai chạy lại — giờ: TỪNG kênh một, chưa có
+    lô thành công hôm nay thì thử lại sau 2 giờ, tối đa 3 lần/ngày."""
+    from ..channel import all_channels
+
     for q in list(_IDEAS):
         if q.poll() is not None:
             log(f"✓ idea_gen xong (mã {q.returncode})")
             _IDEAS.remove(q)
+    if _IDEAS:                     # đang chạy một kênh → đợi xong mới chạy kênh khác
+        return
+    now = time.localtime()
+    if (now.tm_hour, now.tm_min) < (TREND_HOUR, 30):
+        return
+    today = time.strftime("%Y-%m-%d", now)
+    for ch in all_channels():
+        done = False
+        for f in (REPO_ROOT / "team" / "ideas" / ch.id).glob(f"{today}-*.json"):
+            try:
+                done = done or bool(json.loads(f.read_text(encoding="utf-8")).get("added"))
+            except (OSError, ValueError):
+                pass
+        st = db.kv_get(f"ideas_try:{ch.id}") or {}
+        if done or (st.get("day") == today and (st.get("n", 0) >= IDEA_MAX_TRIES or time.time() - st.get("at", 0) < IDEA_RETRY_SEC)):
+            continue
+        db.kv_set(f"ideas_try:{ch.id}", {"day": today, "n": (st.get("n", 0) if st.get("day") == today else 0) + 1,
+                                         "at": time.time()})
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        g = open(LOG_DIR / f"ideas-{ch.id}-{today}.log", "a", encoding="utf-8")
+        _IDEAS.append(subprocess.Popen([str(PY), "-m", "create_video.team.idea_gen", "--channel", ch.id],
+                                       cwd=REPO_ROOT, stdout=g, stderr=subprocess.STDOUT, start_new_session=True,
+                                       env=_env()))
+        log(f"▶ idea_gen kênh {ch.id}")
+        return                     # một kênh mỗi lượt
+
+
+def daily_trends() -> None:
+    """Chạy trend scout một lần mỗi sáng (không GPU) — process riêng, KHÔNG chặn hàng đợi video."""
+    daily_ideas()
     p = _TREND["proc"]
     if p is not None:
         if p.poll() is None:
@@ -323,17 +384,6 @@ def daily_trends() -> None:
     _TREND["proc"] = subprocess.Popen([str(PY), "-m", "create_video.team.trend_scout", "--slot", "am"], cwd=REPO_ROOT,
                                       stdout=f, stderr=subprocess.STDOUT, start_new_session=True, env=_env())
     log("▶ trend scout buổi sáng")
-    # Kênh không có nguồn trend (kênh mẹo, 2026-10-04): mỗi sáng idea_gen bổ sung kho ý tưởng — Tony: "chủ đề gợi ý
-    # sẽ update hằng ngày". Chỉ gọi Claude (không GPU) nên chạy song song trend scout được.
-    from ..channel import all_channels
-
-    for ch in all_channels():
-        if (ch.raw.get("trend") or {}).get("scout") == "idea_scout":
-            g = open(LOG_DIR / f"ideas-{ch.id}-{today}.log", "a", encoding="utf-8")
-            _IDEAS.append(subprocess.Popen([str(PY), "-m", "create_video.team.idea_gen", "--channel", ch.id],
-                                           cwd=REPO_ROOT, stdout=g, stderr=subprocess.STDOUT, start_new_session=True,
-                                           env=_env()))
-            log(f"▶ idea_gen kênh {ch.id}")
 
 
 _MUSIC: dict = {"proc": None, "done": False}
@@ -363,6 +413,7 @@ def idle_music() -> None:
 
 def loop(once: bool = False) -> None:
     db.init()
+    db.keep_open()   # 2026-10-10: kết nối luôn mở → đóng kết nối không dọn WAL + fsync (gốc web treo, db.connect)
     _install_sigterm()
     # Chỉ có MỘT worker → lúc khởi động, mọi job 'running' đều là mồ côi của lần chạy trước (lease = 0).
     for j in db.stale_running(0):                # process cũ còn sống (worker chết, job thì không) → giết trước
@@ -378,6 +429,12 @@ def loop(once: bool = False) -> None:
     log("worker sẵn sàng")
     waiting_reason = None
     while True:
+        # 2026-10-10: restart nhẹ — chờ worker rảnh không bao giờ bắt được (xong job là nhận job mới ngay). Đặt kv
+        # `worker_restart` → worker thoát GIỮA HAI JOB (mã 75 → systemd Restart=on-failure khởi động lại với code mới).
+        if db.kv_get("worker_restart"):
+            db.kv_set("worker_restart", 0)
+            log("↻ restart theo yêu cầu (giữa hai job)")
+            sys.exit(75)
         job = db.claim_next()
         if job is None:
             if once:

@@ -39,6 +39,14 @@ GITHUB_GAP_SEC = 6.5        # không token: 10 req/phút
 ARXIV_GAP_SEC = 3.1         # 1 req / 3s
 
 
+def _all_files(name: str):
+    """`name` trong mọi thư mục video: web (`videos/<kênh>/*`) + thử nghiệm (`out/*`) — paths.py (2026-10-05)."""
+    from ..paths import OUT, VIDEOS
+
+    yield from VIDEOS.glob(f"*/*/{name}")
+    yield from OUT.glob(f"*/{name}")
+
+
 def load_config() -> dict:
     return yaml.safe_load((REPO_ROOT / "configs" / "sources.yaml").read_text(encoding="utf-8"))
 
@@ -450,7 +458,7 @@ def cluster(vecs, cos: float, max_items: int, keys: list[set[str]] | None = None
 def done_topics(window_days: int) -> list[str]:
     cut = time.time() - window_days * 86400
     out = []
-    for p in (REPO_ROOT / "out").glob("*/script.json"):
+    for p in _all_files("script.json"):
         if p.stat().st_mtime < cut:
             continue
         try:

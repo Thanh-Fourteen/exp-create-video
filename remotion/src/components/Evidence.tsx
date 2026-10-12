@@ -136,12 +136,13 @@ const StatCard: React.FC<{ data: StatData; spec: VideoSpec; instant?: boolean }>
   const frame = instant ? 60 : f;
   const { fps } = useVideoConfig();
   const { accent, fg } = spec.style.palette;
-  const p = interpolate(frame, [4, 34], [0, 1], {
+  // 2026-10-06 (research/21 §3): đếm ≤ 0,33s — bản 1s cho thấy "100 tỉ" khi giọng đọc "125 tỉ", "10GB" khi đọc 12GB.
+  const p = interpolate(frame, [2, 12], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.exp),
   });
-  const pop = spring({ frame: frame - 30, fps, config: { damping: 9, stiffness: 160 } });
+  const pop = spring({ frame: frame - 12, fps, config: { damping: 9, stiffness: 160 } });
   const scale = 1 + 0.08 * Math.sin(Math.PI * Math.min(pop, 1));
   const shown = fmt(data.value * settle(p), data.decimals ?? 0);
   const final = `${data.prefix ?? ""}${fmt(data.value, data.decimals ?? 0)}${data.unit ?? ""}`;
@@ -273,13 +274,15 @@ const CodeCard: React.FC<{ data: CodeData }> = ({ data }) => {
 };
 
 // ── screenshot ─────────────────────────────────────────────────────────────
-const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFrames: number; spec: VideoSpec; top?: number; bottom?: number }> = ({
+const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFrames: number; spec: VideoSpec; top?: number; bottom?: number;
+  segments?: { from: { scale?: number }; to: { scale?: number } }[] }> = ({
   src,
   sourceUrl,
   durationInFrames,
   spec,
   top = ZONE_TOP,
   bottom = ZONE_BOTTOM,
+  segments,
 }) => {
   const frame = useCurrentFrame();
   const { height } = useVideoConfig();
@@ -295,6 +298,17 @@ const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFram
     extrapolateRight: "clamp",
     easing: Easing.inOut(Easing.cubic),
   });
+  // 2026-10-07 (research/21 §8 C3): `segments` từ Python — đoạn có scale > 1 là CẬN vào chỗ tô vàng (screenshot.py canh
+  // chỗ đó ở ~35% chiều cao ảnh). Đổi đoạn = cắt cứng, như đổi góc máy.
+  let zoom = 1;
+  if (segments && segments.length >= 2) {
+    const segLen = durationInFrames / segments.length;
+    const si = Math.min(segments.length - 1, Math.floor(frame / segLen));
+    const lf = frame - si * segLen;
+    zoom = interpolate(lf, [0, Math.max(segLen - 1, 1)], [segments[si].from.scale ?? 1, segments[si].to.scale ?? 1], {
+      extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  }
+  const focusY = Math.max(0, 0.35 * imgH - y);
   const host = sourceUrl ? sourceUrl.replace(/^https?:\/\/(www\.)?/, "") : "";
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -308,7 +322,9 @@ const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFram
           background: "#0F1115",
         }}
       >
-        <Img src={src} style={{ width: CARD_W - 6, display: "block", transform: `translateY(${-y}px)` }} />
+        <div style={{ transform: `scale(${zoom})`, transformOrigin: `4% ${focusY}px` }}>
+          <Img src={src} style={{ width: CARD_W - 6, display: "block", transform: `translateY(${-y}px)` }} />
+        </div>
       </div>
       {host ? (
         <div style={{ fontFamily: LABEL_FONT, fontWeight: 800, fontSize: 28, color: "#AEB3BD" }}>
@@ -492,8 +508,9 @@ export const Evidence: React.FC<{
   else if (a.kind === "list" && a.list)
     body = <ListCard data={a.list} spec={spec} durationInFrames={durationInFrames} instant={belowHook} />;
   else if (a.kind === "screenshot" && src)
-    body = <ScreenshotCard src={src} sourceUrl={a.source_url} durationInFrames={durationInFrames} spec={spec} top={top} bottom={bottom} />;
-  return (
+    body = <ScreenshotCard src={src} sourceUrl={a.source_url} durationInFrames={durationInFrames} spec={spec} top={top} bottom={bottom}
+                           segments={shot.motion?.segments} />;
+    return (
     <AbsoluteFill>
       {lay ? null : <Backdrop spec={spec} durationInFrames={durationInFrames} />}
       <Zone durationInFrames={durationInFrames} justify={a.kind === "screenshot" ? "flex-start" : "center"} top={top} bottom={bottom} instant={belowHook && !lay}>

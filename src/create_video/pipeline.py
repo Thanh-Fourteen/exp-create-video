@@ -33,6 +33,7 @@ import unicodedata
 from dataclasses import asdict
 from pathlib import Path
 
+from .paths import out_root
 from .agents.scriptwriter import Script, Shot, write_script_sync
 from .agents.scriptwriter import _check as _check_script
 from .qc import t1_technical
@@ -84,7 +85,7 @@ def run(
 ) -> dict:
     t_start = time.time()
     video_id = video_id or f"{slugify(topic)}"
-    out_dir = REPO_ROOT / "out" / video_id
+    out_dir = out_root() / video_id
     out_dir.mkdir(parents=True, exist_ok=True)
     print(f"▶ {video_id} — {topic}\n  out: {out_dir}", flush=True)
 
@@ -147,7 +148,12 @@ def _run(
         script = Script.from_dict(d)
         # Script cache phải qua ĐÚNG cổng kiểm như script mới viết. Trước đây nó
         # được dùng thẳng, nên demo-02 mang một câu 4 từ vi phạm MIN_WORDS hiện hành.
-        problems = _check_script(script)
+        # Lỗi MỀM (văn nói, hình — scriptwriter._check_speech/_check_visual_soft) đã được chấp nhận lúc viết lần cuối → không
+        # chặn khi dùng lại (2026-10-07: mẹo v10 không nối tiếp được vì "2 prompt ảnh gần trùng" — lỗi mềm).
+        from .agents.scriptwriter import _check_speech, _check_visual_soft
+
+        soft = set(_check_speech(script)) | set(_check_visual_soft(script))
+        problems = [p for p in _check_script(script) if p not in soft]
         if problems:
             raise ValueError(
                 f"{script_path} không qua kiểm ràng buộc hiện hành — sửa tay hoặc chạy "
@@ -176,7 +182,7 @@ def _run(
             brief_txt = (brief_txt or f"CHỦ ĐỀ: {topic}") + angle_for_script(ang)
         state.begin("script", h_script)
         script = write_script_sync(topic, brief=brief_txt, duration_sec=duration_sec, state=state,
-                                   artifact=script_path)
+                                   artifact=script_path, end_style=(ang or {}).get("end_style", ""))
         state.done("script", [script_path])
     print(f"  hook: {script.hook}", flush=True)
     t = _stamp(t, "kịch bản")
@@ -243,6 +249,7 @@ def _run(
     _post = _tts_cfg.get("post") or {}
     be.tempo, be.voice_fx = float(_post.get("tempo") or 1.0), str(_post.get("fx") or "")
     be.pauses = _post.get("pauses") or None
+    be.pace = _post.get("pace") or None
     print(f"  giọng: {be.voice} · {be.style}", flush=True)
     _join = _echo.get("join", {})
     join_mode = voice_join or _join.get("mode", "per_line")
@@ -258,8 +265,14 @@ def _run(
         _yaml.safe_load((REPO_ROOT / "configs" / "pronounce.yaml").read_text(encoding="utf-8"))
         if (REPO_ROOT / "configs" / "pronounce.yaml").exists() else None,
     )
-    if not force and (state.is_fresh("tts", h_tts) or _tts_reusable(tts_json, [l.text for l in lines])):
-        tts, spans = _load_tts(tts_json)
+    cached = None
+    if not force and (state.is_fresh("tts", h_tts) or _tts_reusable(tts_json, [l.text for l in lines], h_tts)):
+        cached = _load_tts(tts_json)
+        if dropped_lines([l.text for l in lines], cached[1]):   # giọng cũ nuốt câu (2026-10-10) → đọc lại
+            print("  ⚠ giọng đã lưu nuốt câu — đọc lại", flush=True)
+            cached = None
+    if cached is not None:
+        tts, spans = cached
         print("  ↻ dùng lại giọng đọc (tts.json)", flush=True)
     else:
         if not be.health():
@@ -268,10 +281,7 @@ def _run(
                 "bật nó trước (xem /mnt/data1tb/exp-echo/note.txt)"
             )
         state.begin("tts", h_tts)
-        tts, spans = be.synth_lines(
-            [l.text for l in lines], out_name="voice.wav",
-            mode=join_mode, group_size=int(_join.get("group_size", 3)),
-        )
+        tts, spans = _synth_no_drop(be, [l.text for l in lines], join_mode, int(_join.get("group_size", 3)))
         # BWE CHỈ cho giọng clone (mẫu ~4 kHz) — preset đã đủ băng thông, LavaSR thay dải > cutoff
         # bằng phần tự sinh sẽ làm preset kém đi.
         _bwe = (_tts_cfg.get("vieneu_local", {}).get("bwe")
@@ -287,7 +297,7 @@ def _run(
 
             m = loudnorm(tts.wav_path, _ln["target_lufs"], _ln["true_peak_db"])
             print(f"  loudnorm: {m['input_i']} → {_ln['target_lufs']} LUFS", flush=True)
-        _save_tts(tts, spans, tts_json, [l.text for l in lines])
+        _save_tts(tts, spans, tts_json, [l.text for l in lines], h_tts)
         state.done("tts", [tts.wav_path, tts_json])
     print(f"  ghép giọng: {join_mode}", flush=True)
     print(f"  audio {tts.duration_sec:.1f}s · {len(tts.words)} từ · {tts.timestamp_source}", flush=True)
@@ -547,12 +557,61 @@ def _brief(topic: str, out_dir: Path, state: State, *, force: bool, research: bo
     return txt
 
 
-def _tts_reusable(path: Path, lines: list[str]) -> bool:
-    """tts.json còn đúng cho các câu này không — so NỘI DUNG, không so hash. tts.json cũ
-    (trước 2026-10-02) không ghi câu → nhận, vì giọng đã dựng không được ghi đè lặng lẽ."""
+def dropped_lines(texts: list[str], spans) -> list[int]:
+    """Câu bị giọng đọc NUỐT: ≥ 2 từ mà căn ra < 0,1 giây/từ (2026-10-10: "Mưa to vẫn đủ gây lũ." 23,866→23,866 ở chế độ
+    paragraph — video lũ Trung Bộ thiếu câu, spec có shot 0 giây và bị chặn)."""
+    out = []
+    for i, (t, sp) in enumerate(zip(texts, spans)):
+        # ngưỡng theo số từ (rà soát 2026-10-10): câu 2 từ nói nhanh trong paragraph có thể chỉ ~0,3s mà không bị nuốt;
+        # câu bị nuốt thật thì ~0 giây.
+        if len(t.split()) >= 2 and (sp.end - sp.start) < 0.1 * len(t.split()):
+            out.append(i)
+    return out
+
+
+def _synth_no_drop(be, texts: list[str], mode: str, group_size: int):
+    """Đọc, kiểm câu bị nuốt; có thì đọc lại: cùng chế độ seed khác → `grouped` → `per_line` (đọc từng câu không nuốt được)."""
+    tries = [(mode, None)]
+    if mode == "paragraph":
+        tries += [("paragraph", 1), ("grouped", None)]
+    if mode != "per_line":
+        tries.append(("per_line", None))
+    seed0 = getattr(be, "seed", None)
+    bad: list[int] = []
+    for k, (m, dseed) in enumerate(tries):
+        if dseed is not None:
+            be.seed = (seed0 if seed0 is not None else 0) + dseed   # seed None → vẫn phải đổi, không thì đọc lại y hệt
+        try:
+            tts, spans = be.synth_lines(texts, out_name="voice.wav", mode=m, group_size=group_size)
+        except (ValueError, RuntimeError) as e:   # RuntimeError gồm EchoError (aligner hụt từ, TTS hỏng N lần)
+            # 2026-10-10: lần đọc lại seed+1 → aligner trả mốc vượt độ dài wav (61,54s > 58,92s) → cả job chết. Lần đọc
+            # hỏng = thử cách kế tiếp; lần cuối vẫn hỏng thì báo lỗi thật.
+            print(f"  ⚠ đọc ({m}) hỏng: {str(e)[:120]}", flush=True)
+            if k == len(tries) - 1:
+                raise
+            continue
+        finally:
+            be.seed = seed0
+        bad = dropped_lines(texts, spans)
+        if not bad:
+            if k:
+                print(f"  ✓ đọc lại ({m}{f', seed+{dseed}' if dseed else ''}) — không còn câu bị nuốt", flush=True)
+            return tts, spans
+        print(f"  ⚠ giọng đọc nuốt câu {[i + 1 for i in bad]} ({m}): " + " · ".join(texts[i][:40] for i in bad), flush=True)
+    raise RuntimeError(f"giọng đọc vẫn nuốt câu {[i + 1 for i in bad]} sau {len(tries)} lần đọc — sửa câu đó trong kịch bản")
+
+
+def _tts_reusable(path: Path, lines: list[str], h: str | None = None) -> bool:
+    """tts.json còn đúng cho các câu này không — so NỘI DUNG câu. tts.json cũ
+    (trước 2026-10-02) không ghi câu → nhận, vì giọng đã dựng không được ghi đè lặng lẽ.
+
+    2026-10-05: tts.json có ghi `hash` (cấu hình giọng: nhịp ngắt, hậu kỳ, chế độ ghép…) mà khác `h` → KHÔNG dùng lại.
+    Trước đó chỉ so câu → sửa lỗi "ngắt ngắt" xong, video chạy lại vẫn lấy nguyên giọng lỗi cũ."""
     if not path.exists():
         return False
     d = json.loads(path.read_text(encoding="utf-8"))
+    if h and d.get("hash") and d["hash"] != h:
+        return False
     stored = d.get("lines")
     if stored is not None:
         return stored == lines
@@ -576,7 +635,7 @@ def _legacy_spans_match(spans: list, lines: list[str]) -> bool:
     return True
 
 
-def _save_tts(tts, spans, path: Path, lines: list[str] | None = None) -> None:
+def _save_tts(tts, spans, path: Path, lines: list[str] | None = None, h: str | None = None) -> None:
     """Giọng đọc + mốc từ ra đĩa, để chạy lại khỏi gọi exp-echo + aligner (~phút)."""
     d = {
         "wav_path": Path(tts.wav_path).name, "sample_rate": tts.sample_rate,
@@ -585,6 +644,7 @@ def _save_tts(tts, spans, path: Path, lines: list[str] | None = None) -> None:
         "words": [[w.w, w.start, w.end] for w in tts.words],
         "spans": [[sp.text, sp.start, sp.end] for sp in spans],
         **({"lines": lines} if lines is not None else {}),
+        **({"hash": h} if h else {}),
     }
     path.write_text(json.dumps(d, ensure_ascii=False) + "\n", encoding="utf-8")
 
@@ -638,7 +698,11 @@ def _hero_submit(script, out_dir: Path, state, visual: str) -> dict | None:
     hdir = out_dir / "hero"
     hp = hdir / "handle.json"
     if hp.exists():                                   # chạy lại (vòng QC, nối tiếp) → dùng lại lần gửi cũ
-        return json.loads(hp.read_text(encoding="utf-8"))
+        h = json.loads(hp.read_text(encoding="utf-8"))
+        if h.get("token"):
+            return h
+        # handle cũ không có token (trước 2026-10-05) → không kiểm được output có phải của mình → gửi lại
+        hp.unlink()
     shots = sorted((s for s in script.shots if s.kind == "image" and s.prompt),
                    key=lambda s: s.line if s.line is not None else 99)[: int(cfg.get("max_clips", 2))]
     if not shots:
@@ -739,21 +803,47 @@ def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
         state.begin("stock", "")
         used: set[str] = set()
         credits = []
+        # Lựa chọn stock của lần đầu được GIỮ khi dựng lại (2026-10-07, research/21 §8): vòng QC dựng lại gọi lại API, kết quả
+        # đổi (shot lần trước có clip, lần này rơi về ảnh AI) → danh sách ảnh AI xê dịch → img/00.png sinh lại với prompt
+        # shot KHÁC (video AI v6: sửa 3 shot stock làm hỏng 3 ảnh AI không liên quan, bản cuối lùi về r0).
+        chosen_p = out_dir / "stock" / "chosen.json"
+        chosen = json.loads(chosen_p.read_text(encoding="utf-8")) if chosen_p.exists() else {}
         for k, v in stocks:
-            c = _stock.fetch(v.data.get("query") or v.prompt, out_dir / "stock" / f"{k:02d}.mp4", exclude=used)
+            ai = out_dir / "stock" / f"{k:02d}.ai.png"
+            if ai.exists():   # QC T2 đã thay shot stock lệch chủ đề bằng ảnh AI (visual/regen.py, research/21 §8 C5)
+                evidence[k] = {"kind": "image", "path": f"stock/{k:02d}.ai.png", **({"alt": v.prompt} if v.prompt else {})}
+                print(f"  🖼 shot {k}: ảnh AI thay stock lệch chủ đề", flush=True)
+                continue
+            prev = chosen.get(str(k))
+            if prev and prev.get("query") == (v.data.get("query") or v.prompt):
+                if prev.get("ev") and (out_dir / prev["ev"]["path"]).exists():
+                    evidence[k] = dict(prev["ev"])
+                    credits.extend(prev.get("credit") or [])
+                    continue
+                if prev.get("ai"):
+                    v.kind, v.note = "image", prev.get("note", "")
+                    continue
+            # cảnh mở đầu khắt khe hơn (research/20 §4): lạc đề ở 1–2 giây đầu là người xem lướt đi
+            need = _stock.MIN_SCORE_HOOK if k == 0 else _stock.MIN_SCORE
+            c = _stock.fetch(v.data.get("query") or v.prompt, out_dir / "stock" / f"{k:02d}.mp4", exclude=used,
+                             min_score=need)
             if c.ok:
                 used.add(f"{c.provider}:{c.id}")
-                evidence[k] = {"kind": "video", "path": f"stock/{k:02d}.mp4", "source_url": c.page_url}
+                # alt = prompt ảnh dự phòng của shot (viết cho ĐÚNG câu) — T2 chấm clip/ảnh stock theo nó; lệch thì vòng QC
+                # thay bằng ảnh AI vẽ đúng prompt này (2026-10-06, research/21 §8 C5).
+                evidence[k] = {"kind": "video", "path": f"stock/{k:02d}.mp4", "source_url": c.page_url,
+                               **({"alt": v.prompt} if v.prompt else {})}
                 credits.append({"shot": k, "query": c.query, "provider": c.provider, "url": c.page_url,
                                 "author": c.author, "credit": c.credit()})
                 print(f"  🎥 {c.provider} {c.width}×{c.height} {c.duration:.0f}s · {c.query}", flush=True)
             else:
                 # Không có clip → ẢNH CHỤP THẬT (Pexels/Pixabay) trước, ảnh AI là đường cuối (research/19).
                 ph = _stock.fetch_photo(v.data.get("query") or v.prompt, out_dir / "stock" / f"{k:02d}.jpg",
-                                        exclude=used)
+                                        exclude=used, min_score=need)
                 if ph.ok:
                     used.add(f"{ph.provider}:{ph.id}")
-                    evidence[k] = {"kind": "image", "path": f"stock/{k:02d}.jpg", "source_url": ph.page_url}
+                    evidence[k] = {"kind": "image", "path": f"stock/{k:02d}.jpg", "source_url": ph.page_url,
+                                   **({"alt": v.prompt} if v.prompt else {})}
                     credits.append({"shot": k, "query": ph.query, "provider": ph.provider, "url": ph.page_url,
                                     "author": ph.author, "credit": ph.credit()})
                     print(f"  📷 {ph.provider} ảnh thật · {ph.query}", flush=True)
@@ -761,6 +851,14 @@ def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
                 v.kind, v.note = "image", c.error
                 print(f"  ⚠ stock không có → ảnh AI: {v.data.get('query')} — {c.error}; {ph.error}", flush=True)
         (out_dir / "stock").mkdir(exist_ok=True)
+        for k, v in stocks:
+            if str(k) not in chosen or chosen[str(k)].get("query") != (v.data.get("query") or v.prompt):
+                ev = evidence.get(k)
+                chosen[str(k)] = {"query": v.data.get("query") or v.prompt,
+                                  **({"ev": ev, "credit": [c for c in credits if c.get("shot") == k]}
+                                     if ev and not str(ev.get("path", "")).endswith(".ai.png") else
+                                     {} if ev else {"ai": True, "note": v.note or ""})}
+        chosen_p.write_text(json.dumps(chosen, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
         (out_dir / "stock" / "credits.json").write_text(json.dumps(credits, ensure_ascii=False, indent=1) + "\n",
                                                        encoding="utf-8")
         state.done("stock", [])
@@ -847,14 +945,14 @@ def main(argv: list[str] | None = None) -> int:
         d = loop.run_loop(res["id"], topic=a.topic, duration_sec=a.duration, visual=a.visual)
         from .publish import write_result
 
-        write_result(REPO_ROOT / "out" / res["id"], d)
+        write_result(out_root() / res["id"], d)
         print(f"\nQC {d['status'].upper()} · {d['qc_rounds']} vòng sửa · bản gửi Tony: "
               f"{d['final_mp4']} · {d['stop_reason']}", flush=True)
         return 0 if d["publishable"] else 1
     if res.get("mp4"):
         from .publish import write_result
 
-        write_result(REPO_ROOT / "out" / res["id"])
+        write_result(out_root() / res["id"])
     return 1 if res.get("t1_failed") else 0
 
 

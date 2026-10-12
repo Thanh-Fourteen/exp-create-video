@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-06-0630",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "md1ba0b",
+   "title": "Lừa \"trường hoàn lại học phí\": chiêu mới nhắm vào phụ huynh vừa bị cảnh báo",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mffcfea",
+   "title": "Tin tuyển dụng giả danh ngân hàng: Vietcombank chỉ gửi email @vietcombank.com.vn",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mb1e359",
+   "title": "Chở trẻ dưới 10 tuổi, dưới 1,35m ngồi hàng ghế trước: Nghị định 238 phạt thế nào",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "mf52d5a",
+   "title": "Nhà ở xã hội không có \"suất ngoại giao\": Bộ Công an cảnh báo bẫy đặt cọc",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m695242",
+   "title": "VNeID bản mới từ 5/10: thêm giấy đăng kiểm và sổ sức khoẻ điện tử",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m9aa7a6",
+   "title": "Chữ ký số VNeID CA: đăng ký ngay trong app để ký hồ sơ online",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "me8ce9e",
+   "title": "Rượu ngâm không nhãn: vì sao không nhận ra methanol bằng mùi hay vị",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m197d44",
+   "title": "Mùa lẩu: một đôi đũa gắp cả thịt sống và thịt chín — vì sao phải đổi",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m417230",
+   "title": "Đêm lạnh đốt than sưởi trong phòng kín: vì sao người ngủ không kịp tỉnh",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mef7289",
+   "title": "Người thân vừa mất việc: ba câu nên nhắn và vì sao \"cố lên\" làm họ im lặng",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "mabe5c1",
+   "title": "Nhắc bố mẹ về cuộc gọi lừa đảo mà không bị mắng: ba câu mở đầu",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Đợt lạnh đầu mùa: ba việc kiểm tra bình nóng lạnh trước khi bật lại",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 187.22,
+   "input_tokens": 10,
+   "output_tokens": 7245,
+   "cost_usd": 0.809369
+  }
+ ]
+}

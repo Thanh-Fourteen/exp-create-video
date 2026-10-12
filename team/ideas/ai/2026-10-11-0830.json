@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-11-0830",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m491f27",
+   "title": "Gemini đổi Gems thành Skills: lưu prompt dùng lại, gõ \"/\" là ra",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m86cc21",
+   "title": "Thử quần áo ảo trong ChatGPT: chụp một ảnh rồi xem áo lên người thế nào",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m7abe21",
+   "title": "Nano Banana 2.1: tách nền, làm ảnh sản phẩm nền trắng ngay trong app Gemini",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "ma9b3d6",
+   "title": "Biến tài liệu ôn thi thành flashcard và đề thi thử bằng NotebookLM",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "mc35e04",
+   "title": "Student Hub trong app Gemini: chỗ gom hết công cụ học cho học sinh, sinh viên",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "maf9cbf",
+   "title": "Chụp 10 trang giấy thành một file PDF rồi hỏi ChatGPT ngay trên iPhone",
+   "pillar": "meo"
+  },
+  {
+   "id": "m90b39d",
+   "title": "Dùng \"Help me write\" trong Gmail soạn email xin nghỉ phép bằng tiếng Việt",
+   "pillar": "meo"
+  },
+  {
+   "id": "mb1ac4d",
+   "title": "ChatGPT free dùng GPT-6 Luna, Plus dùng Sol: khác nhau chỗ nào cho người Việt",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "mb45941",
+   "title": "Google AI Plus hay AI Pro: gói nào đủ cho sinh viên và dân văn phòng Việt",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m2747e4",
+   "title": "Tách nền 100 ảnh sản phẩm offline trên card 6GB: mất bao nhiêu giây một ảnh",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "me42054",
+   "title": "Gõ phụ đề tiếng Việt cho video 10 phút bằng Whisper trên máy nhà: bao lâu?",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "mdc6a7b",
+   "title": "ChatGPT xin nối tài khoản ngân hàng: vì sao người Việt chưa nên bấm đồng ý",
+   "pillar": "canh_bao"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 95.76,
+   "input_tokens": 6,
+   "output_tokens": 4890,
+   "cost_usd": 1.4238644999999999
+  }
+ ]
+}

@@ -550,6 +550,21 @@ def retention_proxies(spec: dict, th: dict | None = None) -> list[Check]:
         longest = max(sh["end_sec"] - sh["start_sec"] for sh in shots)
         out.append(Check("max_shot_sec", longest <= th.get("max_idea_sec", 12),
                          f"shot dài nhất {longest:.1f}s"))
+    # 2026-10-06 (research/21): ba proxy từ video viral — vào lời ngay, nói dồn trong 3s đầu, hình không đứng quá lâu.
+    allw = [w for c in caps for w in (c.get("words") or [])]
+    if allw:
+        fw = allw[0]["start"]
+        out.append(Check("first_word_sec", fw <= th.get("first_word_max_sec", 0.5), f"từ đầu tiên ở {fw:.2f}s"))
+        n3 = sum(w["start"] < 3.0 for w in allw)
+        out.append(Check("words_first_3s", n3 >= th.get("words_3s_min", 7), f"{n3} từ trong 3s đầu"))
+    if shots:
+        marks = sorted({0.0, dur, *(sh["start_sec"] for sh in shots)}
+                       | {sh["start_sec"] + (sh["end_sec"] - sh["start_sec"]) * j / len(sh["motion"]["segments"])
+                          for sh in shots if (sh.get("motion") or {}).get("segments")
+                          for j in range(1, len(sh["motion"]["segments"]))})
+        static = max(b - a for a, b in zip(marks, marks[1:]))
+        out.append(Check("max_static_sec", static <= th.get("max_static_sec", 6.0),
+                         f"hình đứng yên lâu nhất {static:.1f}s (tính cả đổi khung trong shot)"))
     last = caps[-1]["text"] if caps else ""
     bye = re.search(r"(tạm biệt|hẹn gặp lại|cảm ơn (các bạn )?đã xem)", last, re.I)
     out.append(Check("cta_no_goodbye", not bye, f"câu cuối: {last[:60]!r}"))

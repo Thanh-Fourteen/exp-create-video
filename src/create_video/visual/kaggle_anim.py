@@ -44,7 +44,7 @@ root = os.path.dirname(man_p)
 pipe = WanImageToVideoPipeline.from_pretrained(env, torch_dtype={"default": torch.float16, "vae": torch.float32},
                                                device_map="balanced")
 pipe.vae.enable_tiling()
-res = {"t_setup": round(time.time() - t0), "clips": []}
+res = {"t_setup": round(time.time() - t0), "clips": [], "token": man.get("token")}
 for it in man["items"]:
     t = time.time()
     try:
@@ -91,7 +91,10 @@ def submit(items: list[dict], *, frames: int = 49, steps: int = 20, w: int = 480
     if ds.exists():
         shutil.rmtree(ds)
     ds.mkdir(parents=True)
-    man = {"frames": frames, "steps": steps, "w": w, "h": h,
+    import uuid
+
+    token = uuid.uuid4().hex[:12]
+    man = {"token": token, "frames": frames, "steps": steps, "w": w, "h": h,
            "negative": "blurry, distorted, text, watermark, logo, extra fingers, deformed", "items": []}
     for it in items:
         dst = ds / f"{it['name']}.png"
@@ -118,7 +121,7 @@ def submit(items: list[dict], *, frames: int = 49, steps: int = 20, w: int = 480
     pushed = _kg("kernels", "push", "-p", str(kd), "--accelerator", "NvidiaTeslaT4")
     if "successfully pushed" not in pushed:
         raise RuntimeError(f"kaggle push hỏng: {out[-200:]} | {pushed[-300:]}")
-    return {"user": user, "pushed_at": time.time(), "names": [it["name"] for it in items]}
+    return {"user": user, "pushed_at": time.time(), "names": [it["name"] for it in items], "token": token}
 
 
 def status(handle: dict) -> str:
@@ -146,6 +149,12 @@ def collect(handle: dict, dst_dir: Path, *, deadline: float, poll: int = 30) -> 
     _kg("kernels", "output", f"{handle['user']}/{KERNEL}", "-p", str(dl), timeout=600)
     res_p = dl / "result.json"
     res = json.loads(res_p.read_text()) if res_p.exists() else {}
+    # Notebook `xuong-anim` DÙNG CHUNG mọi job: output hiện tại có thể của job khác đã đẩy sau (2026-10-05: video mẹo
+    # chạy lại dùng handle cũ → tải về clip card đồ hoạ của video AI). Token không khớp → không nhận, dùng ảnh tĩnh.
+    if res.get("token") != handle.get("token"):
+        print(f"  ⚠ Kaggle: output hiện tại là của lần gửi khác (token {res.get('token')} ≠ {handle.get('token')}) "
+              "— bỏ, dùng ảnh tĩnh", flush=True)
+        return {}
     out: dict[str, Path] = {}
     dst_dir.mkdir(parents=True, exist_ok=True)
     for c in res.get("clips", []):

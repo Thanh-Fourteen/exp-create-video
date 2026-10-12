@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-12-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m57cb1b",
+   "title": "Họp xong quên hết, ghi biên bản mất cả tiếng? ChatGPT giờ nhận cả file ghi âm",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m01e8fc",
+   "title": "Ngày nào cũng gõ lại một yêu cầu? Skills trong app Gemini lưu quy trình dùng lại",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m99ec59",
+   "title": "Ôn thi không biết bắt đầu từ đâu? 4 bước biến tài liệu thành thẻ ghi nhớ miễn phí",
+   "pillar": "meo"
+  },
+  {
+   "id": "m389f8b",
+   "title": "Hộp thư 100 email chưa đọc? 5 lệnh Copilot Chat lọc ra việc phải làm hôm nay",
+   "pillar": "meo"
+  },
+  {
+   "id": "md26076",
+   "title": "Soạn đề trắc nghiệm mất cả buổi? Tạo câu hỏi từ chính giáo án của mình",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "mb36563",
+   "title": "Nghĩ mãi không ra lời quảng cáo? 10 mô tả sản phẩm miễn phí bằng Google AI Studio",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "me679e3",
+   "title": "Muốn AI làm hộ bảng Excel: Copilot trong Excel hay dán bảng vào ChatGPT free?",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "mc4953f",
+   "title": "Trả 0đ hay mua gói ChatGPT rẻ nhất: 5 khác biệt thấy ngay khi dùng hằng ngày",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m18b2eb",
+   "title": "Không dám đưa file họp công ty lên AI? 3 thứ phải kiểm trước khi bấm gửi",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "me6dc02",
+   "title": "Bị tố làm bài bằng AI dù tự viết? Vì sao máy soi 'AI-written' hay báo oan",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m289b8c",
+   "title": "Không muốn file họp rời khỏi máy? Tự đo: ghi biên bản offline trên card 6GB",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "mce6c1c",
+   "title": "Tài liệu nội bộ không dám đưa lên mạng? Thử dịch bằng model chạy ngay trên máy",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 120.24,
+   "input_tokens": 6,
+   "output_tokens": 6257,
+   "cost_usd": 1.4652614999999998
+  }
+ ]
+}

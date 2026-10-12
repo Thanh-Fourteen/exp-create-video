@@ -30,6 +30,46 @@ scripts/setup_web.sh                                                        # d�
 
 ## Còn lại — việc của Tony
 
+- [x] **Trang Thống kê = phân tích từng kênh TikTok (2026-10-08)** — `research/24-trang-thong-ke-kenh.md`: KPI so kỳ trước,
+      view từng video (log), đường tăng view theo giờ, so nhóm (chủ đề/hook/giọng/độ dài/cách đăng/giờ), bảng sắp được,
+      follower. Vòng duyệt (approve rate) gập ở cuối trang.
+
+- [x] **Tự theo dõi số TikTok (2026-10-08)** — `research/23-theo-doi-so-tiktok.md`: mỗi 3 giờ tự lấy link (khớp caption), tự đánh
+      dấu đã đăng, ghi view/tim/bình luận/chia sẻ/lưu (+ xem TB qua Buffer), tự điền số 72h. Nội dung bình luận: chỉ có số + link
+      (không dùng phiên đăng nhập TikTok cho việc chạy nền). Kiểm: `systemctl --user list-timers xuong-stats.timer`.
+
+- [ ] **Nút "Đăng lên TikTok" 1 chạm (2026-10-08)** — `research/22-tu-dong-dang.md`: chọn **Buffer Free API** (0đ, tích hợp
+      TikTok đã audit, 3 kênh). Direct Post chính thức bị loại (guideline cấm tool đăng cho tài khoản của mình), bot trình
+      duyệt bị loại (ToS + nghi 0 view). Việc của anh: (1) tạo Buffer Free, nối 2 kênh TikTok; (2) tạo API key → `.env`
+      `BUFFER_API_KEY`; (3) bật Tailscale Funnel cho máy `tony` (chỉ mở `exp/pub/`). XONG 2026-10-08: đăng thật 1 video — công khai, có nhãn AI, 21 view/15 phút. Trang video thiết kế lại (W6). Còn: sau 5 bài Buffer so view trung vị với 5 bài đăng app (research/22 §4). Ngưỡng chốt 2026-10-08: trung vị 5 bài Buffer ở t+72h < 294 view → đổi sang `notification` (research/22 §9).
+- [x] **W7 Lịch đăng (2026-10-08)** — `research/probes/w7-lich-dang-research.md`: trang `/lich` (tuần T2→CN, ô trống theo
+      khung giờ kênh, tự xếp video chờ, cảnh báo), hộp "Hẹn giờ đăng" trên trang video, timer `xuong-lich` mỗi phút đăng
+      qua Buffer. Khung (2026-10-09, đo 621 video 12 kênh VN, §7): AI 12:00·17:30·08:30 · Sống Khéo 12:30·17:30·08:30, 3 bài/ngày; video dựng xong TỰ gắn khung trống gần nhất (§8). Tạm giữ tự đăng đã BỎ 2026-10-09 16:46
+      (mốc 24h đạt: trung vị 313 ≥ 294, research/22 §11). Còn: máy + Funnel phải bật đúng giờ đăng; ≥ 100 follower → xem lại giờ theo
+      follower activity.
+
+- [x] **Web 2026-10-08:** (1) trang Ý tưởng kênh AI trống — idea_gen trước chỉ chạy cho kênh mẹo và prompt viết riêng cho mẹo
+      → prompt theo kênh (`channel.yaml prompts.idea_search/idea_scope`), worker sinh ý tưởng mỗi sáng cho MỌI kênh; đã sinh
+      12 ý tưởng AI. (2) Đang xem video, đổi kênh không được (quay lại đúng video cũ) → video khác kênh thì về Thư viện kênh mới.
+
+- [ ] **Pipeline v3 "học từ video viral" (2026-10-06)** — `research/21-hoc-tu-video-viral.md`. Xem từng nhịp 45 video viral
+      (19 AI · 19 mẹo VN · 7 quốc tế; lời có mốc từng từ, ngữ điệu, tờ khung hình 1s/lần) + 5 video của mình, cùng thước.
+      Đã sửa: giọng **nhanh–chậm theo câu** (hook/kết nhanh, câu chốt chậm) · frame 0 hiện đủ (phụ đề, mascot) · mascot nhỏ
+      ở góc lúc hook · bỏ bộ đếm cảnh · ảnh dài **đổi khung** mỗi ≤ 4–6s · số đếm ≤ 0,33s · **kiểu kết xoay vòng** (hết
+      "gửi cho/lưu lại" ở mọi video) · luật kịch bản G–L (giá trị trước 15%, hook có người/số, ngoặt "Nhưng…", lời không
+      chứa chuỗi kỹ thuật) · mặc định 55s · 3 proxy T1 mới. Việc của anh: xem video thử ở `videos/meo/do-an-thua-de-tu-lanh-duoc-may-ngay/`;
+      worker tự dùng code mới (mỗi job một tiến trình); web đã restart (nút độ dài 60s → 55s).
+      **Deploy 2026-10-07 15:39** (Tony: "deploy lại web để render 2 video up kênh hôm nay") — code `f1e6fa26737c`+. Tự chấm
+      (`scripts/cham_video.py`, bảng research/21 §8–§9): lô 1 AI-1 15/15; còn trượt C6 (FLUX vẽ chữ giả), C4 (shot dài theo bộ
+      dò), B5 (nhịp giọng, nhiễu). Bản sửa cuối (lọc clip tối, ảnh chữ méo → ảnh chụp thật, ít whip-pan, ngân sách từ) CHƯA
+      kiểm bằng video — 2 video Tony render hôm nay là lần chạy thật đầu tiên; chấm chúng bằng cham_video.py.
+      Việc của anh: nghe thử `pdf → "pê đê ép"` (configs/pronounce.yaml).
+
+- [ ] **@songkheo.vn 0 view (2026-10-06)** — `research/20-songkheo-0-view.md`. Không có cờ phạt công khai; video chưa
+      được phân phối. Việc của anh: (1) app → Hồ sơ → ☰ → TikTok Studio → **Kiểm tra tài khoản**, xem 2 video có
+      "không đủ điều kiện đề xuất" không; (2) đăng tiếp từ **app điện thoại**, mạng VN, không VPN, đừng xoá–đăng lại.
+      Xem lại khi đủ 5 video / 72 giờ (Q4).
+
 - [ ] **Pipeline v2 "cuốn hơn" (2026-10-04)** — khảo sát 30 kênh TikTok VN (~860 video) + đo 12 video bùng nổ
       (`research/15-khao-sat-tiktok.md`) + research 6 hướng (`research/14-video-cuon-hut.md`). Đã làm: giọng đọc cả đoạn +
       hậu kỳ (D1) · bố cục "headline" tiêu đề cố định + khung hình (D2/D3) · shot 3–7s (D4) · bỏ trần 60s, mặc định AI 75s /

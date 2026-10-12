@@ -92,7 +92,8 @@ Ngưỡng đầy đủ: `configs/thresholds.yaml` · Cơ sở: `research/05-deci
 ## Nơi lưu
 
 `todos.md` việc phải làm · `research/` quyết định + probe · `configs/` ngưỡng và cấu hình
-· `src/create_video/` Python · `remotion/` TypeScript · `out/` video · `eval/` bộ đối chứng
+· `src/create_video/` Python · `remotion/` TypeScript · `videos/<kênh>/<id>` video tạo từ web (xoá được trên web)
+· `out/` thử nghiệm chạy tay (`paths.py`: `CV_OUT_ROOT`) · `eval/` bộ đối chứng
 · `exp/hf-cache` trọng số model (code tự đặt `HF_HOME`)
 
 Mốc "trước" để so chất lượng: `out/demo-02`. Đồ đã dọn 2026-10-01 nằm ở

@@ -27,6 +27,14 @@ WINDOW_DAYS = 28
 MAX_SEASON = 2      # ý tưởng mùa mỗi lần gợi ý — không để một pillar (theo_mua 10%) chiếm nửa danh sách
 
 
+def _all_files(name: str):
+    """`name` trong mọi thư mục video: web (`videos/<kênh>/*`) + thử nghiệm (`out/*`) — paths.py (2026-10-05)."""
+    from ..paths import OUT, VIDEOS
+
+    yield from VIDEOS.glob(f"*/*/{name}")
+    yield from OUT.glob(f"*/{name}")
+
+
 def _yaml(ch: Channel, name: str) -> dict:
     p = CHANNELS_DIR / ch.id / name
     return (yaml.safe_load(p.read_text(encoding="utf-8")) or {}) if p.exists() else {}
@@ -63,7 +71,7 @@ def seasons_now(ch: Channel, today: dt.date | None = None) -> list[dict]:
 def _videos(ch: Channel) -> list[dict]:
     """Video/job của kênh trên đĩa: [{topic, pillar, t}] — từ out/*/job.json (+ script.json lấy pillar)."""
     out = []
-    for jp in (REPO_ROOT / "out").glob("*/job.json"):
+    for jp in _all_files("job.json"):
         try:
             job = json.loads(jp.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):

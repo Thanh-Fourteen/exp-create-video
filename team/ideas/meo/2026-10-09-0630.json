@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-09-0630",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "md29fcb",
+   "title": "Lừa \"mở ngọc trai trúng thưởng\" trên livestream: combo 688 nghìn và cái bẫy mua lại",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m9fb7b1",
+   "title": "Gửi tiết kiệm lãi suất cao cuối năm: ba dấu hiệu đó là lừa đảo, không phải ngân hàng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m34501d",
+   "title": "Trợ giúp xã hội tăng từ 360 lên 540 nghìn/tháng từ 5/10/2026: ai được hưởng",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m47089e",
+   "title": "\"Làm lý lịch tư pháp lấy ngay, không cần thủ tục\": vì sao đó là dịch vụ lừa",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m30b260",
+   "title": "Xe buýt miễn phí TP.HCM phải xác thực khi lên xe: chuẩn bị gì trên điện thoại",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "mff4f9a",
+   "title": "Cách tra một sản phẩm có bị thu hồi hay không trên trang Cục An toàn thực phẩm",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m95d117",
+   "title": "Thực phẩm bảo vệ sức khoẻ: tra số công bố trước khi mua, tránh hàng giả vừa bị thu hồi",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mfd25fa",
+   "title": "Đốt than sưởi trong phòng kín: vì sao mỗi đợt lạnh đầu mùa lại có người nhập viện",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mf88d32",
+   "title": "Lạnh về, bật bình nóng lạnh: ba việc kiểm tra trước lần dùng đầu tiên của mùa",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m80f29f",
+   "title": "Bạn kể chuyện buồn: đừng nói \"rồi sẽ ổn thôi\", hãy nói ba câu này",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "VNeID bản mới có Sổ sức khoẻ điện tử và giấy đăng kiểm: tìm ở đâu trong app",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Càng nói \"bình tĩnh đi\" người ta càng nóng: nên nói câu gì thay thế",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 142.95,
+   "input_tokens": 8,
+   "output_tokens": 5087,
+   "cost_usd": 0.7681724999999999
+  }
+ ]
+}

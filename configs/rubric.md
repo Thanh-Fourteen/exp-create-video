@@ -95,6 +95,11 @@ like vô thức gần như không còn giá trị. Trọng số cụ thể chỉ
 
 **Hỏng:** "Nhớ like và subscribe nhé" (chung chung, ai cũng nói, không ai làm).
 
+**Sửa 2026-10-06 (research/21 §4):** câu cuối theo **KIỂU KẾT** trong đề bài (code xoay vòng: kết ở đỉnh · hỏi hai lựa
+chọn · quà ở bình luận ghim · vòng lặp về hook · gửi cho một người). Lý do: 5/5 video của kênh kết "…gửi cho / lưu lại"
+— người quen kênh đoán trước và lướt ở vài giây cuối; video viral kết đa dạng, kết ở đỉnh không CTA phổ biến nhất
+(AI 4/19, mẹo 5/14, quốc tế 4/7). Đề bài không có kiểu kết → dùng luật "Đạt" trên.
+
 ---
 
 ## 5. Quan sát trực tiếp — chống AI slop *(thêm 2026-10-02, P4.S2)*

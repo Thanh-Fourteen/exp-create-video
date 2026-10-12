@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-10-1339",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "md07ca6",
+   "title": "Người gọi tự nhận \"cán bộ làm sạch dữ liệu đất đai\" xin chụp sổ đỏ: đừng gửi",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mb2956a",
+   "title": "Thẻ bảo hiểm xã hội điện tử: chỉ có VssID và VNeID, app gửi qua link là giả",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m57a7cb",
+   "title": "Sạc dự phòng nằm trong danh sách thu hồi: cách tra tên model trước khi bấm mua",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "ma78b45",
+   "title": "Mua phiếu lý lịch tư pháp làm nhanh trên mạng: dùng giấy giả là tội hình sự",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m6d71fd",
+   "title": "Không mang bằng lái và không có bằng lái: hai lỗi, hai mức phạt cách nhau rất xa",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m44bca3",
+   "title": "Thực phẩm bảo vệ sức khỏe: cách tra số công bố trên vfa.gov.vn trong 30 giây",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mdbdd0e",
+   "title": "Gạo, mì, đồ khô bị ngâm nước lũ: vì sao phơi khô rồi vẫn phải bỏ",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m27e29a",
+   "title": "Mưa dài ngày: ba điểm điện trong nhà cần kiểm tra ngay trước khi ngấm nước",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "me0538e",
+   "title": "Người bán gọi tên bạn liên tục rồi khen trước khi chốt đơn: đó là kỹ thuật, không phải thân thiết",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "m099bf3",
+   "title": "Nói gì với người đang khóc: ba câu nên tránh và một câu luôn dùng được",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Gửi tiết kiệm lãi cao cuối năm: ba dấu hiệu đó là bẫy, không phải ngân hàng",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Đốt than sưởi trong phòng kín đêm trở lạnh: vì sao không ai kịp tỉnh dậy",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 121.17,
+   "input_tokens": 6,
+   "output_tokens": 5796,
+   "cost_usd": 1.496171
+  }
+ ]
+}

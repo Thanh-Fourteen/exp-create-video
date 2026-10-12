@@ -525,6 +525,28 @@
               },
               "to": {
                 "$ref": "#/definitions/frameState"
+              },
+              "segments": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 6,
+                "description": "2026-10-06 research/21 §3: đổi khung (toàn→cận) bên trong một shot ảnh dài — chia đều thời lượng shot",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "from": {
+                      "$ref": "#/definitions/frameState"
+                    },
+                    "to": {
+                      "$ref": "#/definitions/frameState"
+                    }
+                  }
+                }
               }
             }
           },
@@ -887,6 +909,11 @@
             },
             "accent": {
               "type": "string"
+            },
+            "intro_sec": {
+              "type": "number",
+              "minimum": 0,
+              "description": "2026-10-06 research/21: chỉ hiện trong N giây đầu"
             }
           }
         },
@@ -916,6 +943,11 @@
                 "news",
                 "minimal"
               ]
+            },
+            "badge_intro_sec": {
+              "type": "number",
+              "minimum": 0,
+              "description": "2026-10-06 research/21: nhãn dạng chỉ hiện trong N giây đầu"
             }
           }
         },
@@ -926,7 +958,7 @@
             "kind",
             "windows"
           ],
-          "description": "2026-10-05 (research/19): nhân vật hoạt hình SVG vẽ trong Remotion, hiện ở câu hook + câu chốt; mouth = độ mở miệng 0–1 mỗi frame (RMS giọng, Python tính).",
+          "description": "2026-10-05 (research/19): nhân vật hoạt hình SVG vẽ trong Remotion, có mặt suốt video; mode big (hook) / dock (cảnh quay, ảnh) / peek (thẻ số liệu, trang chụp); mouth = độ mở miệng 0–1 mỗi frame (RMS giọng, Python tính).",
           "properties": {
             "kind": {
               "type": "string",
@@ -967,6 +999,51 @@
                       "minimum": 0,
                       "maximum": 1
                     }
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "big",
+                      "dock",
+                      "peek"
+                    ]
+                  },
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "l",
+                      "r"
+                    ]
+                  }
+                }
+              }
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "start_sec",
+                  "action"
+                ],
+                "properties": {
+                  "start_sec": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "wave",
+                      "jump",
+                      "point",
+                      "nod",
+                      "shake",
+                      "surprise",
+                      "think",
+                      "celebrate"
+                    ]
                   }
                 }
               }

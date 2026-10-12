@@ -84,6 +84,8 @@ export interface Shot {
     type: "none" | "ken_burns" | "parallax";
     from?: FrameState;
     to?: FrameState;
+    /** 2026-10-06 (research/21 §3): đổi khung bên trong shot ảnh dài — chia đều thời lượng, mỗi đoạn một from→to. */
+    segments?: { from: FrameState; to: FrameState }[];
   };
   transition_in?: {
     type: "cut" | "fade" | "whip-pan" | "slide-up";
@@ -176,11 +178,14 @@ export interface VideoSpec {
     hook: TextStyle;
     safe_area_pct: { top: number; bottom: number; left: number; right: number };
     /** R4 (2026-10-04): nhãn kênh + bộ đếm cảnh góc trên trái. */
-    brand?: { label?: string; counter?: boolean; accent?: Hex };
+    brand?: { label?: string; counter?: boolean; accent?: Hex; intro_sec?: number };
     /** D2/D3 (2026-10-04): tiêu đề cố định + hình trong khung — research/15 §4. */
-    layout?: { type: "headline"; title?: string; badge?: string; variant?: "news" | "minimal" };
+    layout?: { type: "headline"; title?: string; badge?: string; badge_intro_sec?: number; variant?: "news" | "minimal" };
     mascot?: { kind: "kheo" | "robot"; name?: string; fps?: number;
-               windows: { start_sec: number; end_sec: number; mouth: number[] }[] };
+               windows: { start_sec: number; end_sec: number; mode?: "big" | "dock" | "peek"; side?: "l" | "r";
+                          mouth: number[] }[];
+               actions?: { start_sec: number;
+                           action: "wave" | "jump" | "point" | "nod" | "shake" | "surprise" | "think" | "celebrate" }[] };
   };
 }
 

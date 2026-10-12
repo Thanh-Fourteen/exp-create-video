@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-08-0630",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m79ea9e",
+   "title": "Mời gửi tiết kiệm \"gói VIP\" lãi 15–20%/năm: ba điểm bóc mẽ ngay",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m0170b8",
+   "title": "Bộ Công an cảnh báo bẫy mua nhà: bốn chỗ trong hợp đồng đặt cọc dễ mất tiền",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "me7442f",
+   "title": "Giả danh bảo hiểm xã hội \"tích hợp bảo hiểm y tế cho con\": bẫy cài app ngoài Store",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m4bd21d",
+   "title": "VNeID vừa thêm mục tố giác tin giả: vào đâu trong app, khai những gì",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m96106b",
+   "title": "Không sang tên xe sau khi mua: mức phạt theo nghị định giao thông mới 2026",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m08ce03",
+   "title": "Ảnh của bạn bị đăng lên mạng không xin phép: luật cho bạn quyền gì",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m76a429",
+   "title": "Đồ hộp phồng nắp, móp méo, rỉ mép: vì sao tuyệt đối đừng ăn thử",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m261eb1",
+   "title": "Mưa lớn dồn về Trung Bộ tháng 10: năm việc làm trước khi nước vào nhà",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mc75fba",
+   "title": "Không khí lạnh về, đóng kín cửa dùng than sưởi: vì sao ngạt CO xảy ra trong giấc ngủ",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m657c9f",
+   "title": "Khi ai đó kể chuyện buồn: đừng nói \"Tôi hiểu mà\" — nói câu này",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "mdd7a24",
+   "title": "Bị giao thêm việc lúc 5 giờ chiều: cách nói không mà vẫn giữ quan hệ",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Cơm nguội để ngoài qua đêm: vì sao hâm lại vẫn có thể gây ngộ độc",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 179.7,
+   "input_tokens": 6,
+   "output_tokens": 6087,
+   "cost_usd": 1.4868650000000003
+  }
+ ]
+}

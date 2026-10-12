@@ -1,0 +1,116 @@
+{
+ "at": "2026-10-10-1351",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m15b541",
+   "title": "Rán cá không dính chảo: chà lát gừng vào chảo thật khô rồi mới cho dầu",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m7523f3",
+   "title": "Chiên đồ bắn dầu: thấm khô rồi thả vài hạt muối vào chảo dầu nóng",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m2e52ed",
+   "title": "3 mẹo luộc rau xanh giòn: nước sôi mạnh, thêm thìa muối, không đóng vung",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mafc09d",
+   "title": "Chọn cá tươi ở chợ: mang đỏ, mắt trong, ấn vào thịt thấy đàn hồi",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "ma5a488",
+   "title": "Xào mực không ra nước: chần 10 giây nước sôi có gừng rồi xào lửa lớn",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "md82f91",
+   "title": "Áo trắng ố vàng: ngâm nước ấm pha baking soda 30 phút rồi giặt lại",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m49f212",
+   "title": "Vết dầu mỡ trên áo: rắc baking soda hút 15 phút rồi chà nước rửa chén",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m1e3c08",
+   "title": "Quần áo hôi mùi ẩm mùa mưa: phơi trước quạt 30 phút thay vì treo phòng kín",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m371ae4",
+   "title": "Khử mùi tủ lạnh: đặt hộp baking soda mở nắp, thay 2 tuần một lần",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "me423aa",
+   "title": "Máy lạnh tốn điện: đặt 26 độ bật kèm quạt, rửa lưới lọc 2 tuần một lần",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m1457b9",
+   "title": "iPhone: chạm 2 lần mặt lưng để chụp màn hình, bật ở Trợ năng > Cảm ứng",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "mca3a43",
+   "title": "Zalo: tắt tìm kiếm bằng số điện thoại để người lạ không nhắn tin được",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m2032ea",
+   "title": "Android: bật Tìm thiết bị của tôi ngay hôm nay, trước khi mất máy",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m5a1646",
+   "title": "iPhone đầy bộ nhớ: xoá mục 'Đã xoá gần đây' trong Ảnh, lấy lại vài GB",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m05454b",
+   "title": "Tính nhanh lãi sổ tiết kiệm 6 tháng: gốc × lãi suất ÷ 2, khỏi tính nhầm",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m823f3f",
+   "title": "Thẻ tín dụng: trả 'tổng dư nợ' chứ không phải 'số tối thiểu' để không bị lãi",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m9d7bc1",
+   "title": "Quên mang bằng lái xe máy phạt 200–300 nghìn, không có bằng phạt 2–4 triệu",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m713ac2",
+   "title": "Hàng online khác mô tả: chụp ảnh khi mở hộp, luật cho quyền yêu cầu đổi trả",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m283278",
+   "title": "Bị nhờ việc ngoài giờ qua Zalo: câu trả lời giữ được việc và giữ được tối",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "mff32a4",
+   "title": "Họ hàng hỏi lương bao nhiêu, bao giờ cưới: ba câu đáp lại nhẹ mà dừng được",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 174.58,
+   "input_tokens": 6,
+   "output_tokens": 8631,
+   "cost_usd": 0.6670825
+  }
+ ]
+}

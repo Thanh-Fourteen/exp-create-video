@@ -43,3 +43,12 @@ def test_lech_so_tu_thi_giu_nguyen(tmp_path):
     words = [Word(w="a", start=m[0][0], end=m[0][1]), Word(w="b", start=m[1][0], end=m[1][1])]
     moved, _, _ = _reshape_pauses(p, words, "a, b c", {",": 0.2})
     assert moved == words
+
+
+def test_khong_chen_khi_tu_noi_lien(tmp_path):
+    """Lỗi "ngắt ngắt" (2026-10-05): dấu phẩy nhưng TTS đọc liền hai từ (không có chỗ lặng) → KHÔNG được chèn."""
+    p = tmp_path / "v.wav"
+    m = _wav(p, [(0.6, 1)])                       # một luồng âm liền, không khe lặng
+    words = [Word(w="Một,", start=0.0, end=0.3), Word(w="hai", start=0.3, end=0.6)]
+    moved, _, n = _reshape_pauses(p, words, "Một, hai", {",": 0.2})
+    assert moved == words and n == int(0.6 * SR)

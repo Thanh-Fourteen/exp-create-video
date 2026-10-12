@@ -52,14 +52,25 @@ def is_dup(title: str, others: list[str]) -> bool:
     return False
 
 
+# Mặc định = kênh mẹo (idea_gen sinh ra cho kênh này trước, 2026-10-04) — giữ NGUYÊN VĂN. Kênh khác khai
+# `prompts.idea_search` / `prompts.idea_scope` trong channel.yaml (kênh AI: 2026-10-08, Tony: "trang ý tưởng xưởng AI chưa
+# có ý tưởng gì hết").
+IDEA_SEARCH_MEO = """Dùng WebSearch (tin Việt Nam 7–14 ngày gần đây) để bắt chuyện ĐANG xảy ra: thủ đoạn lừa đảo mới được công an/ngân hàng
+cảnh báo, cảnh báo an toàn thực phẩm, thời tiết/mùa tuần này, tính năng mới của điện thoại/ứng dụng phổ biến ở VN.
+Trộn với chủ đề muôn thuở (evergreen) nhưng góc nhìn cụ thể."""
+IDEA_SCOPE_MEO = """2. Chỉ chủ đề làm được KHÔNG CẦN QUAY: giải thích được bằng chữ, thẻ hội thoại, danh sách, con số, ảnh đồ vật, ảnh
+   chụp trang web chính thống. KHÔNG: làm đẹp, trộn hoá chất, chữa bệnh tại nhà. (Kênh có `prompts.idea_scope` riêng thì
+   dùng bản đó — kênh mẹo 2026-10-10 cho phép mẹo bếp/nhà cửa, research/26.)
+3. Phải có nguồn CHÍNH THỐNG kiểm chứng được (cơ quan nhà nước, ngân hàng, hãng điện thoại, tổ chức y tế) — ghi domain
+   vào `hint`. Không chắc có nguồn → đừng đề xuất."""
+
+
 def _system(ch, n: int) -> str:
     pillars = "\n".join(f"- {k}: {p.get('desc', '')}" for k, p in ch.pillars.items())
     return f"""Bạn là BIÊN TẬP VIÊN Ý TƯỞNG của kênh TikTok tiếng Việt "{ch.name}" — {ch.raw.get('audience', '')}.
 Hôm nay là {time.strftime('%Y-%m-%d')}. Đề xuất {n} chủ đề video 30–60 giây MỚI, người Việt đang cần biết.
 
-Dùng WebSearch (tin Việt Nam 7–14 ngày gần đây) để bắt chuyện ĐANG xảy ra: thủ đoạn lừa đảo mới được công an/ngân hàng
-cảnh báo, cảnh báo an toàn thực phẩm, thời tiết/mùa tuần này, tính năng mới của điện thoại/ứng dụng phổ biến ở VN.
-Trộn với chủ đề muôn thuở (evergreen) nhưng góc nhìn cụ thể.
+{ch.text("idea_search", IDEA_SEARCH_MEO)}
 
 PILLAR (mỗi ý tưởng đúng MỘT):
 {pillars}
@@ -67,10 +78,7 @@ PILLAR (mỗi ý tưởng đúng MỘT):
 LUẬT
 1. `title` là chủ đề CỤ THỂ, ≤ 90 ký tự, đọc lên biết ngay video nói gì ("Tin nhắn báo trúng thưởng đơn hàng 11.11:
    ba dấu hiệu lừa đảo"), không chung chung ("Mẹo hay cuộc sống").
-2. Chỉ chủ đề làm được KHÔNG CẦN QUAY: giải thích được bằng chữ, thẻ hội thoại, danh sách, con số, ảnh đồ vật, ảnh
-   chụp trang web chính thống. KHÔNG: lau chùi trước/sau, DIY, làm đẹp, kỹ thuật nấu, trộn hoá chất, chữa bệnh tại nhà.
-3. Phải có nguồn CHÍNH THỐNG kiểm chứng được (cơ quan nhà nước, ngân hàng, hãng điện thoại, tổ chức y tế) — ghi domain
-   vào `hint`. Không chắc có nguồn → đừng đề xuất.
+{ch.text("idea_scope", IDEA_SCOPE_MEO)}
 4. Rải đều các pillar; không hai ý tưởng cùng một ý.
 5. `why` ≤ 120 ký tự: vì sao LÚC NÀY người xem cần biết."""
 

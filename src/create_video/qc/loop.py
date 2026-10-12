@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -120,8 +121,23 @@ def run_t2(ctx: dict) -> TierResult:
         summ = t2_vlm.summarize(verdicts, vlm.peak_vram_mib)
     art = ctx["rdir"] / "t2.json"
     art.write_text(json.dumps(summ, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    sug = [{"key": f"t2:{s['shot_id']}", "shot_id": s["shot_id"], "issues": s["issues"],
-            "fix": s.get("suggested_prompt_fix")} for s in summ["shots"] if not s["pass"]]
+    spec = json.loads((ctx["out_dir"] / "video-spec.json").read_text(encoding="utf-8"))
+    from ..visual.regen import is_stock
+
+    stock_ids = {sh["id"] for sh in spec["shots"] if is_stock(sh["asset"])}
+    # ảnh AI đã được thay bằng ảnh chụp thật (regen._photo_swap) — chữ trên đó là chữ thật, xử lý như stock
+    man_p = ctx["out_dir"] / "gen" / "manifest.json"
+    photo = {Path(m["file"]).name for m in (json.loads(man_p.read_text(encoding="utf-8"))["shots"] if man_p.exists() else [])
+             if m.get("photo")}
+    stock_ids |= {sh["id"] for sh in spec["shots"] if Path(str(sh["asset"].get("path", ""))).name in photo}
+    # Ảnh/clip stock: chữ trên đó là chữ THẬT (nhãn, biển) — không phải lỗi, không tính là đề xuất (nó làm phồng số đề xuất
+    # → bộ xếp hạng bản cuối chọn sai vòng; 2026-10-07). Stock chỉ còn lỗi "lệch chủ đề".
+    def _issues(s: dict) -> list[str]:
+        return [i for i in s["issues"] if i == "topic_mismatch"] if s["shot_id"] in stock_ids else s["issues"]
+
+    sug = [{"key": f"t2:{s['shot_id']}", "shot_id": s["shot_id"], "issues": _issues(s),
+            "fix": s.get("suggested_prompt_fix"), **({"stock": True} if s["shot_id"] in stock_ids else {})}
+           for s in summ["shots"] if not s["pass"] and _issues(s)]
     return TierResult("t2", ok=not sug, suggestions=sug,
                       summary={"failing_pct": summ["failing_pct"], "shots": len(summ["shots"]),
                                "peak_vram_mib": summ["peak_vram_mib"]}, artifact=str(art))
@@ -157,17 +173,33 @@ def pre_gate(out_dir: Path, script, state, revise) -> object:
         return script
     ctx = {"out_dir": out_dir, "script": script, "spec": None, "state": state, "rdir": rdir}
     revised = 0
+    listen_on = os.environ.get("CV_LISTEN_GATE") == "1"   # 2026-10-08 (research/probes/kb-de-hieu.md) — mặc định tắt
+    lg: dict = {}
     while True:
         r3, r4 = run_t3(ctx), run_t4(ctx)
         notes = list(r4.summary.get("notes") or []) + list(r3.summary.get("notes") or [])
+        if listen_on:
+            from .listener import listen_gate
+
+            try:
+                lg = listen_gate(ctx["script"])
+            except Exception as e:   # vai phụ — hỏng thì bỏ qua, không chặn video
+                lg = {"ok": True, "error": f"{type(e).__name__}: {str(e)[:160]}", "notes": []}
+            notes += lg.get("notes") or []
         print(f"  cổng kịch bản: T3 {r3.summary.get('total')} {'✓' if r3.ok else '✗'} · T4 "
-              f"{r4.summary.get('contradicted')} mâu thuẫn {'✓' if r4.ok else '✗'}", flush=True)
-        if (r3.ok and r4.ok) or revised >= PRE_MAX_REVISE or not notes:
+              f"{r4.summary.get('contradicted')} mâu thuẫn {'✓' if r4.ok else '✗'}"
+              + (f" · nghe thử {lg.get('n_issues', '?')} vướng/{lg.get('n_appeal', '?')} khó chịu {'✓' if lg.get('ok') else '✗'}"
+                 if listen_on else ""), flush=True)
+        if (r3.ok and r4.ok and lg.get("ok", True)) or revised >= PRE_MAX_REVISE or not notes:
             break
-        script = revise(script, notes)
+        try:
+            script = revise(script, notes)
+        except Exception as e:   # rà soát 2026-10-10: bản sửa còn lỗi cứng → GIỮ bản trước (vốn đã hợp lệ), không chết job
+            print(f"  ⚠ sửa kịch bản hỏng ({type(e).__name__}: {str(e)[:160]}) — giữ bản trước", flush=True)
+            break
         ctx["script"] = script
         revised += 1
-    g.write_text(json.dumps({"sha": script_sha(script), "revised": revised, "t3": asdict(r3), "t4": asdict(r4)},
+    g.write_text(json.dumps({"sha": script_sha(script), "revised": revised, "t3": asdict(r3), "t4": asdict(r4), "listen": lg},
                             ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     return script
 
@@ -209,13 +241,14 @@ RUNNERS: dict[str, Callable[[dict], TierResult]] = {"t1": run_t1, "t2": run_t2, 
 
 
 # ── Patch thật (test thay bằng bản giả) ──────────────────────────────────────
-def apply_visual(ctx: dict, shot_ids: list[str], fixes: dict[str, str], round_: int) -> dict:
+def apply_visual(ctx: dict, shot_ids: list[str], fixes: dict[str, str], round_: int,
+                 photo_ids: list[str] | None = None) -> dict:
     free = gpu_free_mib()
     if free is not None and free < MIN_FREE_MIB["regen"]:
         return {"applied": False, "why": f"GPU chỉ còn {free} MiB trống"}
     from ..visual import regen
 
-    jobs = regen.rerender(ctx["out_dir"], shot_ids, fixes, round_=round_, visual=ctx["visual"])
+    jobs = regen.rerender(ctx["out_dir"], shot_ids, fixes, round_=round_, visual=ctx["visual"], photo_ids=photo_ids)
     return {"applied": True, "shots": [j["shot_id"] for j in jobs]}
 
 
@@ -311,10 +344,23 @@ def plan_patches(rec: dict) -> dict:
     # Phase V5 (2026-10-02): regen tự động CHỈ cho lỗi người xem thấy ngay (giải phẫu, chữ méo).
     # demo-03: 2/3 lần regen vì "lệch prompt" ra ảnh tệ hơn (đèn chói → T1 chặn) và tốn ~330s/vòng
     # (research/11 §5.1 mục 12). Lệch prompt/khác vẫn ghi đề xuất cho Tony, không sửa tự động.
-    regen = [s for s in t["t2"]["suggestions"] if set(s.get("issues") or []) & REGEN_ISSUES]
+    # 2026-10-06 (research/21 §8 C5): shot STOCK lệch chủ đề → thay bằng ảnh AI vẽ theo prompt dự phòng (alt) của shot.
+    # Khác ảnh AI lệch prompt (luật trên): lỗi stock là lỗi TÌM KIẾM (so từ khoá trên tên file — "beauty container" cho
+    # "food container"), còn prompt dự phòng viết đúng cho câu đó. Stock chỉ thay vì lệch chủ đề — chữ trên ảnh chụp thật
+    # là chữ thật, không phải "chữ méo".
+    def _regen(s: dict) -> bool:
+        issues = set(s.get("issues") or [])
+        return "topic_mismatch" in issues if s.get("stock") else bool(issues & REGEN_ISSUES)
+
+    regen = [s for s in t["t2"]["suggestions"] if _regen(s)]
     if regen:
         vis = {"shot_ids": [s["shot_id"] for s in regen],
-               "fixes": {s["shot_id"]: s["fix"] for s in regen if s.get("fix")}}
+               "fixes": {s["shot_id"]: s["fix"] for s in regen if s.get("fix")},
+               # ảnh AI chữ méo → ẢNH CHỤP THẬT ngay lần đầu (2026-10-08, research/21 §8 C6): vẽ lại hiếm khi chữa được chữ
+               # giả của FLUX (mẹo v9: 4 ảnh vẫn méo sau 2 lần vẽ lại; AI-3 lô 2: 2 ảnh); đếm "lần thứ hai" không dùng được vì
+               # sửa kịch bản làm sinh lại mọi ảnh và xoá bộ đếm.
+               "photo_ids": [s["shot_id"] for s in regen
+                             if "garbled_text_in_image" in (s.get("issues") or []) and not s.get("stock")]}
     if not notes and not vis:
         return {"visual": None, "script": [], "stop": "đạt" if not (rec["blocking"] or rec["suggestions"])
                 else "còn lỗi nhưng không tầng nào đưa được patch"}
@@ -331,7 +377,9 @@ def run_loop(video_id: str, *, topic: str | None = None, duration_sec: int | Non
     from ..agents.scriptwriter import Script
     from ..team import State
 
-    out_dir = (out_root or REPO_ROOT / "out") / video_id
+    from ..paths import out_root as _root
+
+    out_dir = (out_root or _root()) / video_id
     qc = out_dir / "qc"
     qc.mkdir(parents=True, exist_ok=True)
     runners = {**RUNNERS, **(runners or {})}
@@ -370,7 +418,9 @@ def run_loop(video_id: str, *, topic: str | None = None, duration_sec: int | Non
         try:
             if plan["visual"]:
                 applied["visual"] = patchers["visual"](ctx, plan["visual"]["shot_ids"],
-                                                       plan["visual"]["fixes"], n + 1)
+                                                       plan["visual"]["fixes"], n + 1,
+                                                       **({"photo_ids": plan["visual"]["photo_ids"]}
+                                                          if plan["visual"].get("photo_ids") else {}))
             if plan["script"]:
                 applied["script"] = patchers["script"](ctx, plan["script"])
             applied["rebuild"] = patchers["rebuild"](ctx)

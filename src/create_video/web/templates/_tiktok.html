@@ -1,0 +1,117 @@
+{# Hộp hành động theo trạng thái (W6 2026-10-08, research/probes/w6-trang-video-research.md): chưa đăng → Đăng/Bỏ ·
+   đang đăng → thăm dò 10s (xong thì server trả HX-Refresh) · đã đăng → việc tay còn lại · đã bỏ → lý do/hoàn tác.
+   Context: v, r (review), ch, err #}
+{% set pk = v.post or {} %}
+{% set cap = pk.caption or ((v.caption or '') ~ '\n\n#' ~ (v.hashtags or [])|join(' #')) %}
+{% set st = r.buffer_status %}
+{% set busy = r.buffer_post_id and st and st not in ('sent', 'error') %}
+{% set handle = '@' ~ (ch.handle or ch.short) %}
+<section id="action" class="card-x p-5 flex flex-col gap-4"
+  {% if busy and r.decision != 'post' %}hx-get="/videos/{{ v.id }}/tiktok" hx-trigger="every 10s [!document.hidden]" hx-swap="outerHTML"{% endif %}>
+{% if r.decision == 'post' %}
+  <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <b class="font-medium text-success">Đã đăng lên {{ handle }}</b>
+    {% if r.posted_at %}<span class="text-muted text-[13px] num">{{ r.posted_at|tg }}</span>{% endif %}
+    {% if r.tiktok_url %}<a href="{{ r.tiktok_url }}" target="_blank" rel="noopener" class="link text-[14px] ml-auto" hx-boost="false">Mở trên TikTok ↗</a>{% endif %}
+  </div>
+  {# số TikTok tự cập nhật mỗi 3 giờ (create_video.tiktok_stats, research/23) #}
+  {% set last = (ts or [])[-1] if ts else none %}
+  <div class="flex flex-col gap-3 rounded-field border border-base-300 bg-base-100 p-3">
+    {% if last %}
+    <div class="grid grid-cols-3 sm:grid-cols-5 gap-x-3 gap-y-2">
+      {% for k, l in [("views","view"),("likes","tim"),("comments","bình luận"),("shares","chia sẻ"),("saves","lưu")] %}
+      <div><b class="num text-[19px] font-medium">{{ last[k]|so }}</b><small class="block text-muted text-[11.5px]">{{ l }}</small></div>
+      {% endfor %}
+      {% if last.avg_watch %}<div><b class="num text-[19px] font-medium">{{ '%.1f'|format(last.avg_watch) }}s</b><small class="block text-muted text-[11.5px]">xem TB</small></div>{% endif %}
+    </div>
+    {% if ts|length >= 2 %}
+    {% set mx = [ts|map(attribute='views')|select|max or 1, 1]|max %}
+    {% set t0 = ts[0].ts %}{% set span = [ts[-1].ts - t0, 1]|max %}
+    <svg viewBox="0 0 300 44" class="w-full h-11" preserveAspectRatio="none" role="img" aria-label="View theo thời gian">
+      <polyline fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" class="text-primary"
+        points="{% for p in ts %}{{ ((p.ts - t0) / span * 296 + 2)|round(1) }},{{ (42 - (p.views or 0) / mx * 38)|round(1) }} {% endfor %}"/>
+    </svg>
+    {% endif %}
+    {% endif %}
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted">
+      <span>{% if last %}Cập nhật {{ last.ts|tg }} · tự động mỗi 3 giờ{% else %}Chưa có số — lượt cập nhật kế tiếp sẽ lấy (mỗi 3 giờ){% endif %}</span>
+      {% if r.tiktok_url and last and last.comments %}<a href="{{ r.tiktok_url }}" target="_blank" rel="noopener" class="link" hx-boost="false">Đọc {{ last.comments }} bình luận ↗</a>{% endif %}
+      <form hx-post="/stats/tiktok/refresh" hx-target="body" class="ml-auto"><input type="hidden" name="back" value="/library/{{ v.id }}">
+        <button class="btn btn-ghost btn-xs" hx-disabled-elt="this">Cập nhật ngay</button></form>
+    </div>
+  </div>
+  {% if pk.pin_comment %}
+  <div class="flex flex-col gap-2">
+    <p class="eyebrow m-0">Việc còn lại · ghim bình luận này</p>
+    <p class="m-0 text-[14.5px] bg-base-100 border border-base-300 rounded-field p-3">{{ pk.pin_comment }}</p>
+    <button class="btn btn-primary btn-sm self-start" onclick="copyText({{ pk.pin_comment|tojson|forceescape }})">Copy bình luận</button>
+  </div>
+  {% endif %}
+  <p class="m-0 text-[12.5px] text-muted">Sau 2 giờ mà 0 view: TikTok Studio → Kiểm tra tài khoản. Đừng xoá rồi đăng lại.</p>
+
+{% elif r.decision == 'drop' %}
+  <div class="flex flex-wrap items-center gap-3">
+    <b class="font-medium text-error">Đã bỏ video này</b>
+    <form hx-post="/videos/{{ v.id }}/review" hx-trigger="change" hx-target="body" class="flex items-center gap-2 text-[14px]">
+      <input type="hidden" name="field" value="reason"><span class="text-muted">vì</span>
+      <select name="value" class="select select-sm select-bordered">
+        {% for k, l in [("","— chọn —"),("hook","Hook yếu"),("voice","Giọng"),("visual","Hình"),("content","Nội dung"),("fact","Sai sự thật"),("other","Khác")] %}<option value="{{ k }}" {{ 'selected' if (r.reason or '') == k }}>{{ l }}</option>{% endfor %}
+      </select></form>
+    <button class="btn btn-ghost btn-sm ml-auto" hx-post="/videos/{{ v.id }}/review" hx-vals='{"field":"decision","value":""}' hx-target="body">Hoàn tác</button>
+  </div>
+
+{% elif busy %}
+  <p class="m-0 text-[15px]"><span class="loading loading-spinner loading-sm align-middle mr-1"></span>
+    Đang đăng lên <b class="font-medium">{{ handle }}</b>… thường 1–3 phút.</p>
+  <p class="m-0 text-[12.5px] text-muted">Rời trang cũng được — mở lại là thấy kết quả.</p>
+
+{% else %}
+  <div class="flex flex-col gap-2">
+    <div class="flex items-center justify-between gap-2"><p class="eyebrow m-0">Caption sẽ đăng</p>
+      <span class="num text-[11.5px] text-muted">{{ cap|length }}/2200</span></div>
+    <pre class="m-0 whitespace-pre-wrap font-sans text-[14.5px] bg-base-100 border border-base-300 rounded-field p-3">{{ cap }}</pre>
+  </div>
+  <div class="flex flex-wrap items-center gap-2">
+    {% if ch.raw.get('buffer_channel_id') %}
+    <button class="btn btn-primary" hx-post="/videos/{{ v.id }}/tiktok" hx-target="#action" hx-swap="outerHTML" hx-disabled-elt="this"
+            hx-confirm="Đăng CÔNG KHAI lên {{ handle }} ngay bây giờ?">Đăng lên TikTok · {{ handle }}</button>
+    {% else %}
+    <span class="text-[13px] text-muted">Kênh này chưa nối Buffer — đăng tay (mục “Đăng tay” bên dưới).</span>
+    {% endif %}
+    <button class="btn btn-ghost text-error" hx-post="/videos/{{ v.id }}/review" hx-vals='{"field":"decision","value":"drop"}' hx-target="body">Bỏ video</button>
+  </div>
+  <p class="m-0 text-[12.5px] text-muted">Đăng công khai ngay · {{ 'gắn nhãn “Nội dung do AI tạo”' if ch.raw.get('posting', {}).get('ai_label', True) else 'KHÔNG gắn nhãn AI (thử nghiệm)' }} · bìa là ảnh bìa thiết kế.</p>
+  {% if ch.raw.get('buffer_channel_id') and slots is defined %}
+  {# Hẹn đăng (2026-10-08, research/probes/w7-lich-dang-research.md) — timer xuong-lich đăng đúng giờ, máy phải bật #}
+  <div class="border-t border-base-300 pt-4 flex flex-col gap-3">
+    {% if sch and sch.status == 'scheduled' %}
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span class="badge badge-primary badge-soft">Đã hẹn</span>
+      <b class="font-medium num">{{ fmt(sch.due_at) }}</b>
+      <span class="text-[12.5px] text-muted">{{ 'Buffer nhắc trên điện thoại' if post_mode == 'notification' else 'tự đăng' }}</span>
+      <form hx-post="/videos/{{ v.id }}/schedule/cancel" hx-target="body" class="ml-auto"><button class="btn btn-ghost btn-xs text-error">Huỷ hẹn</button></form>
+    </div>
+    {% for w in sch_warn %}<p class="m-0 text-[12.5px] text-warning">⚠ {{ w }}</p>{% endfor %}
+    {% elif sch and sch.status in ('missed', 'failed') %}
+    <p class="m-0 text-[13px] text-error">Lịch {{ fmt(sch.due_at) }} {{ 'lỡ giờ' if sch.status == 'missed' else 'đăng lỗi' }}{% if sch.error %}: {{ sch.error }}{% endif %} — chọn giờ mới bên dưới.</p>
+    {% endif %}
+    <p class="eyebrow m-0">{{ 'Đổi giờ' if sch and sch.status == 'scheduled' else 'Hẹn giờ đăng' }}</p>
+    {% if slots %}
+    {# mỗi ô tự mang giờ của nó (hx-vals) — không dựa vào nút submit, Safari iPhone có lúc không gửi giá trị nút (2026-10-08) #}
+    <div class="flex flex-wrap gap-1.5">
+      {% for t in slots %}<button type="button" hx-post="/videos/{{ v.id }}/schedule" hx-vals='{"due": "{{ t }}"}' hx-target="body"
+        hx-disabled-elt="this" class="btn btn-sm btn-ghost border border-base-300 num">{{ fmt(t) }}</button>{% endfor %}
+    </div>
+    {% endif %}
+    <form hx-post="/videos/{{ v.id }}/schedule" hx-target="body" class="flex flex-wrap items-center gap-2">
+      <input type="datetime-local" name="when" required class="input input-sm input-bordered" aria-label="Giờ khác">
+      <button class="btn btn-sm btn-primary btn-outline">Hẹn giờ này</button>
+      <a href="/lich" class="link text-[12.5px] ml-auto">Xem lịch đăng →</a>
+    </form>
+  </div>
+  {% endif %}
+{% endif %}
+{% if err or (st == 'error' and r.buffer_error and r.decision != 'post') %}
+  <p class="m-0 text-[13px] text-error">Lỗi khi đăng: {{ err or r.buffer_error }}</p>
+{% endif %}
+</section>

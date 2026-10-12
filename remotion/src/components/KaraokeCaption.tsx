@@ -138,7 +138,9 @@ export const ChunkCaption: React.FC<{
     fps,
     config: { damping: 12, stiffness: 230, mass: 0.6 },
   });
-  const scale = 0.78 + 0.22 * sp;
+  // 2026-10-06 (research/21 §3): cụm mới hiện ĐỦ ngay (bản cũ opacity từ 0 + scale 0,78 → frame 0 không thấy phụ đề,
+  // mỗi lần đổi cụm 2–3 frame mờ). Video viral (12/19 AI) đổi cụm tức thì; chỉ giữ cú nảy nhẹ.
+  const scale = 0.92 + 0.08 * sp;
   const stroke = style.stroke_px ?? 6;
   const highlight = style.highlight_color ?? accent;
   const size = (style.chunk_size_px ?? Math.round(style.size_px * 1.35)) * (ch.fit ?? 1);
@@ -162,7 +164,6 @@ export const ChunkCaption: React.FC<{
           textShadow: "0 6px 22px rgba(0,0,0,0.6)",
           transform: `scale(${scale})`,
           transformOrigin: "center top",
-          opacity: Math.min(1, sp * 1.6),
         }}
       >
         {caption.words.slice(ch.from, ch.to).map((w, i) => {

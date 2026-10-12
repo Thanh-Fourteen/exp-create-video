@@ -1,0 +1,116 @@
+{
+ "at": "2026-10-10-1351",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m1b665b",
+   "title": "Lưu prompt thành lệnh \"/\" trong Gemini: gõ 3 ký tự thay vì viết lại cả đoạn",
+   "pillar": "meo"
+  },
+  {
+   "id": "ma4ae20",
+   "title": "ChatGPT giờ nhận file ghi âm: tóm tắt cuộc họp 1 tiếng không cần gõ lại",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m311241",
+   "title": "Skills trong Chrome: biến prompt viết mô tả sản phẩm thành nút bấm một lần",
+   "pillar": "meo"
+  },
+  {
+   "id": "md71ca8",
+   "title": "Xoá nền ảnh sản phẩm miễn phí bằng Nano Banana trong Google AI Studio",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m6459f8",
+   "title": "Student Hub mới trong Gemini: góc công cụ học tập cho học sinh, sinh viên",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m664b32",
+   "title": "Gemini Skills sắp thay Gems: ai đang dùng Gems cần làm gì bây giờ",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m732c4e",
+   "title": "Giả mặt, giả giọng lãnh đạo đòi chuyển tiền gấp: ba bước xác minh của Bộ Công an",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m6a3dee",
+   "title": "Excel đã bỏ hàm COPILOT: làm lại đúng việc đó bằng khung Copilot bên phải",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m16b7c1",
+   "title": "Nhờ Copilot đọc cột ghi chú khách trong Excel và tự phân loại thành nhóm",
+   "pillar": "meo"
+  },
+  {
+   "id": "mc651eb",
+   "title": "Gemini Notebook: nạp cả giáo trình rồi hỏi đáp ôn thi, câu nào cũng có trích nguồn",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "mf1e568",
+   "title": "Từ tài liệu ra slide PPTX bằng Gemini Notebook: giáo viên soạn bài nhanh hơn",
+   "pillar": "meo"
+  },
+  {
+   "id": "m558a26",
+   "title": "CapCut Auto-Reframe: đổi video ngang thành dọc TikTok mà không cắt mất mặt người",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "me02564",
+   "title": "Năm dòng mô tả ra video quảng cáo sản phẩm bằng CapCut script-to-video",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m6d20fc",
+   "title": "Copilot đọc được tài liệu 75.000 từ: cách hỏi hợp đồng và quy chế công ty",
+   "pillar": "meo"
+  },
+  {
+   "id": "ma38665",
+   "title": "ChatGPT Free, Go hay Plus: ba kiểu người dùng và mức nào thật sự đáng tiền",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m2eb9ab",
+   "title": "Tự chạy: xoá nền 50 ảnh sản phẩm bằng AI trên card 6GB mất bao nhiêu phút",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "mce3791",
+   "title": "Tự đo: AI làm phụ đề tiếng Việt cho video 3 phút trên máy nhà sai mấy chữ",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m156c48",
+   "title": "Nạp 10 file ôn thi: Gemini Notebook hay ChatGPT trả lời sát tài liệu hơn",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "md5a6e0",
+   "title": "Ảnh \"công an\" do AI tạo tràn mạng xã hội: bốn dấu hiệu nhận ra ảnh giả",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mf3094e",
+   "title": "GPT-6 vừa nghĩ vừa trả lời: cách hỏi để ra bảng so sánh thay vì đoạn văn dài",
+   "pillar": "tin_nong"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 125.79,
+   "input_tokens": 10,
+   "output_tokens": 5912,
+   "cost_usd": 0.8433714999999999
+  }
+ ]
+}

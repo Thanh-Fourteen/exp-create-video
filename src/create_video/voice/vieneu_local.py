@@ -155,7 +155,12 @@ class VieneuLocalBackend(EchoBackend):
         try:
             r = subprocess.run([str(self.ECHO_PYTHON), str(self.ASR_CLI), *map(str, wavs)],
                                capture_output=True, text=True, timeout=900)
-            return json.loads(r.stdout) if r.returncode == 0 and r.stdout.strip() else None
+            out = json.loads(r.stdout) if r.returncode == 0 and r.stdout.strip() else None
+            if out is None or any(v is None for v in out.values()):
+                # lỗi ASR KHÁC "nghe sai" — in ra, đừng nuốt (2026-10-07: hook check báo "giống 0,00" mà không ai biết vì sao)
+                err = [ln for ln in r.stderr.splitlines() if "lỗi" in ln or "Error" in ln or "error" in ln][-3:]
+                print(f"    ⚠ ASR lỗi (rc={r.returncode}): {' | '.join(err)[:300]}", flush=True)
+            return out
         except Exception:
             return None
 
@@ -184,14 +189,94 @@ class VieneuLocalBackend(EchoBackend):
         return log
 
     def synth_lines(self, lines, *args, mode: str = "per_line", **kw):
-        """Kiểm ASR theo lô TRƯỚC khi ghép (chỉ mode đọc từng câu), rồi ghép như EchoBackend."""
+        """Kiểm ASR theo lô TRƯỚC khi ghép (chỉ mode đọc từng câu), rồi ghép như EchoBackend.
+        Đọc cả đoạn: chọn bản đọc mà ASR nghe ĐÚNG câu hook nhất (`_synth_checked` bên dưới)."""
         if self.asr_check and mode in ("per_line", "tight"):
             self.asr_log = self._asr_precheck(list(lines))
+        self._hook_ref = lines[0] if (mode == "paragraph" and self.hook_check and lines) else None
         old, self.asr_check = self.asr_check, False   # đã kiểm theo lô — không gọi ASR từng câu nữa
         try:
             return super().synth_lines(lines, *args, mode=mode, **kw)
         finally:
             self.asr_check = old
+            self._hook_ref = None
+
+    # ── hook nghe rõ (2026-10-06, research/21 §8 B6) ────────────────────────
+    # Video thử: ASR nghe "Thơm, ngon mắt" thành "không ngón mắt", "Chờ nồi canh" thành "trờ nội can". Cùng câu đọc riêng
+    # thì nghe đúng → mỗi lần đọc một kiểu (seed). Đọc cả đoạn → cắt phần hook → ASR; giống < HOOK_MIN thì đọc thêm
+    # HOOK_TRIES−1 bản seed khác, nghe chung một lượt, giữ bản giống nhất. Kiểm ASR từng câu cũ đi qua HTTP exp-echo
+    # (thường tắt) và chỉ bắt LẶP chữ — chế độ đọc cả đoạn thực tế chưa được nghe lại.
+    hook_check = True
+    HOOK_MIN, HOOK_TRIES = 0.9, 3   # 0,9 trên giọng SẠCH: chấm B6 đo trên mp4 có nhạc (≥ 0,8) — chừa biên (v8 2026-10-07)
+    _hook_ref: str | None = None
+
+    @staticmethod
+    def hook_similarity(heard: str, ref: str) -> float:
+        import difflib
+        import re as _re
+
+        # So theo TOKEN (nhạy với lỗi tiếng Việt: "trờ nội can" ≠ "chờ nồi canh"), nhưng từ Latin viết dính tách theo hoa/
+        # thường/số: "ChatGPT" → "chat gpt" như ASR viết (v9 2026-10-07: ASR nghe đúng mà chấm 0,76). So theo chữ cái thì
+        # quá dễ dãi — câu đọc sai thật vẫn được 0,86. Lấy phần đầu lời ASR dài bằng hook (+1 từ).
+        def toks(x: str) -> list[str]:
+            out = []
+            for w in _re.findall(r"\w+", x):
+                parts = _re.findall(r"[A-Z]+(?=[A-Z][a-z])|[A-Z]?[a-z]+|[A-Z]+|\d+", w) if w.isascii() else [w]
+                out += [p.lower() for p in parts] or [w.lower()]
+            return out
+
+        r = toks(ref)
+        a = toks(heard or "")[: len(r) + 1]
+        return difflib.SequenceMatcher(None, r, a).ratio() if r else 1.0
+
+    def _hook_clip(self, wav: Path, ref: str) -> Path:
+        import os
+        import shutil
+        import subprocess
+
+        ff = os.environ.get("FFMPEG_BIN") or shutil.which("ffmpeg") or "/home/tony/miniconda3/bin/ffmpeg"
+        sec = len(ref.split()) / 3.6 + 0.6
+        clip = wav.with_name(wav.stem + ".hook.wav")
+        subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav), "-t", f"{sec:.2f}",
+                        "-ac", "1", "-ar", "16000", str(clip)], check=True)
+        return clip
+
+    def _synth_checked(self, text: str, n_sent: int = 1):
+        ref = self._hook_ref
+        if n_sent <= 1 or not ref:
+            return super()._synth_checked(text, n_sent)
+        base = self.seed
+        cands: list[tuple[float, int, tuple]] = []
+        try:
+            for k in range(self.HOOK_TRIES):
+                self.seed = base if k == 0 else (base or 0) + 7919 * k
+                cands.append((-1.0, self.seed, super()._synth_checked(text, n_sent)))
+                if k == 0 or k == self.HOOK_TRIES - 1:
+                    todo = [i for i, c in enumerate(cands) if c[0] < 0]
+                    heard = self._asr_batch([self._hook_clip(cands[i][2][0], ref) for i in todo])
+                    if heard is None:
+                        print("    ⚠ không chạy được ASR kiểm hook — giữ bản đầu", flush=True)
+                        return cands[0][2]
+                    if all(heard.get(str(self._hook_clip(cands[i][2][0], ref))) is None for i in todo):
+                        print("    ⚠ ASR không nghe được bản nào — giữ bản đầu, không đọc thêm", flush=True)
+                        return cands[0][2]
+                    for i in todo:
+                        h = heard.get(str(self._hook_clip(cands[i][2][0], ref))) or ""
+                        cands[i] = (self.hook_similarity(h, ref), cands[i][1], cands[i][2])
+                        self.asr_log = getattr(self, "asr_log", []) + [{"hook_seed": cands[i][1], "heard": h,
+                                                                        "sim": round(cands[i][0], 3)}]
+                    if k == 0 and cands[0][0] >= self.HOOK_MIN:
+                        return cands[0][2]
+                    if k == 0:
+                        print(f"    ⚠ ASR nghe hook «{(heard.get(str(self._hook_clip(cands[0][2][0], ref))) or '')[:80]}» "
+                              f"giống {cands[0][0]:.2f} < {self.HOOK_MIN} — đọc thêm "
+                              f"{self.HOOK_TRIES - 1} bản seed khác", flush=True)
+            best = max(cands, key=lambda c: c[0])
+            print(f"    ✓ chọn bản đọc seed {best[1]} (hook giống {best[0]:.2f}; các bản: "
+                  + ", ".join(f"{c[0]:.2f}" for c in cands) + ")", flush=True)
+            return best[2]
+        finally:
+            self.seed = base
 
     def _looks_broken(self, wav: Path, text: str, n_sent: int = 1) -> str | None:
         why = super()._looks_broken(wav, text, n_sent)

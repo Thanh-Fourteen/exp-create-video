@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-12-0632",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m4c3858",
+   "title": "Rán cá không bắn dầu: thấm khô rồi lăn lớp bột mỏng, chỉ lật một lần",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m1d0d42",
+   "title": "3 mẹo luộc rau xanh giòn: nước sôi già, nhúm muối, vớt ra ngâm nước lạnh",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mf4cbf0",
+   "title": "Khử mùi tủ lạnh bằng một chén baking soda để hở, đổi sau 2–3 tuần",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m8f30d4",
+   "title": "Trời lạnh hạ nút tủ lạnh từ 4 xuống 3 và kê cách tường: bớt tiền điện",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m3150e2",
+   "title": "Khoá hội thoại riêng tư bằng mã PIN trên Zalo: 3 bước Ẩn trò chuyện",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "mcd44f1",
+   "title": "3 cài đặt ít ai biết trên iPhone: báo lại 1 phút, xoá vị trí ảnh trước khi gửi",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m7ef654",
+   "title": "Phí SMS biến động số dư 11–16 nghìn/tháng: tắt rồi nhận thông báo trên app",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m86e4dd",
+   "title": "Thẻ tín dụng: trả mức tối thiểu 5% không xoá lãi — đặt lịch trả trước ngày đến hạn",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m6cf6b2",
+   "title": "Bị hỏi lương, tuổi, chuyện riêng: 3 câu đổi chủ đề mà vẫn lịch sự",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "4 mẹo chọn cá tươi ở chợ: mang đỏ, mắt trong lồi, ấn vào thịt bật lại",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Vết dầu mỡ trên áo: rắc baking soda 15 phút rồi bôi nước rửa bát",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Quên mang bằng lái phạt 200–300 nghìn, không có bằng phạt 2–4 triệu",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 192.74,
+   "input_tokens": 12,
+   "output_tokens": 7840,
+   "cost_usd": 1.1387745000000002
+  }
+ ]
+}

@@ -39,7 +39,16 @@ def test_paragraph_doc_mot_lan(tmp_path):
 
 def test_paragraph_lui_ve_nhom_khi_tach_cau_lech(tmp_path):
     be = FakeBackend(tmp_path)
-    be._split_norm = lambda norm, n: None if n > 3 else norm.split(". ") if False else None   # luôn lệch
+    be._split_norm = lambda norm, n: None   # luôn lệch
     lines = ["A b c d e.", "F g h i j.", "K l m n o.", "P q r s t."]
     res, spans = be.synth_lines(lines, mode="paragraph")
     assert len(spans) == len(lines)
+
+
+def test_tach_cau_dong_co_hai_cau():
+    """Luật văn nói V4 "Vì sao? Vì…" (2026-10-05): một dòng hai câu vẫn phải đọc cả đoạn, không lùi về nhóm."""
+    from create_video.voice.echo import EchoBackend
+
+    lines = ["Câu một.", "Vì sao? Vì thế này.", "Câu cuối."]
+    norm = "câu một. vì sao? vì thế này. câu cuối."
+    assert EchoBackend._split_norm(norm, lines) == ["câu một.", "vì sao? vì thế này.", "câu cuối."]

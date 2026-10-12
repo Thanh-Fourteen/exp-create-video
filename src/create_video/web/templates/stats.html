@@ -1,78 +1,180 @@
 {% extends "base.html" %}
 {% block title %}Thống kê · Xưởng video{% endblock %}
+{# 2026-10-08 (research/24-trang-thong-ke-kenh.md): Thống kê = phân tích từng kênh TikTok. Median không mean, so cùng tuổi,
+   luôn kèm n, n < 5 mờ. Vòng duyệt nội bộ (approve rate, W5) giữ nguyên, gập ở cuối. #}
+{% macro pct(x, digits=1) -%}{{ (('%.' ~ digits ~ 'f')|format(x * 100)).replace('.', ',') ~ '%' if x is not none else '–' }}{%- endmacro %}
+{% macro delta(x, good_up=True) -%}
+{% if x is not none %}<span class="text-[12px] {{ 'text-success' if (x > 0) == good_up and x != 0 else 'text-error' if x != 0 else 'text-muted' }}">{{ '▲' if x > 0 else '▼' if x < 0 else '·' }} {{ '%.0f'|format((x if x > 0 else -x) * 100) }}%</span>{% endif %}
+{%- endmacro %}
+{% macro tile(label, value, sub='', d=none) -%}
+<div class="card-x p-4 flex flex-col gap-1 min-w-0">
+  <span class="text-[12.5px] text-muted">{{ label }}</span>
+  <span class="text-[26px] font-semibold leading-tight">{{ value }}</span>
+  <span class="text-[12px] text-muted flex flex-wrap gap-x-2">{{ delta(d) }}<span>{{ sub }}</span></span>
+</div>
+{%- endmacro %}
 {% macro bars(rows) -%}
 <div class="flex flex-col gap-2.5">
 {% for r in rows %}
-  <div class="grid grid-cols-[minmax(90px,160px)_1fr_auto] items-center gap-3 text-[13.5px] {{ 'opacity-50' if r.weak }}" title="{{ 'Dưới 5 video — chưa đủ để kết luận' if r.weak }}">
+  <div class="grid grid-cols-[minmax(90px,160px)_1fr_auto] items-center gap-3 text-[13.5px] {{ 'opacity-50' if r.weak }}">
     <span class="truncate">{{ r.name }}</span>
-    <div class="h-2.5 rounded-full bg-base-300 overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: {{ ((r.rate or 0) * 100)|round }}%"></div></div>
+    <div class="h-2 rounded-full bg-base-300 overflow-hidden"><div class="h-full bg-primary rounded-full" style="width: {{ ((r.rate or 0) * 100)|round }}%"></div></div>
     <span class="num text-muted">{{ r.post }}/{{ r.n }}</span>
   </div>
 {% else %}<p class="text-muted text-[13.5px] m-0">Chưa có video nào được chấm Đăng/Bỏ.</p>{% endfor %}
 </div>
 {%- endmacro %}
+
 {% block main %}
-{% set o = s.overall %}
-<p class="eyebrow mb-2.5">Metric chính · Đăng / (Đăng + Bỏ) · mục tiêu ≥ 50% sau 20 video</p>
+<p class="eyebrow mb-2.5">Hiệu quả trên TikTok · cập nhật mỗi 3 giờ{% if tk_last.at %} · lần cuối {{ tk_last.at|tg }}{% endif %}</p>
 <h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Thống <i class="h-italic">kê</i>{% if kenh != 'all' %} <span class="text-[0.5em] text-muted not-italic">· {{ ch.name }}</span>{% endif %}</h1>
-{# Mỗi kênh một hàng (small multiples) — không gộp approve_rate của hai khán giả khác nhau (k-research.md). #}
-<section class="mt-7 card-x p-5 flex flex-col gap-3 max-w-[1100px]">
-  <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"><h2 class="text-[19px] m-0">Từng kênh</h2>
-    <span class="text-[12.5px] text-muted">mỗi kênh tự đạt ≥ 50% trên 20 video đầu của nó</span></div>
-  {% for c in per_channel %}
-  <a href="/k/{{ c.id }}?next=/stats" hx-boost="false" class="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(110px,170px)_1fr_auto] items-center gap-x-3 gap-y-1.5 text-[14px] rounded-field px-2 py-1.5 -mx-2 hover:bg-base-300/40 {{ 'opacity-50' if c.weak }}">
-    <span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ c.accent }}"></span>{{ c.name }}</span>
-    <div class="relative h-2.5 rounded-full bg-base-300 col-span-2 sm:col-span-1 order-last sm:order-none"><div class="absolute inset-y-0 left-0 rounded-full" style="width: {{ ((c.rate or 0) * 100)|round }}%; background: {{ c.accent }}"></div>
-      <div class="absolute -top-1 -bottom-1 w-[2px] bg-base-content/70 left-1/2" aria-hidden="true"></div></div>
-    <span class="num text-muted text-[12.5px]">{{ ((c.rate or 0)*100)|round|int if c.rate is not none else '–' }}% · {{ c.post }}/{{ c.n }} · {{ c.total }} video</span>
-  </a>
+
+{# ── hàng lọc: một hàng, áp cho mọi thứ bên dưới ── #}
+<div class="mt-6 flex flex-wrap items-center gap-2">
+  {% for key, lab in [("7","7 ngày"),("28","28 ngày"),("90","90 ngày"),("all","Tất cả")] %}
+  <a href="/stats?d={{ key }}" class="btn btn-sm {{ 'btn-primary' if d == key else 'btn-ghost border border-base-300' }}">{{ lab }}</a>
   {% endfor %}
-</section>
-<div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] max-w-[1100px]">
-  <section class="card-x p-6 flex flex-col gap-4">
-    <div class="flex items-end gap-4">
-      <span class="font-display text-[64px] leading-none {{ 'text-success' if o.rate is not none and o.rate >= s.target else 'text-error' if o.rate is not none and o.n >= 20 and o.rate < s.abort else '' }}">{{ ((o.rate or 0)*100)|round|int if o.rate is not none else '–' }}<span class="text-[28px]">%</span></span>
-      <span class="text-muted text-[14px] pb-2">approve rate · <span class="num">{{ o.post }}/{{ o.n }}</span> video đã quyết · {{ s.total }} video tổng</span>
-    </div>
-    {% if s.rolling|length >= 2 %}
-    {% set w = 520 %}{% set h = 90 %}{% set step = w / (s.rolling|length - 1) %}
-    <svg viewBox="-8 -8 {{ w + 16 }} {{ h + 26 }}" class="w-full h-auto" role="img" aria-label="Approve rate trượt 5 video">
-      <line x1="0" x2="{{ w }}" y1="{{ h * 0.5 }}" y2="{{ h * 0.5 }}" stroke="var(--color-base-300)" stroke-dasharray="4 4"/>
-      <text x="{{ w }}" y="{{ h * 0.5 - 4 }}" text-anchor="end" font-size="11" fill="var(--color-muted)">mục tiêu 50%</text>
-      <polyline fill="none" stroke="var(--color-primary)" stroke-width="2.5" stroke-linejoin="round"
-        points="{% for r in s.rolling %}{{ (loop.index0 * step)|round(1) }},{{ (h - r * h)|round(1) }} {% endfor %}"/>
-      {% set last = s.rolling[-1] %}<circle cx="{{ w }}" cy="{{ (h - last * h)|round(1) }}" r="4.5" fill="var(--color-primary)"/>
-      <text x="0" y="{{ h + 18 }}" font-size="11" fill="var(--color-muted)">video đầu</text>
-      <text x="{{ w }}" y="{{ h + 18 }}" text-anchor="end" font-size="11" fill="var(--color-muted)">mới nhất · trượt 5 video</text>
-    </svg>
-    {% else %}<p class="text-muted text-[13.5px] m-0">Cần ít nhất 2 video đã chấm Đăng/Bỏ để vẽ đường.</p>{% endif %}
-    {% if o.n >= 20 and o.rate is not none and o.rate < s.abort %}<p class="m-0 text-error text-[13.5px]">Dưới 30% sau 20 video: vấn đề ở nội dung, không ở pipeline — xem lại rubric và format, đừng thêm agent.</p>{% endif %}
-  </section>
-
-  <section class="card-x p-6 flex flex-col gap-4">
-    <h2 class="text-[21px] m-0">Điểm trung bình anh chấm</h2>
-    {% for k, c in s.criteria.items() %}
-    <div class="grid grid-cols-[90px_1fr_auto] items-center gap-3 text-[13.5px]">
-      <span>{{ c.label }}</span>
-      <div class="h-2.5 rounded-full bg-base-300 overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: {{ (((c.mean or 0) / 5) * 100)|round }}%"></div></div>
-      <span class="num text-muted">{{ '%.1f'|format(c.mean) if c.mean else '–' }} · n={{ c.n }}</span>
-    </div>
-    {% endfor %}
-    <p class="m-0 text-[12.5px] text-muted">
-      {% if s.corr_t3 %}QC sức hút (T3) ↔ điểm anh: ρ = <span class="num">{{ '%.2f'|format(s.corr_t3[0]) }}</span> (95% CI {{ '%.2f'|format(s.corr_t3[1]) }}…{{ '%.2f'|format(s.corr_t3[2]) }}, n={{ s.corr_n }}).
-        {% if s.corr_t3[1] <= 0 %}CI chứa 0 — T3 chưa chứng minh được là đoán đúng gu anh.{% endif %}
-      {% else %}Tương quan QC ↔ điểm anh cần ≥ 20 video chấm đủ 4 tiêu chí (đang có {{ s.corr_n }}).{% endif %}
-    </p>
-  </section>
-
-  <section class="card-x p-6 flex flex-col gap-4"><h2 class="text-[21px] m-0">Theo pillar</h2>{{ bars(s.by_pillar) }}</section>
-  <section class="card-x p-6 flex flex-col gap-4"><h2 class="text-[21px] m-0">Theo giọng</h2>{{ bars(s.by_voice) }}</section>
-  <section class="card-x p-6 flex flex-col gap-4"><h2 class="text-[21px] m-0">Theo kiểu hook</h2>{{ bars(s.by_hook) }}</section>
-  <section class="card-x p-6 flex flex-col gap-3"><h2 class="text-[21px] m-0">Lý do bỏ</h2>
-    {% set rs = {'hook':'Hook yếu','voice':'Giọng','visual':'Hình','content':'Nội dung','fact':'Sai sự thật','other':'Khác'} %}
-    {% for k, n in s.reasons.items() %}<div class="flex justify-between text-[13.5px] border-b border-base-300 pb-2"><span>{{ rs.get(k, k) }}</span><span class="num">{{ n }}</span></div>
-    {% else %}<p class="text-muted text-[13.5px] m-0">Chưa bỏ video nào.</p>{% endfor %}
-  </section>
+  <form hx-post="/stats/tiktok/refresh" hx-target="body" class="ml-auto"><input type="hidden" name="back" value="/stats?d={{ d }}">
+    <button class="btn btn-sm btn-ghost" hx-disabled-elt="this">Cập nhật số ngay</button></form>
 </div>
-<p class="mt-6 text-[12.5px] text-muted max-w-[70ch]">Nhóm mờ = dưới 5 video, chưa đủ để kết luận. Không có biểu đồ tròn: thanh ngang đọc chính xác hơn (NN/g).</p>
+
+{% for c in chans %}
+{% set a = an[c.id] %}
+{% set k = a.k %}
+<section class="mt-6 flex flex-col gap-5 max-w-[1100px]">
+  {% if chans|length > 1 %}
+  <a href="/k/{{ c.id }}?next=/stats%3Fd%3D{{ d }}" hx-boost="false" class="flex items-center gap-2 text-[19px] font-display hover:underline">
+    <span class="w-2.5 h-2.5 rounded-full" style="background: {{ c.accent }}"></span>{{ c.name }}{% if c.handle %} <span class="text-muted text-[14px] font-sans">@{{ c.handle }}</span>{% endif %} <span class="text-muted text-[13px] font-sans">· xem chi tiết →</span></a>
+  {% endif %}
+
+  {# ── KPI so với kỳ trước ── #}
+  <div class="grid gap-3 grid-cols-2 lg:grid-cols-5">
+    {{ tile('View trung vị / video', k.median_views|so if k.median_views is not none else '–',
+            ('video ≥ 72 giờ · n=' ~ k.n_med) if k.med_mature else ('mọi video trong kỳ · n=' ~ k.n_med), a.d_median) }}
+    {{ tile('View mới trong kỳ', k.gained|so, 'cộng dồn mọi bài' if k.gained_known else ('từ khi theo dõi ' ~ (a.tracked_since|tg if a.tracked_since else '')), a.d_gained) }}
+    {{ tile('Tương tác / view', pct(k.er), '(tim + bình luận + chia sẻ + lưu) / view', a.d_er) }}
+    {{ tile('Video đã đăng', k.n, 'trong kỳ' if a.days else 'từ video xưởng đầu tiên', a.d_n) }}
+    <div class="card-x p-4 flex flex-col gap-1 min-w-0 col-span-2 lg:col-span-1">
+      <span class="text-[12.5px] text-muted">Follower</span>
+      <span class="text-[26px] font-semibold leading-tight">{{ a.followers|so }}</span>
+      <span class="text-[12px] text-muted">{% if a.followers_d %}{{ '+' if a.followers_d > 0 }}{{ a.followers_d }} trong kỳ · {% endif %}{{ a.hearts|so }} tim tổng</span>
+      {% if a.follower_series|length >= 2 %}<div data-chart="spark"><script type="application/json">{{ {"points": a.follower_series}|tojson }}</script></div>{% endif %}
+    </div>
+  </div>
+  {% if not a.kp or not a.kp.n %}<p class="m-0 -mt-2 text-[12px] text-muted">Kỳ trước chưa có video → chưa có ▲▼ so sánh.</p>{% endif %}
+
+  {% if chans|length == 1 %}
+  {% if a.posts %}
+  <div class="grid gap-5 lg:grid-cols-2">
+    <div class="card-x p-5 flex flex-col gap-2 min-w-0">
+      <h2 class="text-[19px] m-0">View từng video</h2>
+      <p class="m-0 text-[12.5px] text-muted">Theo ngày đăng · trục log (mỗi vạch ×10) · chấm màu = vượt mức thường của 10 video gần nhất{% if a.q3 %} (> {{ a.q3|round|int|so }}){% endif %}</p>
+      <div data-chart="dotTime"><script type="application/json">{{ {"points": a.dots, "median": k.median_views, "start": a.start, "now": a.now}|tojson }}</script></div>
+    </div>
+    <div class="card-x p-5 flex flex-col gap-2 min-w-0">
+      <h2 class="text-[19px] m-0">View tăng theo giờ sau khi đăng</h2>
+      <p class="m-0 text-[12.5px] text-muted">10 video gần nhất · màu = video mới nhất, xám = các video trước · so công bằng giữa video cũ và mới</p>
+      <div data-chart="curves"><script type="application/json">{{ {"series": a.curves}|tojson }}</script></div>
+    </div>
+  </div>
+
+  {# ── so nhóm ── #}
+  <div class="card-x p-5 flex flex-col gap-3" x-data="{g: 'pillar'}">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <h2 class="text-[19px] m-0">Nhóm nào ăn view hơn?</h2>
+      <span class="text-[12.5px] text-muted">mỗi chấm = 1 video · vạch màu = trung vị · nhóm mờ = dưới 5 video, chưa đủ để kết luận</span>
+    </div>
+    <div class="flex flex-wrap gap-1.5">
+      {% for key, lab in [("pillar","Chủ đề"),("hook","Kiểu hook"),("voice","Giọng"),("dur_bucket","Độ dài"),("via","Cách đăng"),("hour_bucket","Giờ đăng")] %}
+      <button class="btn btn-xs" :class="g === '{{ key }}' ? 'btn-primary' : 'btn-ghost border border-base-300'" @click="g = '{{ key }}'; $nextTick(() => window.dispatchEvent(new Event('resize')))">{{ lab }}</button>
+      {% endfor %}
+    </div>
+    {% for key in ["pillar","hook","voice","dur_bucket","via","hour_bucket"] %}
+    <div x-show="g === '{{ key }}'" data-chart="groups"><script type="application/json">{{ {"rows": a.groups[key]}|tojson }}</script></div>
+    {% endfor %}
+  </div>
+
+  {# ── bảng video ── #}
+  <div class="card-x p-5 flex flex-col gap-3 min-w-0" x-data="{s: 'created', asc: false, sort(k){ this.asc = this.s === k ? !this.asc : false; this.s = k;
+        const tb = this.$refs.tb; [...tb.rows].sort((a, b) => { const x = +a.dataset[k] || -1, y = +b.dataset[k] || -1; return this.asc ? x - y : y - x }).forEach(r => tb.appendChild(r)) }}">
+    <div class="flex flex-wrap items-baseline justify-between gap-2">
+      <h2 class="text-[19px] m-0">Từng video</h2>
+      <span class="text-[12.5px] text-muted">bấm tiêu đề cột để sắp · @24h/@72h = view ở mốc đó (nội suy giữa 2 lần đo; “–” = chưa đo được)</span>
+    </div>
+    <div class="overflow-x-auto -mx-5 px-5">
+    <table class="table table-sm text-[13px] min-w-[760px]">
+      <thead><tr class="text-muted">
+        {% for key, lab, num in [("created","Video",0),("views","View",1),("v24","@24h",1),("v72","@72h",1),("er","Tương tác",1),("shares","Chia sẻ",1),("saves","Lưu",1),("comments","Bình luận",1)] %}
+        <th class="{{ 'text-right' if num }}"><button class="link link-hover" @click="sort('{{ key }}')">{{ lab }}<span x-show="s === '{{ key }}'" x-text="asc ? ' ↑' : ' ↓'"></span></button></th>
+        {% endfor %}
+        <th>Chủ đề · cách đăng</th>
+      </tr></thead>
+      <tbody x-ref="tb">
+      {% for p in a.posts %}
+      <tr data-created="{{ p.created }}" data-views="{{ p.views or 0 }}" data-v24="{{ p.v24 if p.v24 is not none else '' }}" data-v72="{{ p.v72 if p.v72 is not none else '' }}"
+          data-er="{{ p.er if p.er is not none else '' }}" data-shares="{{ p.shares or 0 }}" data-saves="{{ p.saves or 0 }}" data-comments="{{ p.comments or 0 }}" class="{{ 'bg-primary/10' if p.hot }}">
+        <td class="min-w-[200px] max-w-[300px]">
+          {% if p.url %}<a href="{{ p.url }}" class="link link-hover line-clamp-2">{{ p.title }}</a>{% else %}<span class="line-clamp-2">{{ p.title or '(không mô tả)' }}</span>{% endif %}
+          <span class="text-muted text-[11.5px]">{{ p.created|tg }} · {{ '%.0f'|format(p.age_h) ~ ' giờ' if p.age_h < 72 else '%.0f'|format(p.age_h / 24) ~ ' ngày' }}{% if p.tiktok_url %} · <a href="{{ p.tiktok_url }}" target="_blank" rel="noopener" class="link" hx-boost="false">TikTok ↗</a>{% endif %}</span></td>
+        <td class="text-right num font-medium">{{ p.views|so }}</td>
+        <td class="text-right num">{{ p.v24|round|int|so if p.v24 is not none else '–' }}</td>
+        <td class="text-right num">{{ p.v72|round|int|so if p.v72 is not none else '–' }}</td>
+        <td class="text-right num">{{ pct(p.er) }}</td>
+        <td class="text-right num">{{ p.shares|so }}</td>
+        <td class="text-right num">{{ p.saves|so }}</td>
+        <td class="text-right num">{% if p.comments and p.tiktok_url %}<a href="{{ p.tiktok_url }}" target="_blank" rel="noopener" class="link" hx-boost="false">{{ p.comments }}</a>{% else %}{{ p.comments|so }}{% endif %}</td>
+        <td class="text-[12px] text-muted">{{ p.pillar }} · {{ p.via }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="card-x p-5 text-[14px] text-muted">Chưa có số TikTok cho kỳ này. Số tự cập nhật mỗi 3 giờ{% if not c.handle %} — kênh chưa có TikTok ID trong channel.yaml{% endif %}.</div>
+  {% endif %}
+
+  <div class="rounded-box border border-dashed border-base-300 p-4 text-[13px] text-muted">
+    <b class="font-medium text-base-content">Chỉ có trong TikTok Studio</b> (Hồ sơ → ☰ → TikTok Studio → Phân tích): thời gian xem trung bình,
+    % xem hết video — tín hiệu mạnh nhất với thuật toán —, nguồn lượt xem (For You / hồ sơ / tìm kiếm) và người xem.
+    TikTok không cho đọc các số này từ ngoài; tab người xem cần ≥ 100 follower.
+  </div>
+  {% endif %}
+</section>
+{% endfor %}
+
+{# ── vòng duyệt nội bộ (W5): approve rate — metric chính của dự án ── #}
+{% set o = s.overall %}
+<details class="fold mt-8 max-w-[1100px]">
+  <summary><span class="font-medium">Vòng duyệt của anh</span>
+    <span class="text-muted text-[13px]">approve rate {{ ((o.rate or 0)*100)|round|int if o.rate is not none else '–' }}% · {{ o.post }}/{{ o.n }} video · mục tiêu ≥ 50% sau 20 video</span></summary>
+  <div class="fold-body">
+    <div class="flex flex-col gap-2">
+      {% for c in per_channel %}
+      <div class="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(110px,170px)_1fr_auto] items-center gap-x-3 gap-y-1.5 text-[14px] {{ 'opacity-50' if c.weak }}">
+        <span class="flex items-center gap-2 truncate"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ c.accent }}"></span>{{ c.name }}</span>
+        <div class="relative h-2 rounded-full bg-base-300 col-span-2 sm:col-span-1 order-last sm:order-none"><div class="absolute inset-y-0 left-0 rounded-full" style="width: {{ ((c.rate or 0) * 100)|round }}%; background: {{ c.accent }}"></div>
+          <div class="absolute -top-1 -bottom-1 w-[2px] bg-base-content/70 left-1/2" aria-hidden="true"></div></div>
+        <span class="num text-muted text-[12.5px]">{{ ((c.rate or 0)*100)|round|int if c.rate is not none else '–' }}% · {{ c.post }}/{{ c.n }} · {{ c.total }} video</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% if o.n >= 20 and o.rate is not none and o.rate < s.abort %}<p class="m-0 text-error text-[13.5px]">Dưới 30% sau 20 video: vấn đề ở nội dung, không ở pipeline — xem lại rubric và format, đừng thêm agent.</p>{% endif %}
+    <div class="grid gap-6 md:grid-cols-2">
+      <div class="flex flex-col gap-3"><h3 class="text-[16px] m-0">Theo chủ đề</h3>{{ bars(s.by_pillar) }}</div>
+      <div class="flex flex-col gap-3"><h3 class="text-[16px] m-0">Theo kiểu hook</h3>{{ bars(s.by_hook) }}</div>
+      <div class="flex flex-col gap-3"><h3 class="text-[16px] m-0">Theo giọng</h3>{{ bars(s.by_voice) }}</div>
+      <div class="flex flex-col gap-3"><h3 class="text-[16px] m-0">Điểm trung bình anh chấm</h3>
+        {% for key, cr in s.criteria.items() %}
+        <div class="grid grid-cols-[80px_1fr_auto] items-center gap-3 text-[13.5px]"><span>{{ cr.label }}</span>
+          <div class="h-2 rounded-full bg-base-300 overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: {{ (((cr.mean or 0) / 5) * 100)|round }}%"></div></div>
+          <span class="num text-muted">{{ '%.1f'|format(cr.mean) if cr.mean else '–' }} · n={{ cr.n }}</span></div>
+        {% endfor %}
+        <p class="m-0 text-[12px] text-muted">{% if s.corr_t3 %}QC sức hút ↔ điểm anh: ρ = {{ '%.2f'|format(s.corr_t3[0]) }} (95% CI {{ '%.2f'|format(s.corr_t3[1]) }}…{{ '%.2f'|format(s.corr_t3[2]) }}, n={{ s.corr_n }}).{% else %}Tương quan QC ↔ điểm anh cần ≥ 20 video chấm đủ 4 tiêu chí (đang có {{ s.corr_n }}).{% endif %}</p>
+      </div>
+    </div>
+    {% if s.reasons %}<p class="m-0 text-[13px] text-muted">Lý do bỏ: {% set rs = {'hook':'Hook yếu','voice':'Giọng','visual':'Hình','content':'Nội dung','fact':'Sai sự thật','other':'Khác'} %}{% for kk, n in s.reasons.items() %}{{ rs.get(kk, kk) }} {{ n }}{{ ' · ' if not loop.last }}{% endfor %}</p>{% endif %}
+  </div>
+</details>
+<script src="/static/charts.js" defer></script>
 {% endblock %}

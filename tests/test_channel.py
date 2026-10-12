@@ -210,7 +210,8 @@ def test_tim_chu_de_moi_chay_nen(client, monkeypatch):
     c.post("/suggest/refresh", data={"c": "meo"})          # đang chạy → không chạy chồng
     assert len(calls) == 1
     c.post("/suggest/refresh", data={"c": "ai"})
-    assert calls[1][2:] == ["create_video.team.trend_scout", "--slot", "r"]
+    # 2026-10-10 (research/26): kênh AI cũng lấy gợi ý từ kho ý tưởng (idea_gen), không còn trend model
+    assert calls[1][2:] == ["create_video.team.idea_gen", "--channel", "ai"]
 
 
 def test_idea_gen_loc_trung():

@@ -43,7 +43,7 @@ motion:
     default: cut                 # cut hợp nhịp TikTok hơn fade
     accent: whip-pan
     duration_frames: 6
-    accent_every: 3              # cứ 3 shot thì 1 whip-pan
+    accent_every: 6   # 2026-10-07 research/21 §9: 3→6 — video viral VN chủ yếu CẮT CỨNG; whip-pan (kỹ thuật nhóm quốc tế) bộ dò cắt cảnh bỏ sót 8/13
   # P3b.S10 (2026-10-01): ảnh SDXL + depth map (Depth Anything V2-Small, Apache)
   # → camera trôi trong cảnh thay vì zoom phẳng. Tony: "ảnh chưa sinh động".
   parallax: true

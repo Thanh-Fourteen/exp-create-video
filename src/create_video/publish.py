@@ -21,6 +21,8 @@ from pathlib import Path
 
 FFMPEG = shutil.which("ffmpeg") or "/home/tony/miniconda3/bin/ffmpeg"
 FFPROBE = shutil.which("ffprobe") or "/home/tony/miniconda3/bin/ffprobe"
+# Mốc công thức nội dung: đổi khi đổi luật viết/ý tưởng đáng kể — gom số TikTok theo mốc để so (2026-10-11).
+RECIPE = "2026-10-11-noi-kho-luu-chia-se"
 THUMB_W = 360          # lưới thư viện: thẻ ~150–200px CSS × DPR 2
 COVER_W = 1080         # bìa đầy đủ để tải về / dán tay vào TikTok
 
@@ -101,6 +103,8 @@ def write_result(out_dir: Path, decision: dict | None = None) -> Path | None:
         "topic": job.get("topic") or script.get("topic"),
         "voice": job.get("voice") or "tony",
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(mp4.stat().st_mtime)),
+        # phiên bản công thức nội dung — so trước/sau bằng số TikTok thật (research/28 §5)
+        "recipe": RECIPE,
         "mp4": str(mp4.relative_to(out_dir)),
         "thumb": thumb.name if thumb.exists() else None,
         "cover": cover.name if cover.exists() else None,
@@ -128,6 +132,8 @@ CAPTION_MAX = 2200        # API Content Posting: title ≤ 2.200 UTF-16 (V); app
 HASHTAG_MAX = 5           # TikTok cảnh báo "Maximum 5 hashtags" từ 2025-08 (R)
 
 CHECKLIST = [
+    # 2026-10-06 (research/20): @songkheo.vn 0 view sau 16 giờ — chỉ chứng cứ giai thoại về máy/mạng, nhưng rẻ để tuân theo.
+    ("device", "Đăng bằng app TikTok trên điện thoại, mạng Việt Nam, tắt VPN (không đăng từ máy tính)"),
     ("cover", "Chọn bìa → Tải lên ảnh → chọn bia.jpg (không chọn thì TikTok lấy frame đầu)"),
     ("caption", "Dán caption + hashtag vào ô mô tả"),
     ("aigc", "Thêm tùy chọn → BẬT \"Nội dung do AI tạo\" (giọng clone + hình AI — bắt buộc với nội dung AI trông như thật)"),
@@ -137,6 +143,7 @@ CHECKLIST = [
     ("captions", "Bật phụ đề tự động nếu có tiếng Việt (video đã có phụ đề cháy sẵn — tuỳ chọn)"),
     ("pin", "Sau khi đăng: dán bình luận ghim rồi ghim nó"),
     ("url", "Dán link TikTok vào trang video trên web để theo dõi số 72 giờ"),
+    ("check", "Sau 2 giờ mà 0 view: Hồ sơ → ☰ → TikTok Studio → Kiểm tra tài khoản — video \"không đủ điều kiện\" thì đọc lý do; ĐỪNG xoá rồi đăng lại"),
 ]
 
 

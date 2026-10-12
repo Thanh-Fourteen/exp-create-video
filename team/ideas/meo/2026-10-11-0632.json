@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-11-0632",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m6c1d82",
+   "title": "Chọn thịt lợn không bị bơm nước: ấn ngón tay, vết lõm phải đầy lại ngay",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m386585",
+   "title": "Tủ lạnh có mùi: để bát baking soda ở ngăn dưới, 3–7 ngày là hết",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "md3a851",
+   "title": "Phơi đồ mùa mưa không bị hôi: vắt kỹ, treo cách nhau 5cm, phơi từ sáng",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m929cc4",
+   "title": "Zalo: bật Tin nhắn tự xoá 1, 7 hoặc 30 ngày cho hội thoại từng gửi ảnh giấy tờ",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m81573e",
+   "title": "iPhone: gõ hai lần mặt sau máy để bật tiết kiệm pin, không cần mở Cài đặt",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m726ee2",
+   "title": "Thẻ bị trừ phí thường niên: cách tra trong app và 3 cách xin miễn",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m7abff9",
+   "title": "Rút tiền ATM ngân hàng khác: mỗi lần một lần phí, rút gộp thay vì rút lẻ ba lần",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m8dc3f4",
+   "title": "Người ngồi sau không đội mũ bảo hiểm: cả hai người bị phạt riêng 400–600 nghìn",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m206245",
+   "title": "Đội mũ bảo hiểm mà không cài quai: vẫn bị phạt đúng như không đội",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "m89efda",
+   "title": "Quên tên người vừa gặp lại: hai câu mở lời không bị bẽ mặt",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "ma738a3",
+   "title": "Đồng nghiệp nói sai số liệu trong họp: nói 'Tôi đang hiểu khác' thay vì 'Bạn sai rồi'",
+   "pillar": "giao_tiep"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Rán cá không bắn dầu, không dính chảo: chà lát gừng vào chảo khô rồi mới cho dầu",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 201.48,
+   "input_tokens": 10,
+   "output_tokens": 8801,
+   "cost_usd": 1.015138
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-08-1337",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m6b1a14",
+   "title": "Từ 9/10 Gemini miễn phí chỉ còn Flash-Lite: bạn mất những gì",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m889024",
+   "title": "ChatGPT giờ nhận file ghi âm: thả file họp ra biên bản và việc cần làm",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m938e87",
+   "title": "Gemini Skills thay Gems: lưu một prompt dùng lại cả tháng",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "md16760",
+   "title": "Nano Banana 2.1 sửa ảnh bằng lời nói: làm ảnh sản phẩm không cần Photoshop",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m3a3437",
+   "title": "Prompt mẫu: biến file ghi âm 60 phút thành biên bản 1 trang có đầu việc",
+   "pillar": "meo"
+  },
+  {
+   "id": "m2b9e89",
+   "title": "Gắn Gemini Notebook vào Google Docs để viết báo cáo có dẫn nguồn",
+   "pillar": "meo"
+  },
+  {
+   "id": "m3a5b93",
+   "title": "Gemini Free, AI Plus hay AI Pro: sau 9/10 gói nào mới đáng tiền",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m9fba48",
+   "title": "ChatGPT Go và Gemini AI Plus: hai gói rẻ, chọn cái nào cho sinh viên",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "mef282c",
+   "title": "Whisper trên RTX 2060 6GB: ghi âm 10 phút mất bao lâu ra chữ",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m229d16",
+   "title": "Model nhỏ nào đọc được PDF tiếng Việt trên card 6GB: số đo thật",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m05551f",
+   "title": "25 kịch bản lừa đảo Bộ Công an công bố: nhóm dùng AI gồm những gì",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m7dd973",
+   "title": "Mười giây giọng nói đủ để nhân bản: ba câu hỏi chặn cuộc gọi deepfake",
+   "pillar": "canh_bao"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 106.36,
+   "input_tokens": 6,
+   "output_tokens": 4558,
+   "cost_usd": 1.3850965
+  }
+ ]
+}

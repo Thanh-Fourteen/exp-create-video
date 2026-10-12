@@ -93,6 +93,17 @@ def _usage_record(res: Any) -> dict:
     }
 
 
+RETRY_WAIT_SEC = (30, 90)   # thử lại lỗi tạm của dịch vụ: 2 lần, chờ 30s rồi 90s
+
+
+def _transient(exc: BaseException) -> bool:
+    m = str(exc).lower()
+    if "maximum budget" in m or "max_turns" in m or "maximum turns" in m:
+        return False
+    return any(k in m for k in ("error result: success", "overloaded", "rate limit", "rate_limit", " 529", " 500",
+                                "internal server error", "connection reset"))
+
+
 async def arun_role(
     name: str,
     prompt: str,
@@ -154,12 +165,22 @@ async def arun_role(
             if isinstance(msg, ResultMessage):
                 result = msg
 
-    try:
-        await asyncio.wait_for(_drain(), timeout_sec)
-    except asyncio.TimeoutError:
-        exc = TimeoutError(f"quá {timeout_sec:.0f}s")
-    except Exception as e:  # query() raise SAU khi đã yield result lỗi — giữ cả hai
-        exc = e
+    # 2026-10-09: đêm 08/10 mọi vai đồng loạt "Claude Code returned an error result: success" ~20 phút rồi tự hết (probe
+    # kb-de-hieu mất 4 kịch bản) → thử lại lỗi TẠM, không thử lại lỗi chắc chắn (chạm trần ngân sách, sai schema).
+    for attempt in range(len(RETRY_WAIT_SEC) + 1):
+        result, exc = None, None
+        try:
+            await asyncio.wait_for(_drain(), timeout_sec)
+        except asyncio.TimeoutError:
+            exc = TimeoutError(f"quá {timeout_sec:.0f}s")
+        except Exception as e:  # query() raise SAU khi đã yield result lỗi — giữ cả hai
+            exc = e
+        if exc is None or not _transient(exc) or attempt == len(RETRY_WAIT_SEC):
+            break
+        if state is not None:   # rà soát 2026-10-10: lượt hỏng cũng tốn token — phải có trong llm_calls
+            state.log_llm_call({"role": name, "attempt": attempt + 1, "error": f"{type(exc).__name__}: {exc}"[:500],
+                                "wall_sec": round(time.time() - t0, 2), **_usage_record(result)})
+        await asyncio.sleep(RETRY_WAIT_SEC[attempt])
 
     rec = {"role": name, "wall_sec": round(time.time() - t0, 2), **_usage_record(result)}
     out = getattr(result, "structured_output", None)

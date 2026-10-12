@@ -56,6 +56,14 @@ class JudgeOut(BaseModel):
     verdicts: list[PairVerdict]
 
 
+def _all_files(name: str):
+    """`name` trong mọi thư mục video: web (`videos/<kênh>/*`) + thử nghiệm (`out/*`) — paths.py (2026-10-05)."""
+    from ..paths import OUT, VIDEOS
+
+    yield from VIDEOS.glob(f"*/*/{name}")
+    yield from OUT.glob(f"*/{name}")
+
+
 def formats() -> dict[str, dict]:
     from ..channel import current
 
@@ -68,7 +76,7 @@ def recent_formats(n: int = RECENT_FORMATS) -> list[str]:
 
     cid = current().id
     rows = []
-    for p in (REPO_ROOT / "out").glob("*/angles.json"):
+    for p in _all_files("angles.json"):
         job = p.parent / "job.json"
         try:
             if json.loads(job.read_text()).get("channel", "ai") != cid:
@@ -77,6 +85,46 @@ def recent_formats(n: int = RECENT_FORMATS) -> list[str]:
         except (OSError, json.JSONDecodeError):
             continue
     return [f for _, f in sorted(rows, reverse=True)[:n] if f]
+
+
+# 2026-10-06 (research/21 §4): KIỂU KẾT xoay vòng do CODE chọn. 5/5 video của mình kết "…gửi cho [ai] / lưu lại" (khoá cứng
+# trong `structure` từng dạng) → người quen kênh đoán trước và lướt ở 2–5s cuối. Video viral kết đa dạng (đếm research/21).
+END_STYLES: dict[str, str] = {
+    "ket_o_dinh": "KẾT Ở ĐỈNH — câu cuối là ý mạnh nhất hoặc hậu quả cụ thể, KHÔNG kêu gọi gì "
+                  "(AI 4/19, mẹo 5/14, quốc tế 4/7 video viral)",
+    "hoi_ab": "HỎI HAI LỰA CHỌN gắn đúng nội dung — '<A> hay <B>? Bạn chọn cái nào?' — người xem trả lời bằng một chữ "
+              "(AI 3/19, mẹo 3/14)",
+    "qua_binh_luan": "QUÀ Ở BÌNH LUẬN — 'Đủ <N bước / mẫu câu / lệnh> mình để ở bình luận ghim' — và `pin_comment` PHẢI "
+                     "chứa đúng thứ đó, dùng được ngay (AI 7/19)",
+    "vong_lap": "VÒNG LẶP — câu cuối nối thẳng vào câu hook (hook là vế sau của câu cuối) để video lặp liền mạch "
+                "(Zack D. Films 2/2)",
+    "gui_cho": "GỬI CHO MỘT NGƯỜI — nêu đúng một người cụ thể cần biết điều này (bố mẹ / đồng nghiệp / bạn…)",
+}
+RECENT_ENDS = len(END_STYLES) - 1   # nhớ 4 video → 5 kiểu luân phiên đủ vòng
+
+
+def recent_end_styles(n: int = RECENT_ENDS) -> list[str]:
+    """Kiểu kết của n video gần nhất CÙNG KÊNH (angles.json → "end_style"), mới nhất trước."""
+    from ..channel import current
+
+    cid = current().id
+    rows = []
+    for p in _all_files("angles.json"):
+        try:
+            if json.loads((p.parent / "job.json").read_text()).get("channel", "ai") != cid:
+                continue
+            rows.append((p.stat().st_mtime, json.loads(p.read_text()).get("end_style")))
+        except (OSError, json.JSONDecodeError):
+            continue
+    return [e for _, e in sorted(rows, reverse=True)[:n] if e]
+
+
+def pick_end_style(recent: list[str]) -> str:
+    """Kiểu đầu tiên theo thứ tự END_STYLES chưa dùng ở `recent` — xoay vòng tất định, không lặp 2 video liền."""
+    for k in END_STYLES:
+        if k not in recent:
+            return k
+    return next(iter(END_STYLES))
 
 
 def _gen_system() -> str:
@@ -139,7 +187,7 @@ def choose_angle(topic: str, brief_txt: str | None, *, state: "State | None" = N
               + (f"Ba video gần nhất của kênh đã dùng dạng: {', '.join(recent)} — ưu tiên dạng KHÁC.\n" if recent else "")
               + f"Đề xuất {N_ANGLES} phương án theo schema.")
     out = run_role("angle_gen", prompt, schema, system_prompt=_gen_system(), tools=[], max_turns=4,
-                   max_budget_usd=1.0, model=model, state=state, timeout_sec=GEN_TIMEOUT_SEC)
+                   max_budget_usd=2.0, model=model, state=state, timeout_sec=GEN_TIMEOUT_SEC)
     cands = [a for a in out.angles if _ok(a, fmts) is None][:N_ANGLES]
     dropped = [{"hook": a.hook, "why": _ok(a, fmts)} for a in out.angles if _ok(a, fmts)]
     if not cands:
@@ -154,7 +202,7 @@ def choose_angle(topic: str, brief_txt: str | None, *, state: "State | None" = N
               + ", ".join(f"({a},{b})" for a, b in pairs))
         try:
             j = run_role("angle_judge", jp, JudgeOut, system_prompt=JUDGE_SYSTEM, tools=[], max_turns=4,
-                         max_budget_usd=1.0, model=model, state=state, timeout_sec=JUDGE_TIMEOUT_SEC)
+                         max_budget_usd=2.0, model=model, state=state, timeout_sec=JUDGE_TIMEOUT_SEC)
         except RoleError as e:
             # Trọng tài là vai PHỤ: hỏng/treo thì xếp theo probability của angle_gen + phạt dạng vừa dùng (dưới).
             print(f"  ⚠ angle_judge bỏ qua ({str(e)[:120]}) — xếp theo probability", flush=True)
@@ -171,11 +219,23 @@ def choose_angle(topic: str, brief_txt: str | None, *, state: "State | None" = N
         if c.format in recent:
             score[i] -= 0.5 * (RECENT_FORMATS - recent.index(c.format))
     best = max(score, key=lambda i: (score[i], -cands[i].probability))
+    ends = recent_end_styles()
     res = {"chosen": cands[best].model_dump(), "candidates": [c.model_dump() for c in cands], "scores": score,
-           "verdicts": verdicts, "dropped": dropped, "recent_formats": recent}
+           "verdicts": verdicts, "dropped": dropped, "recent_formats": recent,
+           "end_style": pick_end_style(ends), "recent_end_styles": ends}
     if artifact is not None:
         artifact.write_text(json.dumps(res, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return res
+
+
+def _structure(structure: str, end_style: str | None) -> str:
+    """Có kiểu kết → bỏ khúc "CTA …" ghi cứng trong cấu trúc dạng (v8 2026-10-07: dạng "Cảnh báo" ghi "CTA gửi cho bố mẹ"
+    đè lên kiểu kết "hỏi hai lựa chọn" — kịch bản kết "Gửi cho bố mẹ nhé")."""
+    import re as _re
+
+    if end_style not in END_STYLES:
+        return structure
+    return _re.sub(r"\s*·\s*CTA[^·]*$", "", structure).strip()
 
 
 def angle_for_script(res: dict) -> str:
@@ -186,6 +246,8 @@ def angle_for_script(res: dict) -> str:
     f = (current().raw.get("formats") or {}).get(c["format"], {})
     return ("\n\nGÓC KỂ ĐÃ CHỌN (bắt buộc theo — đã chấm so cặp với 4 phương án khác):\n"
             f"  DẠNG: {c['format']} — {f.get('desc', '')}\n"
-            + (f"  CẤU TRÚC DẠNG NÀY: {f['structure']}\n" if f.get("structure") else "")
+            + (f"  CẤU TRÚC DẠNG NÀY: {_structure(f['structure'], res.get('end_style'))}\n" if f.get("structure") else "")
             + f"  HOOK (giữ ý, được chỉnh chữ cho tự nhiên): {c['hook']}\n"
-            f"  CHỮ BÌA: {c['hook_text']}\n  GÓC: {c['angle']}\n  GIỮ CHÂN: {c['why_finish']}")
+            f"  CHỮ BÌA: {c['hook_text']}\n  GÓC: {c['angle']}\n  GIỮ CHÂN: {c['why_finish']}"
+            + (f"\n  KIỂU KẾT (bắt buộc, THAY phần CTA trong cấu trúc trên): {END_STYLES[res['end_style']]}"
+               if res.get("end_style") in END_STYLES else ""))

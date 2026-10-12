@@ -63,3 +63,6 @@ web/tools/sha256sums.txt
 exp/web/
 # Fluent Emoji (MIT, 470MB) — git clone --depth 1 https://github.com/microsoft/fluentui-emoji assets/fluentui-emoji (research/17)
 assets/fluentui-emoji/
+
+# Video tạo từ web, tách theo kênh (2026-10-05, paths.py) — out/ chỉ còn cho thử nghiệm
+videos/

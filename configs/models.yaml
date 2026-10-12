@@ -65,7 +65,17 @@ tts:
     fx: "highpass=f=80,equalizer=f=300:t=q:w=1.2:g=-2.5,deesser=i=0.4,acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2,equalizer=f=4000:t=q:w=1.5:g=1.5"
     # 2026-10-05 (Tony: "nhấn nhả nhịp giọng cần tốt hơn", research/19): khoảng lặng SAU dấu câu (giây) — nới cho đủ;
     # giữa cụm không dấu mà lặng > max_inner → rút về inner. VieNeu tự ngắt 60–650 ms ở dấu phẩy (PR #11 srt-whiteboard).
-    pauses: {",": 0.20, ";": 0.25, ":": 0.28, ".": 0.42, "?": 0.48, "!": 0.42, "…": 0.55, inner: 0.10, max_inner: 0.30}
+    # v2 2026-10-05 (Tony: "ngắt ngắt"): chỉ chèn ở chỗ lặng thật (echo._reshape_pauses); chỉ rút ngập ngừng > 0,6s.
+    # 2026-10-06 (research/21 §2): tốc độ THEO CÂU (atempo, giữ cao độ) — video viral VN nói hook + câu kết nhanh hơn thân
+    # (AI: 4,81 · 4,65 vs 3,93 âm tiết/giây), câu chốt ngắn chậm lại; biến thiên tốc độ giữa cụm hơi 0,6 vs mình 0,35.
+    # v2 2026-10-06 (§8 B5): video thử đo 0,42 trên bản trộn nhạc (< 0,45) → nới câu ngắn 0,92→0,88, câu dài 1,06→1,10.
+    # v3 (§8 B3): hook 1,12→1,15 — video v2 đo 0–3s 4,28 (< 4,3; mẹo viral trung vị 4,29).
+    # v4 (§8 B5, 2026-10-07): thêm bậc giữa 6–9 từ ×0,95 · 13–17 từ ×1,05 — v5 đo 0,443 với 10/17 câu cùng ×1,0.
+    # v5 (§8 B5, 2026-10-07): mẹo v9 0,436 → nới tương phản (0,85 · 0,93 · 1,07 · 1,12). Chuẩn hoá trung bình theo số từ = 1
+    # (echo.pace_factors) → tốc độ cả bài KHÔNG đổi, chỉ tương phản nhanh–chậm tăng.
+    pace: {hook: 1.15, cta: 1.10, short: 0.85, short_max_words: 5, mid_short: 0.93, mid_short_max_words: 9,
+           mid_long: 1.07, mid_long_min_words: 13, long: 1.12, long_min_words: 18}
+    pauses: {",": 0.20, ";": 0.25, ":": 0.28, ".": 0.42, "?": 0.48, "!": 0.42, "…": 0.55, inner: 0.15, max_inner: 0.60}
   # Chuẩn loudness voice 2-pass (P3b.S2). Đích -14 LUFS là đồng thuận blog,
   # TikTok không công bố spec (research/08 §3). Ngưỡng kiểm ở thresholds.yaml.
   loudnorm:

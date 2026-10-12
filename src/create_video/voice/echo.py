@@ -115,6 +115,7 @@ class EchoBackend(TTSBackend):
     tempo: float = 1.0          # R1: >1 nhanh hơn (atempo, giữ cao độ) — models.yaml tts.post.tempo
     voice_fx: str = ""          # R1: chuỗi filter ffmpeg hậu kỳ giọng — models.yaml tts.post.fx
     pauses: dict | None = None  # 2026-10-05 (research/19): nhịp ngắt theo dấu câu — models.yaml tts.post.pauses
+    pace: dict | None = None    # 2026-10-06 (research/21 §2): tốc độ theo câu — models.yaml tts.post.pace
 
     def _get(self, path: str, timeout: float = 5.0):
         with urllib.request.urlopen(f"{self.base}{path}", timeout=timeout) as r:
@@ -340,12 +341,27 @@ class EchoBackend(TTSBackend):
         return out.astype(np.int16)
 
     @staticmethod
-    def _split_norm(norm: str, n: int) -> list[str] | None:
-        """norm_text của một nhóm → đúng `n` câu theo dấu kết câu. Lệch → None."""
+    def _split_norm(norm: str, n: int | list[str]) -> list[str] | None:
+        """norm_text của một nhóm → đúng một mục mỗi DÒNG gốc. Lệch → None.
+
+        `n` là danh sách dòng gốc (hoặc số dòng, kiểu cũ). Một dòng có thể chứa nhiều câu ("Vì sao? Vì Google ghi…" —
+        luật văn nói V4, 2026-10-05): đếm số câu con mỗi dòng gốc rồi gom đúng chừng ấy câu sau chuẩn hoá. Trước đây
+        đòi số câu == số dòng → lệch → lùi về đọc nhóm 3 câu (ngữ điệu reset mỗi nhóm, khe lặng tuyệt đối giữa nhóm —
+        một nguồn của tiếng "ngắt ngắt" Tony nghe thấy)."""
         import re as _re
 
-        parts = [p.strip() for p in _re.split(r"(?<=[.!?…])\s+", norm.strip()) if p.strip()]
-        return parts if len(parts) == n else None
+        sp = lambda t: [p.strip() for p in _re.split(r"(?<=[.!?…])\s+", t.strip()) if p.strip()]
+        parts = sp(norm)
+        if isinstance(n, int):
+            return parts if len(parts) == n else None
+        counts = [max(1, len(sp(l))) for l in n]
+        if sum(counts) != len(parts):
+            return parts if len(parts) == len(n) else None
+        out, i = [], 0
+        for c in counts:
+            out.append(" ".join(parts[i:i + c]))
+            i += c
+        return out
 
     def synth_lines(
         self,
@@ -377,7 +393,7 @@ class EchoBackend(TTSBackend):
         params = None
         if mode == "paragraph":
             wav, norm, _sr, _dur = self._synth_checked(" ".join(lines), n_sent=len(lines))
-            pieces = self._split_norm(norm, len(lines))
+            pieces = self._split_norm(norm, list(lines))
             if pieces is not None:
                 a, params = self._read_pcm(wav)
                 blocks.append((a, pieces, lines[-1]))
@@ -389,7 +405,7 @@ class EchoBackend(TTSBackend):
             while i < len(lines):
                 grp = lines[i : i + group_size]
                 wav, norm, _sr, _dur = self._synth_checked(" ".join(grp), n_sent=len(grp))
-                pieces = self._split_norm(norm, len(grp))
+                pieces = self._split_norm(norm, list(grp))
                 if pieces is None:
                     # Chuẩn hoá nuốt/thêm dấu câu → không biết cắt câu ở đâu. Lùi về
                     # từng câu cho riêng nhóm này, đừng đoán.
@@ -446,7 +462,10 @@ class EchoBackend(TTSBackend):
             pcm_len = len(pcm)
         words = self._align(merged, " ".join(norms))
         if self.pauses:
-            words, tmap, pcm_len = _reshape_pauses(merged, words, " ".join(norms), self.pauses)
+            n_tok = sum(len(n.split()) for n in norms)
+            words, tmap, pcm_len = _reshape_pauses(merged, words, " ".join(norms), self.pauses,
+                                                   hook_tokens=len(norms[0].split()) if norms else 0,
+                                                   cta_from=n_tok - len(norms[-1].split()) if len(norms) > 1 else n_tok)
             block_bounds = [(tmap(b0), tmap(b1)) for b0, b1 in block_bounds]
         total = pcm_len / sr
 
@@ -467,6 +486,8 @@ class EchoBackend(TTSBackend):
                 st = b0 if j == 0 else ws[0].start
                 en = b1 if j == len(ns) - 1 else ws[-1].end
                 spans.append(LineSpan(text=n, start=st, end=en))
+        if self.pace and len(spans) >= 2:
+            words, spans, total = _reshape_pace(merged, words, spans, self.pace)
         result = TTSResult(
             wav_path=merged,
             sample_rate=sr,
@@ -479,14 +500,19 @@ class EchoBackend(TTSBackend):
         return result, spans
 
 
-def _reshape_pauses(wav: Path, words: list[Word], text: str, cfg: dict):
+def _reshape_pauses(wav: Path, words: list[Word], text: str, cfg: dict, hook_tokens: int = 0,
+                    cta_from: int | None = None):
     """Chỉnh khoảng lặng GIỮA các từ theo dấu câu, tại chỗ (2026-10-05, research/19).
 
-    Vì sao: Tony thấy giọng "nhấn nhả chưa tốt". VieNeu không có thẻ ngắt/SSML; đo trên 10 phút giọng VieNeu ngắt ở dấu
-    phẩy dao động 60–650 ms (srt-whiteboard-animation PR #11) — chỗ ngắt dài lẫn chỗ ngắt cụt đều nghe như máy. Ở đây:
-    sau dấu câu → nới tới ĐỦ `cfg[dấu]` giây; giữa cụm không dấu mà lặng > `cfg["max_inner"]` → rút về `cfg["inner"]`.
-    Chỉ cắt mẫu thật sự lặng (≤ −40 dBFS) để không xén âm vị; chèn lặng ở giữa khe. Trả (words đã dời, hàm đổi mốc thời gian
-    cũ→mới, số mẫu mới). Từ của aligner lệch số token với `text` → không làm gì (an toàn hơn đoán).
+    Vì sao: VieNeu không có thẻ ngắt; ngắt ở dấu phẩy dao động 60–650 ms (PR #11 srt-whiteboard-animation).
+    Sau dấu câu → nới tới đủ `cfg[dấu]` giây; lặng giữa cụm không dấu > `cfg["max_inner"]` → rút về `cfg["inner"]`.
+
+    v2 (cùng ngày — Tony: "video cứ bị ngắt ngắt âm thanh"): bản 1 chèn im lặng TUYỆT ĐỐI vào GIỮA hai mốc aligner mà
+    không xem chỗ đó có lặng thật không — TTS nối liền hai từ qua dấu phẩy (khe ≈ 0) thì bị chèn 0,2s vào giữa luồng âm,
+    cắt đôi âm tiết (đo: 24 đoạn 0 tuyệt đối, 7,6s / 70s). Giờ: chèn chỉ ở khung 20 ms YÊN NHẤT quanh khe và chỉ khi
+    khung đó ≤ −35 dBFS; chất chèn là tiếng nền của chính khung đó (không phải 0); cắt chỉ phần lặng thật; mọi mối nối
+    có fade 8 ms. Khe đã đủ 70% mong muốn → để nguyên.
+    Trả (words đã dời, hàm đổi mốc cũ→mới, số mẫu mới). Aligner lệch số token với `text` → không làm gì.
     """
     import numpy as np
 
@@ -497,56 +523,185 @@ def _reshape_pauses(wav: Path, words: list[Word], text: str, cfg: dict):
         ch, sw, sr = f.getnchannels(), f.getsampwidth(), f.getframerate()
         a = np.frombuffer(f.readframes(f.getnframes()), dtype=np.int16).reshape(-1, ch)
     loud = np.abs(a.astype(np.float32)).max(axis=1) / 32768.0
-    quiet_thr = 10 ** (-40 / 20)
-    edits: list[tuple[int, int]] = []          # (vị trí mẫu, +chèn / −cắt) theo thứ tự tăng
+    quiet = 10 ** (-35 / 20)
+    win, fade = int(0.02 * sr), int(0.008 * sr)
+    edits: list[tuple[int, int, np.ndarray | None]] = []    # (vị trí, +chèn/−cắt, mẫu chèn)
     for i in range(len(words) - 1):
         g0, g1 = int(words[i].end * sr), int(words[i + 1].start * sr)
-        gap = (g1 - g0) / sr
+        gap = max(0, g1 - g0) / sr
         tail = toks[i].rstrip('"\'”’)')[-1:]
-        if tail in ("…",) or toks[i].endswith("..."):
-            want = cfg.get("…", 0.55)
+        in_cta = cta_from is not None and cta_from <= i < len(toks) - 1
+        mid_end = tail in ("?", "!", ".", "…") and i < hook_tokens - 1      # "Lỡ bấm link rồi? Nhắn…" (v6: chèn 0,48s)
+        if mid_end:
+            if gap <= 0.15:
+                continue
+            want = 0.15
+        elif (i < hook_tokens - 1 or in_cta) and tail in (",", ";", ":"):
+            # câu kết cũng vậy (v3 2026-10-07, §8 B4): 5s cuối đo 4,08 âm tiết/s < 4,3 — dấu phẩy trong câu kết chèn lặng.
+            # 2026-10-06 (research/21 §8 B3): dấu phẩy TRONG câu hook không nới lặng, còn rút lặng sẵn có về 0,08s — hook
+            # "Thơm, ngon mắt, …" bị chèn 2 khoảng lặng → 0–3s chỉ 2,6 âm tiết/giây (viral 4,3–4,8). Hook đọc một hơi.
+            if gap <= 0.08:
+                continue
+            want = 0.08
+        elif tail == "…" or toks[i].endswith("..."):
+            want = float(cfg.get("…", 0.55))
         elif tail in cfg and tail not in ("inner", "max_inner"):
             want = float(cfg[tail])
-        elif gap > cfg.get("max_inner", 0.30):
-            want = cfg.get("inner", 0.12)
+        elif gap > float(cfg.get("max_inner", 0.6)):
+            want = float(cfg.get("inner", 0.15))
         else:
             continue
-        mid = (g0 + g1) // 2
-        d = int(round((want - gap) * sr))
-        if d > 0:
-            edits.append((mid, d))
-        elif d < 0 and g1 > g0:
-            # cắt quanh tâm khe, chỉ phần lặng thật
-            half = (-d) // 2
-            lo, hi = max(g0, mid - half), min(g1, mid + (-d - half))
-            if hi > lo and loud[lo:hi].max() <= quiet_thr:
-                edits.append((lo, -(hi - lo)))
+        if want > gap:
+            if gap >= 0.7 * want:
+                continue
+            # khung 20 ms yên nhất trong [g0 − 40ms, g1 + 40ms]
+            lo, hi = max(0, g0 - int(0.04 * sr)), min(len(a) - win, max(g1, g0) + int(0.04 * sr))
+            if hi <= lo:
+                continue
+            env = np.convolve(loud[lo:hi + win], np.ones(win) / win, mode="valid")
+            k = int(np.argmin(env))
+            if loud[lo + k: lo + k + win].max() > quiet:
+                continue                                    # không có chỗ lặng thật → không chèn (đừng cắt âm tiết)
+            pos = lo + k + win // 2
+            n = int(round((want - gap) * sr))
+            room = a[lo + k: lo + k + win]
+            filler = np.resize(room, (n, ch)).astype(np.float32)
+            edits.append((pos, n, filler))
+        elif g1 > g0:
+            mid, cut = (g0 + g1) // 2, int(round((gap - want) * sr))
+            c0, c1 = max(g0, mid - cut // 2), min(g1, mid - cut // 2 + cut)
+            if c1 > c0 and loud[c0:c1].max() <= quiet:
+                edits.append((c0, -(c1 - c0), None))
     if not edits:
         return words, (lambda t: t), len(a)
-    parts, cur = [], 0
-    for pos, d in edits:
+    edits.sort(key=lambda e: e[0])
+
+    def _fade(x: np.ndarray, head: bool, tail: bool) -> np.ndarray:
+        x = x.astype(np.float32).copy()
+        m = min(fade, len(x) // 2)
+        if m:
+            if head:
+                x[:m] *= np.linspace(0, 1, m, dtype=np.float32)[:, None]
+            if tail:
+                x[-m:] *= np.linspace(1, 0, m, dtype=np.float32)[:, None]
+        return x
+
+    # Đoạn giọng giữa các mối nối: fade-out cuối, fade-in đầu (trừ đầu/cuối file); phần chèn fade cả hai đầu.
+    out_parts: list[np.ndarray] = []
+    cur = 0
+    for pos, d, filler in edits:
+        out_parts.append(_fade(a[cur:pos], head=cur > 0, tail=True))
         if d > 0:
-            parts += [a[cur:pos], np.zeros((d, ch), dtype=np.int16)]
+            out_parts.append(_fade(filler, head=True, tail=True))
             cur = pos
         else:
-            parts.append(a[cur:pos])
             cur = pos - d
-    parts.append(a[cur:])
-    out = np.concatenate(parts)
+    out_parts.append(_fade(a[cur:], head=True, tail=False))
+    out = np.clip(np.concatenate(out_parts), -32768, 32767).astype(np.int16)
     with wave.open(str(wav), "wb") as f:
         f.setnchannels(ch); f.setsampwidth(sw); f.setframerate(sr); f.writeframes(out.tobytes())
 
-    marks = [(pos / sr, d / sr) for pos, d in edits]
+    marks = [(pos / sr, d / sr) for pos, d, _ in edits]
 
     def tmap(t: float) -> float:
         shift = 0.0
         for pos, d in marks:
             if t >= pos:
-                shift += d if d > 0 else max(d, pos - t)   # t rơi trong đoạn bị cắt → kẹp về điểm cắt
+                shift += d if d > 0 else max(d, pos - t)
         return max(0.0, t + shift)
 
     moved = [Word(w=w.w, start=round(tmap(w.start), 3), end=round(tmap(w.end), 3)) for w in words]
     return moved, tmap, len(out)
+
+
+def pace_factors(texts: list[str], cfg: dict) -> list[float]:
+    """Hệ số tốc độ từng câu (>1 nhanh hơn). research/21 §2: video viral VN nói hook và 5s cuối nhanh hơn thân bài
+    (4,81 · 4,65 vs 3,93 âm tiết/giây, AI) và tốc độ giữa các cụm hơi biến thiên gần gấp đôi TTS của mình (0,6 vs 0,35)."""
+    n = len(texts)
+    out = []
+    for i, t in enumerate(texts):
+        w = len(t.split())
+        if i == 0:
+            f = cfg.get("hook", 1.0)
+        elif i == n - 1:
+            f = cfg.get("cta", 1.0)
+        elif w <= int(cfg.get("short_max_words", 5)):
+            f = cfg.get("short", 1.0)
+        elif w >= int(cfg.get("long_min_words", 18)):
+            f = cfg.get("long", 1.0)
+        # v3 2026-10-07 (research/21 §8 B5): hai bậc giữa — v5 có 10/17 câu 6–17 từ cùng ×1,0 → giữa video đều (0,443).
+        elif w <= int(cfg.get("mid_short_max_words", 0)):
+            f = cfg.get("mid_short", 1.0)
+        elif w >= int(cfg.get("mid_long_min_words", 10**6)):
+            f = cfg.get("mid_long", 1.0)
+        else:
+            f = 1.0
+        out.append(float(f))
+    # Chuẩn hoá: trung bình hệ số theo SỐ TỪ = 1,0 (2026-10-07, research/21 §8 B7) — nhịp tạo TƯƠNG PHẢN nhanh–chậm, không
+    # làm cả bài nhanh lên (Tony bác giọng nhanh). Video mẹo v8: nhiều câu dài ×1,05–1,10 → nói 5,19 âm tiết/giây (> 4,4).
+    # Chỉ chuẩn hoá THÂN BÀI (2026-10-08): chia cả hook/câu kết làm hook ×1,15 thực tế thấp hơn → lô 2 hook 0–3s trung vị
+    # 4,17 (< 4,3). Hook và câu kết giữ hệ số tuyệt đối.
+    if cfg.get("normalize", True) and n > 2:
+        body = range(1, n - 1)
+        wts = {i: max(len(texts[i].split()), 1) for i in body}
+        m = sum(out[i] * wts[i] for i in body) / sum(wts.values())
+        out = [round(f / m, 4) if 0 < i < n - 1 else f for i, f in enumerate(out)]
+    return out
+
+
+def _reshape_pace(wav: Path, words: list[Word], spans: list[LineSpan], cfg: dict):
+    """Co giãn tốc độ TỪNG CÂU tại chỗ (atempo — giữ cao độ), cắt ở giữa khoảng lặng giữa hai câu.
+
+    Mốc từ và mốc câu dời tuyến tính trong từng đoạn. Trả (words, spans, độ dài mới giây).
+    """
+    import shutil as _sh
+
+    import numpy as np
+
+    facs = pace_factors([s.text for s in spans], cfg)
+    if all(abs(f - 1.0) < 1e-3 for f in facs):
+        return words, spans, _nframes(wav) / _rate(wav)
+    with wave.open(str(wav), "rb") as f:
+        ch, sw, sr = f.getnchannels(), f.getsampwidth(), f.getframerate()
+        a = np.frombuffer(f.readframes(f.getnframes()), dtype=np.int16).reshape(-1, ch)
+    # biên đoạn = giữa câu i kết thúc và câu i+1 bắt đầu
+    cuts = [0.0] + [(spans[i].end + spans[i + 1].start) / 2 for i in range(len(spans) - 1)] + [len(a) / sr]
+    ff = os.environ.get("FFMPEG_BIN") or _sh.which("ffmpeg") or "/home/tony/miniconda3/bin/ffmpeg"
+    parts, new_cuts = [], [0.0]
+    tmp = wav.with_suffix(".pace.wav")
+    tmp2 = wav.with_suffix(".pace2.wav")
+    for k, fac in enumerate(facs):
+        seg = a[int(cuts[k] * sr): int(cuts[k + 1] * sr)]
+        if abs(fac - 1.0) > 1e-3 and len(seg) > sr // 10:
+            with wave.open(str(tmp), "wb") as f:
+                f.setnchannels(ch); f.setsampwidth(sw); f.setframerate(sr); f.writeframes(seg.tobytes())
+            subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", str(tmp), "-af", f"atempo={fac:.4f}",
+                            "-ar", str(sr), "-c:a", "pcm_s16le", str(tmp2)], check=True)
+            with wave.open(str(tmp2), "rb") as f:
+                seg = np.frombuffer(f.readframes(f.getnframes()), dtype=np.int16).reshape(-1, ch)
+        parts.append(seg)
+        new_cuts.append(new_cuts[-1] + len(seg) / sr)
+    for p in (tmp, tmp2):
+        p.unlink(missing_ok=True)
+    out = np.concatenate(parts)
+    with wave.open(str(wav), "wb") as f:
+        f.setnchannels(ch); f.setsampwidth(sw); f.setframerate(sr); f.writeframes(out.tobytes())
+
+    def tmap(t: float) -> float:
+        for k in range(len(facs)):
+            if t <= cuts[k + 1] or k == len(facs) - 1:
+                c0, c1, n0, n1 = cuts[k], cuts[k + 1], new_cuts[k], new_cuts[k + 1]
+                return round(n0 + (t - c0) * (n1 - n0) / max(c1 - c0, 1e-6), 3)
+        return t
+
+    moved = [Word(w=w.w, start=tmap(w.start), end=tmap(w.end)) for w in words]
+    new_spans = [LineSpan(text=s.text, start=tmap(s.start), end=tmap(s.end)) for s in spans]
+    return moved, new_spans, len(out) / sr
+
+
+def _rate(wav: Path) -> int:
+    with wave.open(str(wav), "rb") as f:
+        return f.getframerate()
 
 
 def _nframes(wav: Path) -> int:

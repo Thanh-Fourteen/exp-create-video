@@ -3,7 +3,9 @@
 name: "Xưởng AI"
 short: "AI"
 order: 1
-handle: ""
+handle: "aidehieu.vn"      # TikTok ID (Buffer, 2026-10-08)
+buffer_channel_id: "6ac766106a5c39ccb64ed6db"   # đăng 1 nút qua Buffer — research/22
+tiktok_sec_uid: "MS4wLjABAAAAs2ejhYnQjFVlQUEeFPo_FR7zTr_2F1RCY_3cVbcfV8pHcRzkzF_WDLPiEahzfsq8"   # ID kênh cho yt-dlp (tiktokuser:…) — tự theo dõi số, research/23
 accent: "#7FA6FF"            # sapphire — màu nhấn web hiện tại (research/12 §8)
 audience: "người Việt phổ thông quan tâm AI: sinh viên, dân văn phòng, người làm nội dung"
 rubric: configs/rubric.md
@@ -14,14 +16,16 @@ pillars:                     # trước đây định nghĩa 3 lần (researcher
   so_sanh:  {vi: "So sánh",  desc: "so sánh hai lựa chọn (model, tool, gói giá) — chọn cái nào"}
   tu_do:    {vi: "Tự đo",    desc: "tự chạy/tự đo trên máy thật (RTX 2060 6GB) — số đo của chính kênh"}
   canh_bao: {vi: "Cảnh báo", desc: "bóc tin đồn, cảnh báo lừa đảo/rủi ro khi dùng AI"}
-shot_kinds: [image, stock, stat, chart, code, screenshot]   # stock 2026-10-05 (research/16)
+shot_kinds: [image, stock, stat, chart, code, screenshot, list]   # stock 2026-10-05 (research/16) · list 2026-10-11 (research/28: thẻ tóm tắt để lưu)
 rules:
   # 2026-10-05 (Tony: "cần tỷ lệ hình ảnh thật, video thật nhiều hơn"): ≥ 25% shot là `stock` (người dùng điện thoại/
   # laptop, văn phòng, phố…) — kênh AI còn cần screenshot/stat làm bằng chứng (research/19).
   real_min_ratio: 0.25
   keep_english_terms: true   # model, fine-tune, inference… giữ nguyên (T3 V_TERMS)
 trend:
-  scout: trend_scout         # team/trend_scout.py (HF/arXiv/HN/GitHub/RSS)
+  # 2026-10-10 (research/26): gợi ý ở trang Tạo video lấy từ KHO Ý TƯỞNG (idea_gen mỗi sáng) thay vì trend model mới
+  # (HF/arXiv) — Tony: "ý tưởng quá dở"; trend model gần như không bùng nổ ở kênh AI Việt. trend_scout vẫn chạy nền.
+  scout: idea_scout
 
 # R3 (2026-10-04): DẠNG VIDEO — rút từ khảo sát 12 kênh AI Việt, 360 video (research/15-khao-sat-tiktok.md §2). Video
 # bùng nổ (×20–113 trung vị kênh) đều thuộc các dạng dưới. agents/angles.py chọn 1 dạng/video, phạt dạng vừa dùng.
@@ -54,10 +58,50 @@ style:
   # 2026-10-05 (Tony: "thêm nhân vật animation", research/19): nhân vật SVG vẽ bằng code trong Remotion (0 GPU),
   # hiện ở câu hook + câu chốt, miệng theo giọng đọc. Bản Kaggle nhép miệng thật (EchoMimicV3) = probe sau.
   mascot: {kind: robot, name: "Bit"}
-  brand: {label: "Xưởng AI", counter: true}
+  brand: {label: "Xưởng AI", counter: false}   # 2026-10-06 research/21 §3: bộ đếm "01/19" = thêm 1 lớp chữ + báo trước video dài
   layout: news                 # D2 research/15 §4 — thẻ tin kiểu @aidev.news
   # D9 (probes/r5-zimage.md): mô tả ảnh chụp — máy ảnh/ống kính/ánh sáng (BFL prompting guide)
   image_suffix: "realistic photograph, shot on Sony A7 IV, 35mm f/1.8, soft natural light with subtle cool blue accents, shallow depth of field, sharp focus, no text, no people"
   music: "calm minimal lo-fi electronic background for a tech news explainer, soft pads, light beat, warm bass, 90 bpm, instrumental, no vocals"
   music_bpm: 90
-duration_default: 75           # D5: độ dài không quyết định view trong kênh (research/15 §2); ainius thắng ở ~2 phút
+duration_default: 55           # 2026-10-06 research/21: trung vị 19 video viral AI 52s, 11/19 ≤ 60s; video mình 66–100s (cũ 75s, D5)
+
+# Kho Ý tưởng (team/idea_gen.py) — 2026-10-08, Tony: "trang ý tưởng xưởng AI chưa có ý tưởng gì hết". Trước đây chỉ kênh
+# mẹo có idea_gen; kênh AI chỉ có trend scout (gợi ý ở trang Tạo video). Hai đoạn dưới thay phần riêng của kênh mẹo.
+prompts:
+  # 2026-10-11 (research/28): thẻ `list` cho kênh AI — các bước làm / lệnh / tóm tắt cuối video để người xem dừng lại chụp, lưu.
+  extra_kinds: |-
+    - `list`: thẻ các bước / lệnh / mẹo đánh số — {"title": "3 bước tóm biên bản họp", "items": [{"text": "Mở Gemini, tải file ghi âm"},
+      {"text": "Gõ: tóm tắt + việc cần làm"}, {"text": "Copy sang Zalo nhóm"}]}. 2–5 mục, mỗi mục ≤ 34 ký tự; `mark` = "num"
+      (mặc định) | "ok" | "no". `title` ≤ 32 ký tự. Mỗi mục là điều câu đó (hoặc cả video, ở thẻ cuối) nói.
+  # 2026-10-10 (research/26 — khảo sát 6 kênh AI Việt, 351 video): bùng nổ = DÙNG AI LÀM VIỆC CỤ THỂ, miễn phí
+  # ("Các lệnh ngắn ChatGPT ít người biết" ×87, 1,3M; Google Form/sáng kiến kinh nghiệm/CapCut AI ×20–32; "trang web hay
+  # nên biết" ×12–18; tin ảnh hưởng thẳng người Việt ×116). Ra mắt model/benchmark gần như không bùng nổ.
+  idea_search: >-
+    Dùng WebSearch để tìm cách DÙNG AI LÀM MỘT VIỆC CỤ THỂ mà người Việt phổ thông làm theo được ngay, miễn phí hoặc rẻ:
+    lệnh/prompt ChatGPT–Gemini–Copilot hay ít người biết, AI cho dân văn phòng (Excel, email, slide, tóm tắt họp), cho học
+    sinh–sinh viên–giáo viên (ôn thi, giáo án, đề trắc nghiệm, sáng kiến kinh nghiệm), cho bán hàng online (ảnh sản phẩm,
+    mô tả, video quảng cáo bằng CapCut AI), làm video/ảnh AI đang trend, web/app AI hay nên biết, tính năng mới ra 7–14
+    ngày gần đây của ChatGPT/Gemini/Claude/Copilot/Zalo AI dùng được ngay, và tin AI ảnh hưởng thẳng người Việt (lừa
+    đảo deepfake, giá gói, chính sách). Nguồn: help center/blog của hãng, docs, trang tính năng chính thức.
+  idea_scope: |-
+    2. MỞ BẰNG NỖI KHỔ (research/27): `title` dạng "[nỗi khổ quen]? [công cụ]: [lợi ích]" — "Họp xong quên sạch, ghi biên
+       bản mất cả tiếng? Meetily: trợ lý họp AI miễn phí". Nỗi khổ của dân văn phòng / học sinh–sinh viên–giáo viên / người bán
+       hàng online, KHÔNG mở bằng tên dự án/model.
+       MỖI Ý TƯỞNG LÀ MỘT VIỆC LÀM ĐƯỢC SAU KHI XEM: `title` nói rõ làm gì bằng công cụ gì, lợi ích gì ("Dùng ChatGPT
+       chấm bài văn theo barem trong 1 phút", "5 lệnh Gemini tóm tắt file PDF dài", "Tạo ảnh sản phẩm nền trắng miễn phí
+       bằng AI"). KHÔNG: ra mắt model/benchmark/điểm số, paper, repo cho lập trình viên, tin đồn, chủ đề người phổ thông
+       không làm theo được. Tin AI chỉ khi đổi được việc người Việt làm ngay (tính năng mới, giá, lừa đảo).
+    2b. (research/28) Ưu tiên dạng DANH SÁCH "N mẹo / N lệnh / N bước / N trang…" (bùng ×1,64) và góc "ít người biết"
+        (×1,37); tiêu đề KHÔNG mở bằng tên riêng tiếng Anh (×0,71) — tên công cụ để sau dấu ":".
+    3. Phải có NGUỒN chính thống kiểm chứng được (help center, blog, docs của hãng) — ghi domain vào `hint`. Không chắc →
+       đừng đề xuất.
+
+# Lịch đăng (2026-10-08, research/probes/w7-lich-dang-research.md). Giờ VN; `slots` theo THỨ TỰ ƯU TIÊN.
+posting:
+  slots: ["12:00", "17:30", "08:30", "20:30"]   # 2026-10-09 (§7): 6 kênh AI VN, 351 video — 11–13h ×1,18 (n=46), 17–19h ×1,70 (n=12); 19–22h ×0,77
+  per_day: 4                  # 2026-10-10 Tony: thêm khung tối 20:00/20:30 → 4 video/ngày (khung tối ×0,77 view, §7 — Tony vẫn muốn)
+  min_gap_hours: 2            # 2026-10-10: 17:30 → 20:00 cách 2,5h (trước 3h làm khung 20:00 kênh mẹo không bao giờ trống)
+  mode: automatic
+  ai_label: false             # 2026-10-11 Tony: THỬ NGHIỆM bỏ nhãn "Nội dung do AI tạo" (research/28 §6) — true để bật lại             # automatic | notification (research/22 §9–10)
+  order: newest               # tin AI cũ nhanh → video mới nhất lên lịch trước

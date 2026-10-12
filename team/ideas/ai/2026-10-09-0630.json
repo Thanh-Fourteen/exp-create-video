@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-09-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "md2ade0",
+   "title": "ChatGPT chuyển sang GPT-6 từ 7/10: bản miễn phí được Luna, bản trả tiền được Sol",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m6cc5ba",
+   "title": "Claude gộp Chat và Cowork thành một app: mở lên thấy gì khác",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m71d516",
+   "title": "Claude giờ sửa được Google Docs, Sheets, Slides: cách bật add-on beta",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m7eee65",
+   "title": "Google Vids tự đọc lời bình: làm video thuyết trình có giọng mà không cần thu âm",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "mf79eef",
+   "title": "Ba câu thêm vào cuối prompt để AI bớt bịa số liệu",
+   "pillar": "meo"
+  },
+  {
+   "id": "md8e1c3",
+   "title": "Một prompt để AI chấm CV của bạn theo đúng tin tuyển dụng",
+   "pillar": "meo"
+  },
+  {
+   "id": "m2b6e9c",
+   "title": "GPT-6 Luna hay Gemini Flash-Lite: bản miễn phí nào trả lời tiếng Việt khá hơn",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m8d71df",
+   "title": "Claude hay Gemini để làm việc trong Google Docs: khác nhau ở đâu",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "meeecda",
+   "title": "EmbeddingGemma 2 trên RTX 2060 6GB: tìm ảnh và file trong máy không cần mạng",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m7c0db6",
+   "title": "TTS tiếng Việt chạy trên card 6GB: một phút giọng đọc mất bao nhiêu giây",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m687cf1",
+   "title": "Add-on AI trong Google Docs xin những quyền gì: đọc kỹ trước khi bấm Cho phép",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m2f7609",
+   "title": "AI agent vào tay kẻ lừa đảo: ba việc chúng làm thay con người trong 2026",
+   "pillar": "canh_bao"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 126.05,
+   "input_tokens": 6,
+   "output_tokens": 6026,
+   "cost_usd": 1.4146445
+  }
+ ]
+}

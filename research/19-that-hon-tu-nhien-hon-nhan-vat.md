@@ -57,3 +57,40 @@ câu chốt, góc dưới-phải vùng hình (trên phụ đề, trong lề UI p
 vào `style.mascot` (giữ ranh giới video-spec.json), chớp mắt, nhún đầu. Vì sao trước: giống hệt mọi video, không chờ
 Kaggle, không rủi ro detector mặt hỏng trên hoạt hình. **Sau:** probe EchoMimicV3-Flash trên Kaggle với ảnh nhân vật
 (ngưỡng viết trước: < 3 phút Kaggle / giây video, VRAM đỉnh < 15 GB, khớp miệng tiếng Việt nghe bằng tai).
+
+### Cập nhật 2026-10-05 (chiều) — nhân vật có mặt suốt video
+
+Tony: *"nâng cấp pipeline để nhân vật hoạt hình xuất hiện nhiều hơn"*. Bản đầu chỉ hiện ở hook + câu chốt (~10% thời
+lượng), bản 2 thêm câu "nhịp" (~27%). Bản 3: **có mặt 100% thời lượng**, đổi cỡ theo loại shot (Python chọn `mode`
+mỗi cửa sổ, `spec/build.py: _mascot`):
+
+| mode | khi nào | cỡ · chỗ |
+|---|---|---|
+| `big` | câu hook, nếu khung đầu là cảnh quay/ảnh | 560px, giữa, như người dẫn chuyện của kênh nhân vật top |
+| `dock` | cảnh quay / ảnh | 360px, góc dưới-phải trên phụ đề |
+| `peek` | thẻ số liệu / trang chụp | 190px, ló ở góc thẻ, mắt nhìn về thẻ, tay chỉ — không che nội dung |
+
+Đổi cỡ trượt mượt (spring) giữa hai cửa sổ liền nhau, không bật/tắt. Thêm tay: đung đưa theo năng lượng giọng, vẫy ở
+`big`, chỉ ở `peek`. Rủi ro đã thấy khi xem trước: `dock` có thể đè chủ thể ảnh; `peek` đè góc thẻ chụp trang —
+theo dõi qua QC T2 (VLM) và Tony duyệt.
+
+### Cập nhật 2026-10-05 (chiều, 2) — hành động + nhảy theo nhịp đọc
+
+Tony: *"cho nhân vật có các hành động khác nhau, nhảy nhảy các chỗ trong khung hình"* · *"nhảy theo từng nhịp đọc hay di
+chuyển gì đó cho sinh động"*. Paper-scout (2026-10-05):
+- Remotion chỉ render tất định khi mọi chuyển động suy từ `useCurrentFrame()` (V, docs "Flickering"); Rive trong Remotion
+  chỉ phát animation tuyến tính, **không state machine** (V, issue #5147); Lottie cần gói không dùng expression và không
+  đổi được nhân vật của mình → giữ **SVG vẽ bằng code**, mỗi hành động là hàm thuần (frame → góc khớp/độ lệch).
+- Nghiên cứu học tập có theo dõi mắt (R — paywall): cử chỉ **chỉ đúng vào thứ đang nói** tăng nhìn vào nội dung + nhớ
+  (meta-analysis 83 bài, Mayer et al. 2024: g = 0,28 nhớ, 0,31 vận dụng); nhân vật động/ người dẫn làm chậm nhìn vào nội
+  dung mới hiện (Learning & Instruction 2024). → chỉ tay khi có số/thẻ; ở thẻ số liệu nhân vật nhỏ + nảy nửa biên độ.
+- Nhân vật thương hiệu trong quảng cáo TikTok: +57% (System1×TikTok 2025, n = 92k, chỉ số không rõ — R, quảng cáo, không
+  phải giữ chân video tự nhiên). **Không có** số liệu nhân vật ↔ giữ chân cho video ngắn tự nhiên.
+
+**Làm:** 8 hành động (vẫy · nhảy có lấy đà/co dãn/nảy · chỉ · gật · lắc · ngạc nhiên "!" · suy nghĩ "?" · ăn mừng lấp
+lánh), chọn bằng luật theo nghĩa câu (`spec/build.py: _mascot_actions`), chống lặp (không 2 câu liền cùng hành động,
+hành động lớn cách ≥ 6s); đổi góc trái/phải bằng cú nhảy vòng cung ở mỗi shot cảnh quay/ảnh và ở hành động "nhảy";
+**nảy theo nhịp đọc** — mốc đầu từ trong phụ đề, cách ≥ 0,35s, từ nhấn nảy cao hơn; lắc lư nhẹ về phía giữa khung.
+Xem trước: `out/thu-nhan-vat/robot-hanh-dong.mp4` (spec video Muse + robot Bit).
+Luật ảnh AI ở bố cục headline đổi "nền tối" → "nền có chi tiết phủ kín khung": nền đen trơn tràn màn hình = dải đen phẳng
+ở mép (T1 bắt trên bản xem trước).

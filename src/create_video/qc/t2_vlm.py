@@ -236,6 +236,27 @@ class Qwen3VL:
         self.close()
 
 
+def _clip_frame(mp4: Path) -> Path | None:
+    """Khung ở 40% clip → png cạnh clip (cache). Không trích được → None (không chấm, không chặn)."""
+    import os
+    import shutil
+    import subprocess
+
+    out = mp4.with_suffix(".t2.png")
+    if out.exists():
+        return out
+    ff = os.environ.get("FFMPEG_BIN") or shutil.which("ffmpeg") or "/home/tony/miniconda3/bin/ffmpeg"
+    fp = os.environ.get("FFPROBE_BIN") or shutil.which("ffprobe") or "/home/tony/miniconda3/bin/ffprobe"
+    try:
+        d = float(subprocess.run([fp, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(mp4)],
+                                 capture_output=True, text=True, timeout=60).stdout.strip() or 0)
+        subprocess.run([ff, "-y", "-loglevel", "error", "-ss", f"{d * 0.4:.2f}", "-i", str(mp4), "-frames:v", "1",
+                        str(out)], check=True, timeout=120)
+    except Exception:
+        return None
+    return out if out.exists() else None
+
+
 def run(spec_path: Path, vlm: Qwen3VL | None = None) -> list[ShotVerdict]:
     """Chấm mọi shot `kind=image` của một spec. Shot thiếu `alt` (spec trước P4.S1) dùng
     câu thoại làm mô tả — kém hơn, ghi rõ trong detail."""
@@ -249,10 +270,17 @@ def run(spec_path: Path, vlm: Qwen3VL | None = None) -> list[ShotVerdict]:
     vlm = vlm or Qwen3VL()
     try:
         for shot in spec["shots"]:
-            if shot["asset"]["kind"] != "image":
+            a = shot["asset"]
+            # 2026-10-06 (research/21 §8 C5): clip stock cũng được chấm (khung ở 40% clip) — trước đây bỏ qua, clip "hộp mỹ
+            # phẩm" lọt vào câu về đồ ăn thừa. Shot bằng chứng khác vẫn không chấm.
+            is_clip = a["kind"] == "video" and str(a.get("path", "")).startswith("stock/")
+            if a["kind"] != "image" and not is_clip:
                 prev_hash = None   # shot bằng chứng chen giữa = có cắt cảnh thật
                 continue
-            img_path = root / shot["asset"]["path"]
+            img_path = _clip_frame(root / a["path"]) if is_clip else root / a["path"]
+            if img_path is None:
+                prev_hash = None
+                continue
             h = dhash(img_path)
             near = prev_hash is not None and hamming(h, prev_hash) <= DHASH_NEAR_DUP
             line = _captions_for_shot(shot, captions)

@@ -20,7 +20,7 @@
     {% if kenh == 'all' %}<span>{{ kbadge(v.channel_short, v.channel_accent) }}</span>{% endif %}
     <span class="text-[13.5px] font-medium leading-snug line-clamp-2">{{ v.title }}</span>
     <small class="flex justify-between text-[12px] text-muted"><span>{{ v.created_at[8:10] }}/{{ v.created_at[5:7] }} · {{ v.created_at[11:16] }}</span>
-      <span class="num">{{ '%d:%02d'|format((v.duration_sec or 0)//60, (v.duration_sec or 0)%60) }}{{ ' · đã đăng' if v.review.decision == 'post' }}</span></small>
+      <span class="num">{{ '%d:%02d'|format((v.duration_sec or 0)//60, (v.duration_sec or 0)%60) }}{% if v.tk and v.tk.views is not none %} · {{ v.tk.views|so }} view{% elif v.review.decision == 'post' %} · đã đăng{% endif %}</span></small>
   </a>
   {% endfor %}
 </div>

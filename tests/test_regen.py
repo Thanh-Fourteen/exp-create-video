@@ -55,4 +55,4 @@ def test_ghi_lai_manifest_va_alt(tmp_path):
     spec = json.loads((d / "video-spec.json").read_text())
     assert spec["shots"][2]["asset"]["alt"] == "new"
     man = json.loads((d / "gen" / "manifest.json").read_text())
-    assert man["shots"][1] == {"file": "gen/01.png", "prompt": "new", "seed": 1 + SEED_STRIDE}
+    assert man["shots"][1] == {"file": "gen/01.png", "prompt": "new", "seed": 1 + SEED_STRIDE, "regen_n": 1}

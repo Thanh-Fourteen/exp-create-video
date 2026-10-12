@@ -69,6 +69,9 @@ const BrandBar: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
   const n = spec.shots.length;
   const idx = Math.max(0, spec.shots.findIndex((s) => s.start_sec <= t && t < s.end_sec));
   const accent = b.accent ?? spec.style.palette.accent;
+  // 2026-10-06 (research/21 §8 C7): chỉ hiện trong `intro_sec` đầu rồi tắt nhanh (0,3s).
+  const vis = b.intro_sec ? interpolate(t, [b.intro_sec, b.intro_sec + 0.3], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;
+  if (vis <= 0) return null;
   return (
     <div
       style={{
@@ -82,6 +85,7 @@ const BrandBar: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
         fontWeight: 800,
         fontSize: 30,
         letterSpacing: 2,
+        opacity: vis,
         color: "rgba(255,255,255,0.78)",
         textShadow: "0 2px 10px rgba(0,0,0,0.7)",
       }}
@@ -109,25 +113,25 @@ const BrandBar: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
 const FRAME_LEFT = 62;   // = Evidence CARD_LEFT — mép phải 874px < lề UI phải 18% (886px)
 
 const Headline: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
-  const frame = useCurrentFrame();
-  const { fps, height } = useVideoConfig();
+  const { height, fps } = useVideoConfig();
+  const t = useCurrentFrame() / fps;
   const lay = spec.style.layout!;
   const accent = spec.style.palette.accent;
-  const enter = interpolate(frame, [0, Math.round(fps * 0.35)], [0, 1], { extrapolateRight: "clamp" });
+  // 2026-10-06 (research/20 §4): KHÔNG fade-in — TikTok tự phát từ frame 0 và frame 0 là bìa dự phòng; bản cũ mở
+  // bằng tiêu đề mờ 35% đang trượt lên, đúng 1–2 giây quyết định lướt đi.
   const title = lay.title ?? "";
   const size = title.length > 34 ? 66 : title.length > 22 ? 78 : 92;
   return (
     <div style={{ position: "absolute", left: FRAME_LEFT, width: CARD_W, top: height * 0.115, display: "flex",
-                  flexDirection: "column", gap: 14, opacity: 0.35 + 0.65 * enter }}>
-      {lay.badge ? (
+                  flexDirection: "column", gap: 14 }}>
+      {lay.badge && !(lay.badge_intro_sec && t >= lay.badge_intro_sec) ? (
         <div style={{ alignSelf: "flex-start", background: accent, color: "#0A1020", fontFamily: '"Be Vietnam Pro", sans-serif',
                       fontWeight: 900, fontSize: 30, letterSpacing: 1.5, padding: "6px 16px", borderRadius: 8 }}>
           {lay.badge.toUpperCase()}
         </div>
       ) : null}
       <div style={{ fontFamily: '"Be Vietnam Pro", sans-serif', fontWeight: 900, fontSize: size, lineHeight: 1.08,
-                    color: "#FFFFFF", textShadow: "0 6px 30px rgba(0,0,0,0.6)", textWrap: "balance" as never,
-                    transform: `translateY(${(1 - enter) * 24}px)` }}>
+                    color: "#FFFFFF", textShadow: "0 6px 30px rgba(0,0,0,0.6)", textWrap: "balance" as never }}>
         {title}
       </div>
     </div>

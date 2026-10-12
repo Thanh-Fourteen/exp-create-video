@@ -435,7 +435,7 @@ async def acheck(script: "Script", *, state: "State | None" = None, model: str |
     llm: list[dict] = []
     n0 = len(state.llm_calls) if state is not None else 0
     ext = await arun_role("claim_extractor", extract_prompt(script), _extract_model(),
-                          system_prompt=extract_system(), tools=[], max_turns=4, max_budget_usd=1.0,
+                          system_prompt=extract_system(), tools=[], max_turns=4, max_budget_usd=2.0,
                           model=model, state=state, _query=_query)
     llm.append(_last_call(state, n0))
     claims = [c for c in ext.claims if 0 <= c.line < len(script.lines)] + screen_claims(script)

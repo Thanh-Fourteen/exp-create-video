@@ -1,0 +1,246 @@
+{% extends "base.html" %}{% from "_macros.html" import kbadge %}
+{% block title %}Lịch đăng · Xưởng video{% endblock %}
+{# Lịch đăng (2026-10-08, research/probes/w7-lich-dang-research.md): tuần T2→CN giờ VN · bài đã hẹn, đã đăng, ô trống
+   theo khung giờ của kênh (channel.yaml: posting) · cột "Chờ xếp lịch". Timer xuong-lich đăng đúng giờ. #}
+{% block main %}
+{% set STATUS = {"scheduled": ("Đã hẹn", "badge-primary"), "posting": ("Đang đăng", "badge-info"),
+                 "posted": ("Đã đăng", "badge-success"), "missed": ("Lỡ giờ", "badge-error"),
+                 "failed": ("Lỗi", "badge-error"), "cancelled": ("Đã huỷ", "badge-ghost")} %}
+<p class="eyebrow mb-2.5 flex items-center gap-2">{% if kenh != 'all' %}<span class="w-2 h-2 rounded-full bg-primary"></span>{{ ch.name }}{% else %}Tất cả kênh{% endif %} · tuần {{ wrange }}</p>
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Lịch <i class="h-italic">đăng</i></h1>
+  <div class="join">
+    <a href="/lich?w={{ w - 1 }}" class="btn btn-sm join-item btn-ghost border border-base-300" aria-label="Tuần trước">←</a>
+    <a href="/lich" class="btn btn-sm join-item {{ 'btn-primary btn-outline' if w == 0 else 'btn-ghost border border-base-300' }}">Tuần này</a>
+    <a href="/lich?w={{ w + 1 }}" class="btn btn-sm join-item btn-ghost border border-base-300" aria-label="Tuần sau">→</a>
+  </div>
+</div>
+
+{% if not cids %}
+<div class="mt-8 card-x p-6 max-w-[560px]"><p class="m-0">Kênh này chưa nối Buffer nên chưa hẹn đăng được (channel.yaml: <code>buffer_channel_id</code>).</p></div>
+{% else %}
+
+{# tự kiểm đường đăng mỗi giờ (create_video.kiem_dang, 2026-10-09) #}
+{% if kd_bad or kd_stale %}
+<div class="mt-6 rounded-field border border-error/50 bg-error/10 px-4 py-3 flex flex-col gap-1 text-[14px]">
+  <b class="font-medium text-error">{{ 'Đường đăng đang HỎNG — lịch tới giờ sẽ không đăng được' if kd_bad else 'Chưa tự kiểm đường đăng hơn 3 giờ' }}</b>
+  {% for c in kd_bad %}<span>· {{ c.name }}: {{ c.msg }}</span>{% endfor %}
+  {% if kd.ts %}<small class="text-muted">Kiểm lúc {{ fmt(kd.ts) }} · tự kiểm mỗi giờ 07:10–22:10 · chạy tay: <code>python -m create_video.kiem_dang</code></small>{% endif %}
+</div>
+{% elif kd.ts %}
+<p class="mt-4 mb-0 text-[12.5px] text-muted">✓ Đường đăng ổn — Buffer đọc được video, 2 kênh còn nối (kiểm lúc {{ fmt(kd.ts) }}{% if kd.healed %}, đã tự bật lại Funnel{% endif %}).</p>
+{% endif %}
+{% if hold %}
+<div class="mt-6 rounded-field border border-warning/40 bg-warning/10 px-4 py-3 flex flex-wrap items-center gap-3 text-[14px]">
+  <span>Đang <b class="font-medium">tạm giữ đăng tự động</b> tới <b class="num font-medium">{{ fmt(hold) }}</b> — lịch “tự đăng” trước mốc này sẽ không chạy. Chế độ “nhắc trên điện thoại” vẫn chạy.</span>
+  <form hx-post="/lich/hold" hx-target="body" class="ml-auto"><input type="hidden" name="w" value="{{ w }}"><input type="hidden" name="until" value="">
+    <button class="btn btn-ghost btn-xs">Bỏ giữ</button></form>
+</div>
+{% endif %}
+
+{# mỗi kênh: khung giờ, chế độ, số video chờ, nút tự xếp #}
+<div class="mt-6 grid gap-3 sm:grid-cols-2">
+  {% for c in cids %}{% set cf = cfg[c] %}{% set k = chs[c] %}
+  <div class="card-x p-4 flex flex-col gap-3">
+    <div class="flex items-center gap-2.5">
+      <span class="w-2.5 h-2.5 rounded-full" style="background: {{ k.accent }}"></span>
+      <b class="font-medium">{{ k.name }}</b>{% if k.handle %}<small class="text-muted">@{{ k.handle }}</small>{% endif %}
+      <span class="ml-auto text-[12.5px] text-muted">{{ backlog[c]|length }} video chờ</span>
+    </div>
+    {# khung giờ chỉnh được (2026-10-08 Tony: "lịch thiếu cho phép tăng giờ") — lưu kv posting:<kênh>, đè channel.yaml #}
+    <div class="flex flex-wrap items-center gap-1.5 text-[12.5px]">
+      {% for sl in cf.slots %}
+      <span class="badge badge-ghost border-base-300 num gap-1 pr-1">{{ sl }}{% if loop.first %}<small class="text-muted">chính</small>{% endif %}
+        {% if cf.slots|length > 1 %}<button type="button" class="opacity-60 hover:opacity-100 px-1" aria-label="Bỏ giờ {{ sl }}"
+          hx-post="/lich/slots" hx-vals='{"channel": "{{ c }}", "op": "remove", "slot": "{{ sl }}", "w": "{{ w }}"}' hx-target="body"
+          hx-confirm="Bỏ khung {{ sl }} của {{ k.short }}? Bài đã hẹn giờ này vẫn giữ.">×</button>{% endif %}</span>
+      {% endfor %}
+      <form hx-post="/lich/slots" hx-target="body" class="inline-flex items-center gap-1">
+        <input type="hidden" name="channel" value="{{ c }}"><input type="hidden" name="op" value="add"><input type="hidden" name="w" value="{{ w }}">
+        <input type="time" name="slot" required class="input input-xs input-bordered w-[92px]" aria-label="Thêm khung giờ cho {{ k.short }}">
+        <button class="btn btn-xs btn-ghost border border-base-300">+ giờ</button>
+      </form>
+    </div>
+    <div class="flex flex-wrap items-center gap-1.5 text-[12.5px]">
+      <select name="per_day" class="select select-xs select-bordered w-[118px]" aria-label="Số bài mỗi ngày"
+        hx-post="/lich/slots" hx-trigger="change" hx-vals='{"channel": "{{ c }}", "op": "per_day", "w": "{{ w }}"}' hx-target="body">
+        {% for n in range(1, 5) %}<option value="{{ n }}" {{ 'selected' if n == cf.per_day }}>{{ n }} bài/ngày</option>{% endfor %}
+      </select>
+      {% if cf.per_day > cf.slots|length %}<span class="text-warning">cần ≥ {{ cf.per_day }} khung giờ</span>{% endif %}
+      <span class="badge badge-ghost border-base-300">cách ≥ {{ cf.min_gap_hours }} giờ</span>
+      <span class="badge {{ 'badge-warning badge-soft' if cf.mode == 'notification' else 'badge-ghost border-base-300' }}">{{ 'nhắc trên điện thoại' if cf.mode == 'notification' else 'tự đăng' }}</span>
+    </div>
+    <form hx-post="/lich/plan" hx-target="body" class="flex items-center gap-2">
+      <input type="hidden" name="channel" value="{{ c }}"><input type="hidden" name="w" value="{{ w }}">
+      <select name="days" class="select select-sm select-bordered w-[132px] shrink-0" aria-label="Số ngày">
+        {% for d in (3, 7, 14) %}<option value="{{ d }}" {{ 'selected' if d == 7 }}>{{ d }} ngày tới</option>{% endfor %}
+      </select>
+      <button class="btn btn-sm btn-primary" {{ 'disabled' if not backlog[c] }} hx-disabled-elt="this">Tự xếp lịch</button>
+      <small class="hidden sm:inline text-muted text-[12px]">điền video chờ vào ô trống, xen chủ đề</small>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+
+{# tuần: 7 cột trên laptop, danh sách theo ngày trên điện thoại #}
+<div class="mt-7 grid gap-3 lg:grid-cols-7">
+  {% for d in days %}
+  <section class="flex flex-col gap-2 min-w-0 {{ 'lg:opacity-60' if d.ts + 86400 < now and not d.list }}">
+    <header class="flex items-baseline gap-2 px-1 pb-1 border-b {{ 'border-primary' if d.today else 'border-base-300' }}">
+      <b class="font-medium {{ 'text-primary' if d.today }}">{{ d.dow }}</b><span class="num text-[13px] text-muted">{{ d.date }}</span>
+      {% if d.today %}<span class="ml-auto text-[11px] text-primary">hôm nay</span>{% endif %}
+    </header>
+    {% for it in d.list %}
+    {% if it.kind == 'free' %}
+    <form hx-post="/lich/assign" hx-target="body" data-slot="{{ it.t }}" data-cid="{{ it.cid }}"
+          class="mv-target rounded-field border border-dashed border-base-300 p-2.5 flex flex-col gap-2">
+      <div class="flex items-center gap-2 text-[12.5px] text-muted">
+        <span class="w-2 h-2 rounded-full" style="background: {{ it.ch.accent }}"></span><b class="num font-medium text-base-content">{{ it.hm }}</b> trống
+        {% if kenh == 'all' %}<span class="ml-auto">{{ it.ch.short }}</span>{% endif %}
+      </div>
+      {% if backlog[it.cid] %}
+      <input type="hidden" name="due" value="{{ it.t }}"><input type="hidden" name="w" value="{{ w }}">
+      <select name="vid" class="select select-xs select-bordered w-full" aria-label="Chọn video cho {{ it.hm }} {{ d.dow }}"
+        hx-post="/lich/assign" hx-trigger="change" hx-include="closest form" hx-target="body">
+        <option value="" selected disabled>+ chọn video</option>
+        {% for b in backlog[it.cid] %}<option value="{{ b.id }}">{{ b.title|truncate(48) }}</option>{% endfor %}
+      </select>
+      {% endif %}
+    </form>
+    {% else %}
+    {% set v = it.v %}{% set st = it.s.status if it.kind == 'sched' else 'posted' %}
+    {# đổi chỗ (2026-10-10): chỉ video Đã hẹn còn ở tương lai — kéo thả (máy tính) hoặc ⇅ rồi chạm đích (điện thoại) #}
+    {% set movable = it.kind == 'sched' and st == 'scheduled' and it.t > now + 60 %}
+    <div class="relative {{ 'mv-card mv-target' if movable }}" {% if movable %}data-mv="{{ v.id }}" data-cid="{{ v.channel }}"
+         data-title="{{ v.title|truncate(40) }}" draggable="true"{% endif %}>
+    {% if movable %}<button type="button" class="mv-btn absolute right-1.5 top-1.5 z-10 btn btn-xs btn-ghost border border-base-300 bg-base-200 px-1.5"
+      aria-label="Đổi chỗ {{ v.title|truncate(40) }}" title="Đổi chỗ / chuyển giờ">⇅</button>{% endif %}
+    <a href="/library/{{ v.id }}" class="card-x p-2.5 flex gap-2.5 hover:ring-1 hover:ring-primary/50 transition {{ 'pr-9' if movable }}" draggable="false">
+      <div class="w-11 shrink-0 aspect-[9/16] rounded-[6px] overflow-hidden bg-[#0D0D0F] border border-base-300">
+        {% if v.thumb %}<img src="/v/{{ v.id }}/thumb.webp" alt="" loading="lazy" class="w-full h-full object-cover">{% endif %}
+      </div>
+      <div class="min-w-0 flex flex-col gap-1">
+        <div class="flex items-center gap-1.5 text-[12px]">
+          <span class="w-2 h-2 rounded-full shrink-0" style="background: {{ v.channel_accent }}"></span>
+          <b class="num font-medium">{{ it.hm }}</b>
+          <span class="badge badge-xs {{ STATUS[st][1] }} badge-soft">{{ STATUS[st][0] }}</span>
+        </div>
+        <span class="text-[12.5px] leading-snug line-clamp-3">{{ v.title }}</span>
+        {% if it.tk and it.tk.views is not none %}<small class="num text-[11.5px] text-muted">{{ it.tk.views|so }} view</small>{% endif %}
+        {% if it.kind == 'sched' and it.s.status in ('missed', 'failed') and it.s.error %}<small class="text-[11.5px] text-error line-clamp-2">{{ it.s.error }}</small>{% endif %}
+        {% for x in it.warn %}<small class="text-[11.5px] text-warning">⚠ {{ x }}</small>{% endfor %}
+      </div>
+    </a>
+    </div>
+    {% endif %}
+    {% else %}
+    <p class="m-0 px-1 text-[12px] text-muted">—</p>
+    {% endfor %}
+  </section>
+  {% endfor %}
+</div>
+
+{# video chờ xếp #}
+<h2 class="mt-12 mb-3 text-[22px]">Chờ xếp lịch</h2>
+{% set any_b = backlog.values()|map('length')|sum %}
+{% if any_b %}
+<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+  {% for c in cids %}{% for b in backlog[c] %}
+  <a href="/library/{{ b.id }}" class="card-x p-2.5 flex items-center gap-2.5 hover:ring-1 hover:ring-primary/50 transition">
+    <div class="w-9 shrink-0 aspect-[9/16] rounded-[5px] overflow-hidden bg-[#0D0D0F] border border-base-300">
+      {% if b.thumb %}<img src="/v/{{ b.id }}/thumb.webp" alt="" loading="lazy" class="w-full h-full object-cover">{% endif %}
+    </div>
+    <div class="min-w-0 flex flex-col">
+      <span class="text-[13px] leading-snug line-clamp-2">{{ b.title }}</span>
+      <small class="text-[11.5px] text-muted">{% if kenh == 'all' %}{{ b.channel_short }} · {% endif %}{{ b.pillar_vi or '' }}{% if b.created_at %} · dựng {{ b.created_at[8:10] }}/{{ b.created_at[5:7] }}{% endif %}{% if (b.qc or {}).get('status') not in (none, 'pass') %} · <span class="text-warning">cảnh báo QC</span>{% endif %}</small>
+    </div>
+  </a>
+  {% endfor %}{% endfor %}
+</div>
+{% else %}
+<p class="text-muted m-0">Không còn video nào chờ — mọi video đã có lịch, đã đăng hoặc đã bỏ.</p>
+{% endif %}
+
+<details class="mt-10 text-[13.5px] text-muted max-w-[760px]">
+  <summary class="cursor-pointer">Lịch chạy thế nào</summary>
+  <ul class="mt-2 flex flex-col gap-1.5 pl-5 list-disc">
+    <li>Máy chạy kiểm mỗi phút; tới giờ thì đăng y như bấm nút “Đăng” trên trang video. <b class="font-medium">Máy và Tailscale Funnel phải bật đúng giờ đó</b> — Buffer chỉ tải video lúc đăng.</li>
+    <li>Trễ quá 20 phút (máy tắt) thì không đăng muộn mà báo “Lỡ giờ” — chọn giờ mới trên trang video.</li>
+    <li>Đăng tay hoặc bấm “Bỏ” trước giờ hẹn thì lịch tự huỷ.</li>
+    <li>Khung giờ, số bài/ngày, chế độ đăng: <code>configs/channels/&lt;kênh&gt;/channel.yaml</code> → <code>posting</code>.</li>
+  </ul>
+  {% if not hold %}
+  <form hx-post="/lich/hold" hx-target="body" class="mt-3 flex flex-wrap items-center gap-2"><input type="hidden" name="w" value="{{ w }}">
+    <span>Tạm giữ đăng tự động tới</span><input type="datetime-local" name="until" class="input input-xs input-bordered" required>
+    <button class="btn btn-ghost btn-xs border border-base-300">Giữ</button></form>
+  {% endif %}
+</details>
+{% endif %}
+
+{# thanh đổi chỗ: hiện khi đang chọn video #}
+<div id="mvbar" class="hidden fixed inset-x-3 z-40 mx-auto max-w-[560px] rounded-box border border-primary/60 bg-base-200 shadow-xl px-4 py-3 flex items-center gap-3 text-[13.5px]"
+     style="bottom: calc(76px + env(safe-area-inset-bottom, 0px))">
+  <span class="flex-1"><b class="font-medium" id="mvtitle"></b><br><span class="text-muted">Chạm video khác để <b class="font-medium text-base-content">đổi giờ cho nhau</b>, hoặc chạm ô trống để <b class="font-medium text-base-content">chuyển sang</b>.</span></span>
+  <button type="button" class="btn btn-sm btn-ghost border border-base-300" id="mvcancel">Huỷ</button>
+</div>
+<style>
+  body.mv-on .mv-target[data-cid].mv-ok { outline: 2px dashed var(--color-primary); outline-offset: 2px; border-radius: 12px; cursor: pointer; }
+  body.mv-on .mv-target.mv-src { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 12px; }
+  body.mv-on .mv-card:not(.mv-ok):not(.mv-src) { opacity: .45; }
+  .mv-target.mv-over { background: color-mix(in oklab, var(--color-primary) 18%, transparent); border-radius: 12px; }
+</style>
+<script>
+(() => {
+  // Đổi chỗ trên trang Lịch (2026-10-10). Một lần cài cho cả phiên (hx-boost thay nội dung, không tải lại trang).
+  if (window.__lichMove) return; window.__lichMove = true;
+  const S = { vid: null, cid: null };
+  const W = () => new URLSearchParams(location.search).get('w') || '0';
+  const bar = () => document.getElementById('mvbar');
+  function clear() {
+    S.vid = S.cid = null; document.body.classList.remove('mv-on');
+    document.querySelectorAll('.mv-ok,.mv-src,.mv-over').forEach(e => e.classList.remove('mv-ok', 'mv-src', 'mv-over'));
+    bar() && bar().classList.add('hidden');
+  }
+  function start(card) {
+    clear(); S.vid = card.dataset.mv; S.cid = card.dataset.cid;
+    document.body.classList.add('mv-on'); card.classList.add('mv-src');
+    document.querySelectorAll('.mv-target[data-cid="' + S.cid + '"]').forEach(e => { if (e !== card) e.classList.add('mv-ok'); });
+    if (bar()) { document.getElementById('mvtitle').textContent = '⇅ ' + card.dataset.title; bar().classList.remove('hidden'); }
+  }
+  async function send(extra) {
+    const body = new URLSearchParams({ vid: S.vid, w: W(), ...extra });
+    clear();
+    const r = await fetch('/lich/move', { method: 'POST', body, headers: { 'HX-Request': 'true' } });
+    if (!r.ok) { toast(await r.text()); return; }
+    toast('Đã đổi lịch'); htmx.ajax('GET', location.pathname + location.search, { target: 'body', swap: 'innerHTML' });
+  }
+  function drop(el) {
+    if (!S.vid || !el || !el.classList.contains('mv-ok')) return false;
+    if (el.dataset.mv) send({ target: el.dataset.mv }); else if (el.dataset.slot) send({ due: el.dataset.slot });
+    return true;
+  }
+  // chạm (điện thoại) — bắt ở pha capture để chặn link/ô chọn khi đang đổi chỗ
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.mv-btn');
+    if (btn) { e.preventDefault(); e.stopPropagation(); const c = btn.closest('[data-mv]'); S.vid === c.dataset.mv ? clear() : start(c); return; }
+    if (e.target.closest('#mvcancel')) { clear(); return; }
+    if (!S.vid) return;
+    const t = e.target.closest('.mv-target');
+    if (t && drop(t)) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') clear(); });
+  // kéo thả (máy tính)
+  document.addEventListener('dragstart', (e) => {
+    const c = e.target.closest && e.target.closest('[data-mv]'); if (!c) return;
+    start(c); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', c.dataset.mv);
+  });
+  document.addEventListener('dragover', (e) => {
+    const t = e.target.closest && e.target.closest('.mv-target.mv-ok'); if (!t) return;
+    e.preventDefault(); document.querySelectorAll('.mv-over').forEach(x => x !== t && x.classList.remove('mv-over')); t.classList.add('mv-over');
+  });
+  document.addEventListener('drop', (e) => { const t = e.target.closest && e.target.closest('.mv-target'); if (t && drop(t)) e.preventDefault(); });
+  document.addEventListener('dragend', () => { if (S.vid) setTimeout(() => { if (S.vid && !document.querySelector('.mv-over')) clear(); }, 50); });
+  document.addEventListener('htmx:beforeSwap', clear);
+})();
+</script>
+{% endblock %}

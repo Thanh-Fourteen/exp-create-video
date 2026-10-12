@@ -52,9 +52,14 @@ def _load(out_dir: Path) -> dict:
 
 def history(out_root: Path | None = None, limit: int = 30) -> dict[str, float]:
     """Trung vị thời gian mỗi bước trên các video đã có `result.json` (đã chạy xong)."""
-    out_root = out_root or REPO_ROOT / "out"
     per: dict[str, list[float]] = {k: [] for k, _ in STEPS}
-    dirs = sorted((d for d in out_root.iterdir() if (d / "result.json").exists()),
+    if out_root is None:   # mặc định: mọi video web (videos/<kênh>/*) + thử nghiệm out/* — paths.py (2026-10-05)
+        from .paths import OUT, web_video_dirs
+
+        cand = web_video_dirs() + [d for d in OUT.iterdir() if d.is_dir()]
+    else:
+        cand = [d for d in out_root.iterdir() if d.is_dir()]
+    dirs = sorted((d for d in cand if (d / "result.json").exists()),
                   key=lambda d: d.stat().st_mtime, reverse=True)[:limit]
     for d in dirs:
         acc: dict[str, float] = {}
@@ -86,11 +91,16 @@ def snapshot(out_dir: Path, *, gate: bool = True, hist: dict[str, float] | None 
             status[k] = "failed"
         elif s == "done" and status[k] == "pending":
             status[k] = "done"
-    awaiting = st.get("stage") == "awaiting_approval"
+    # Làn chuẩn bị (worker) chạy `--stop-after script` cho CẢ job không cần duyệt → state.json ghi awaiting_approval.
+    # Job tắt duyệt kịch bản (gate=False) thì đó chỉ là "kịch bản đã sẵn, đợi tới lượt" — không hiện "Chờ duyệt"
+    # (2026-10-05, Tony thấy video AI "dừng ở bước chờ duyệt kịch bản" trong lúc chỉ đang xếp hàng).
+    awaiting = st.get("stage") == "awaiting_approval" and gate
     if (out_dir / "result.json").exists():
         status = {k: "done" for k in status}
     if awaiting:
         status["approve"] = "running"
+    elif st.get("stage") == "awaiting_approval":
+        status["approve"] = "done"          # không cần duyệt — kịch bản sẵn sàng, chờ tới lượt dựng
     elif status["script"] == "done" and any(status[k] != "pending" for k in ("voice", "visual", "render", "qc")):
         status["approve"] = "done"
     if not gate:

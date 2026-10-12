@@ -70,7 +70,7 @@ ITEMS: dict[str, tuple[str, str, str]] = {
     "V_ADDRESS": ("vietnamese_quality", "llm", "Xưng hô nhất quán cả video (không lẫn tôi/mình/chúng ta cho cùng người nói)"),
     # CTA
     "C_GENERIC": ("cta", "code", "CTA không xin like / follow / subscribe / thả tim chung chung"),
-    "C_SAVE_SHARE": ("cta", "code", "CTA xin LƯU hoặc CHIA SẺ (TikTok 2026 ưu tiên save/share hơn like)"),
+    "C_SAVE_SHARE": ("cta", "code", "Câu kết đúng KIỂU KẾT đã chọn (research/21 §4); không có kiểu → xin LƯU hoặc CHIA SẺ"),
     "C_SPECIFIC": ("cta", "llm", "CTA là MỘT hành động cụ thể gắn với nội dung vừa xem"),
     # chống AI slop — CHỈ GHI VẾT, không vào điểm (xem `WARN_ONLY`)
     "A_FIRSTHAND": ("authenticity", "code", "Có ít nhất một câu quan sát TRỰC TIẾP ngôi thứ nhất (tôi chạy thử, tôi đo…)"),
@@ -239,7 +239,21 @@ def code_items(script: "Script") -> list[ItemResult]:
             "xin một hành động gắn với nội dung vừa xem")
     else:
         add("C_GENERIC", True)
-    if _SAVE_SHARE.search(c):
+    # 2026-10-06 (research/21 §4): kiểu kết xoay vòng do code chọn. Video viral kết đa dạng — kết ở đỉnh không CTA (AI 4/19,
+    # mẹo 5/14, quốc tế 4/7), hỏi hai lựa chọn, quà ở bình luận; ép "lưu/gửi cho" ở MỌI video làm 5/5 video mình kết y hệt
+    # nhau. Mục này giờ chấm ĐÚNG KIỂU ĐÃ CHỌN; script không có end_style (cũ) → luật cũ.
+    es = getattr(script, "end_style", "") or ""
+    if es in ("ket_o_dinh", "vong_lap"):
+        add("C_SAVE_SHARE", True)
+    elif es == "hoi_ab":
+        ok = "?" in script.cta
+        add("C_SAVE_SHARE", ok, *(() if ok else (cta_i, script.cta, "kiểu kết 'hỏi hai lựa chọn' nhưng câu cuối không hỏi",
+                                                 "kết bằng '<A> hay <B>?' gắn đúng nội dung")))
+    elif es == "qua_binh_luan":
+        ok = bool(re.search(r"bình luận|comment", c)) and bool(getattr(script, "pin_comment", ""))
+        add("C_SAVE_SHARE", ok, *(() if ok else (cta_i, script.cta, "kiểu kết 'quà ở bình luận' nhưng thiếu lời mời hoặc pin_comment",
+                                                 "nói rõ thứ để ở bình luận ghim và viết nó vào pin_comment")))
+    elif _SAVE_SHARE.search(c):
         add("C_SAVE_SHARE", True)
     else:
         add("C_SAVE_SHARE", False, cta_i, script.cta, "CTA không xin lưu hoặc chia sẻ — TikTok 2026 ưu tiên save/share",
@@ -309,8 +323,14 @@ LUẬT CHẤM — đọc kỹ:
 
 
 def critic_prompt(script: "Script", hook_3s: str) -> str:
+    from ..agents.angles import END_STYLES
+
     lines = "\n".join(f"[{i}] {t}" for i, t in enumerate(script.lines))
-    return (f"Chủ đề: {script.topic}\n\nLỜI ĐỌC (câu [0] là hook, câu cuối là CTA):\n{lines}\n\n"
+    es = getattr(script, "end_style", "") or ""
+    # 2026-10-06 (research/21 §4): câu cuối theo KIỂU KẾT code chọn — "kết ở đỉnh"/"vòng lặp" cố ý không kêu gọi gì.
+    end = (f"KIỂU KẾT ĐÃ CHỌN (code chọn, không phải lỗi của người viết): {END_STYLES[es]}. Với C_SPECIFIC: chấm câu cuối "
+           "theo ĐÚNG kiểu này — kiểu không kêu gọi thì câu cuối mạnh, gắn nội dung là ĐẠT.\n\n") if es in END_STYLES else ""
+    return (f"Chủ đề: {script.topic}\n\nLỜI ĐỌC (câu [0] là hook, câu cuối là CTA):\n{lines}\n\n{end}"
             f"LỜI ĐỌC TRONG 3 GIÂY ĐẦU (cho H_INFO): \"{hook_3s}\"\n\nChấm checklist.")
 
 
@@ -401,7 +421,7 @@ async def acheck(script: "Script", *, spec: dict | None = None, state: "State | 
     n0 = len(state.llm_calls) if state is not None else 0
     out = await arun_role(
         "critic_t3", critic_prompt(script, hook_3s), CriticOut,
-        system_prompt=critic_system_prompt(), tools=[], max_turns=4, max_budget_usd=1.0,
+        system_prompt=critic_system_prompt(), tools=[], max_turns=4, max_budget_usd=2.0,
         model=model, state=state, _query=_query,
     )
     llm_items, dropped = apply_critic(out, script)

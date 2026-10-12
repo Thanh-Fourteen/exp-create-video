@@ -31,7 +31,7 @@ def _ok(t):
 def _calls():
     log = []
     pat = {
-        "visual": lambda ctx, ids, fixes, r: log.append(("visual", tuple(ids), r)) or {"applied": True},
+        "visual": lambda ctx, ids, fixes, r, **kw: log.append(("visual", tuple(ids), r)) or {"applied": True},
         "script": lambda ctx, notes: log.append(("script", tuple(notes))) or {"applied": True},
         "rebuild": lambda ctx: log.append(("rebuild",)) or {"mp4": "x"},
     }
@@ -97,6 +97,7 @@ def test_dinh_tuyen_t2_ve_visual_t3_ve_script_va_dat_thi_dung(tmp_path):
     assert log[0] == ("visual", ("s3",), 1) and log[1][0] == "script" and log[2] == ("rebuild",)
     r0 = json.loads((d0 / "qc" / "round-0.json").read_text())
     assert r0["patches_sent"]["visual"]["fixes"] == {"s3": "no text"}
+    assert r0["patches_sent"]["visual"]["photo_ids"] == ["s3"]      # chữ méo → ảnh chụp thật ngay (2026-10-08)
     assert (d0 / "qc" / "r0" / "script.json").exists() and (d0 / "qc" / "r1" / "video.mp4").exists()
 
 
@@ -227,3 +228,29 @@ def test_t2_lech_prompt_khong_regen_tu_dong():
            "blocking": [], "suggestions": [{"tier": "t2"}]}
     plan = loop.plan_patches(rec)
     assert plan["visual"] is None and plan["stop"]
+
+
+def test_cong_nguoi_nghe_thu(tmp_path, monkeypatch):
+    """CV_LISTEN_GATE=1: chỗ vướng của người nghe thử thành ghi chú sửa (research/probes/kb-de-hieu.md); tắt thì không gọi."""
+    from create_video.agents.scriptwriter import Script
+    from create_video.qc import listener, loop
+
+    ok = loop.TierResult("t3", ok=True, summary={"total": 9, "notes": []})
+    monkeypatch.setattr(loop, "run_t3", lambda ctx: ok)
+    monkeypatch.setattr(loop, "run_t4", lambda ctx: loop.TierResult("t4", ok=True, summary={"contradicted": 0, "notes": []}))
+    calls = []
+    monkeypatch.setattr(listener, "listen_gate", lambda s: calls.append(s.hook) or
+                        ({"ok": False, "n_issues": 6, "n_appeal": 3, "notes": ["Người nghe thử (mất mạch) ở \"x\""]}
+                         if s.hook == "A" else {"ok": True, "n_issues": 1, "n_appeal": 0, "notes": []}))
+    got = {}
+
+    def revise(s, notes):
+        got["notes"] = notes
+        return Script(topic="t", hook="B", sections=["một hai ba"], cta="c")
+
+    s0 = Script(topic="t", hook="A", sections=["một hai ba"], cta="c")
+    monkeypatch.delenv("CV_LISTEN_GATE", raising=False)
+    assert loop.pre_gate(tmp_path / "off", s0, None, revise).hook == "A" and calls == []
+    monkeypatch.setenv("CV_LISTEN_GATE", "1")
+    out = loop.pre_gate(tmp_path / "on", s0, None, revise)
+    assert out.hook == "B" and calls == ["A", "B"] and got["notes"] == ["Người nghe thử (mất mạch) ở \"x\""]

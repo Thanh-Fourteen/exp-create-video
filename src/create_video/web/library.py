@@ -1,6 +1,6 @@
 """Đọc dữ liệu cho website (W3): thư viện video, gợi ý topic hôm nay, danh mục giọng.
 
-Nguồn sự thật là file trong repo (`out/<id>/result.json`, `team/trends/*.json`, `data/voice/voices.json`) — DB chỉ
+Nguồn sự thật là file trong repo (`videos/<kênh>/<id>/result.json` — 2026-10-05 tách khỏi out/ thử nghiệm, `team/trends/*.json`, `data/voice/voices.json`) — DB chỉ
 thêm phần Tony chấm/đăng (`reviews`).
 """
 
@@ -13,7 +13,6 @@ from pathlib import Path
 from . import db
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-OUT = REPO_ROOT / "out"
 
 HOOK_VI = {"con_so_soc": "Con số sốc", "mau_thuan": "Mâu thuẫn niềm tin", "ket_qua_truoc": "Kết quả trước",
            "demo_truoc": "Demo trước", "truoc_sau": "Trước – sau", "cau_hoi_co_so": "Câu hỏi có số",
@@ -55,7 +54,9 @@ def _read(p: Path) -> dict | None:
 
 def list_videos() -> list[dict]:
     out = []
-    for p in OUT.glob("*/result.json"):
+    from ..paths import VIDEOS
+
+    for p in VIDEOS.glob("*/*/result.json"):
         r = _read(p)
         if not isinstance(r, dict) or "mp4" not in r or "id" not in r:   # result.json kiểu cũ của bước khác
             continue
@@ -66,7 +67,11 @@ def list_videos() -> list[dict]:
 
 
 def load_video(vid: str) -> dict | None:
-    d = OUT / vid
+    from ..paths import find_web_video
+
+    d = find_web_video(vid)
+    if d is None:
+        return None
     r = _read(d / "result.json")
     if not isinstance(r, dict) or "mp4" not in r:
         return None

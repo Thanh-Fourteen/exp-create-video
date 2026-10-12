@@ -28,12 +28,20 @@ export const KenBurns: React.FC<{
   const [glFailed, setGlFailed] = useState(false);
   const motion = shot.motion?.type ?? "ken_burns";
 
-  const from = { ...DEFAULT_FROM, ...(shot.motion?.from ?? {}) };
-  const to = { ...DEFAULT_TO, ...(shot.motion?.to ?? {}) };
+  // 2026-10-06 (research/21 §3): `segments` = đổi khung (toàn → cận → góc khác) mỗi ≤ 4–6s trong cùng một ảnh — video
+  // viral đổi hình mỗi 2–4s (mẹo không mặt 2,6 lần/10s), shot ảnh của mình đứng 5–9s. Mỗi đoạn là một cú cắt góc máy.
+  const segs = shot.motion?.segments;
+  const nSeg = segs && segs.length >= 2 ? segs.length : 1;
+  const segLen = durationInFrames / nSeg;
+  const si = Math.min(nSeg - 1, Math.floor(frame / segLen));
+  const lf = nSeg > 1 ? frame - Math.round(si * segLen) : frame;
+  const lDur = nSeg > 1 ? Math.round((si + 1) * segLen) - Math.round(si * segLen) : durationInFrames;
+  const from = { ...DEFAULT_FROM, ...(nSeg > 1 ? segs![si].from : shot.motion?.from ?? {}) };
+  const to = { ...DEFAULT_TO, ...(nSeg > 1 ? segs![si].to : shot.motion?.to ?? {}) };
   // Easing nhẹ hai đầu: nội suy tuyến tính làm ảnh "giật" lúc bắt đầu và dừng
   // khựng ở cut. Bezier gần tuyến tính ở giữa nên chuyển động vẫn đều.
   const at = (a: number, b: number) =>
-    interpolate(frame, [0, Math.max(durationInFrames - 1, 1)], [a, b], {
+    interpolate(lf, [0, Math.max(lDur - 1, 1)], [a, b], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
       easing: Easing.bezier(0.33, 0, 0.67, 1),

@@ -1,0 +1,49 @@
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/data1tb/exp-create-video/src/create_video/qc/listener.py", line 122, in <module>
+    sys.exit(main(sys.argv[1:]))
+             ~~~~^^^^^^^^^^^^^^
+  File "/mnt/data1tb/exp-create-video/src/create_video/qc/listener.py", line 111, in main
+    r = {"path": str(p), **asyncio.run(alisten(s))}
+                           ~~~~~~~~~~~^^^^^^^^^^^^
+  File "/home/tony/miniconda3/lib/python3.13/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/tony/miniconda3/lib/python3.13/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/tony/miniconda3/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/mnt/data1tb/exp-create-video/src/create_video/qc/listener.py", line 81, in alisten
+    lo = await arun_role("listener", f"LỜI ĐỌC CỦA VIDEO (bạn nghe một lần):\n\n{text}", ListenerOut,
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                         system_prompt=LISTENER_SYS, tools=[], max_turns=4, max_budget_usd=0.5, model=model,
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                         timeout_sec=300)
+                         ^^^^^^^^^^^^^^^^
+  File "/mnt/data1tb/exp-create-video/src/create_video/team/role.py", line 193, in arun_role
+    raise RoleError(f"vai {name!r} fail: {err}", rec)
+create_video.team.role.RoleError: vai 'listener' fail: Exception: Claude Code returned an error result: Reached maximum budget ($0.5)
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.
+Ignoring 50 permissions.allow entries from .claude/settings.json: this workspace has not been trusted. Run Claude Code interactively here once and accept the trust dialog, or set projects["/mnt/data1tb/exp-create-video"].hasTrustDialogAccepted: true in /home/tony/.claude.json.

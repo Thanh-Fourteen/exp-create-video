@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-07-0630",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m7c9c1f",
+   "title": "Càng bảo \"bình tĩnh đi\" người ta càng cáu: ba câu nên nói thay",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "m4d3c7e",
+   "title": "Mùa sale: vì sao \"giá gốc gạch đi\" làm bạn mua thứ không cần",
+   "pillar": "giao_tiep"
+  },
+  {
+   "id": "m2af4f3",
+   "title": "Gọi \"hỗ trợ làm định danh điện tử cho con\": kịch bản lừa mới nhắm phụ huynh",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m8afad0",
+   "title": "Nghỉ việc năm 2026: 5 khoản tiền và giấy tờ công ty buộc phải trả bạn",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "me46b44",
+   "title": "Nghị định 336/2025: lỗi xe máy nào bị phạt nặng nhất, mức phạt bao nhiêu",
+   "pillar": "phap_luat"
+  },
+  {
+   "id": "md38193",
+   "title": "VNeID vừa thêm Sổ sức khỏe điện tử: mở ở đâu, xem được những gì",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m08d8b0",
+   "title": "Zalo: tắt cho người lạ tìm bạn bằng số điện thoại và nhắn tin",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "md3956d",
+   "title": "Cơm nguội để ngoài qua đêm rồi hâm lại: vì sao vẫn gây ngộ độc",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mac5722",
+   "title": "Dầu ăn chiên lại mấy lần thì phải bỏ: bốn dấu hiệu dầu đã hỏng",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m32ab0e",
+   "title": "Đợt lạnh đầu mùa: ba dấu hiệu bình nóng lạnh rò điện, phải tắt ngay",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m9c8f05",
+   "title": "Trời trở lạnh, đốt than sưởi trong phòng kín: vì sao năm nào cũng có người chết",
+   "pillar": "theo_mua"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "\"Suất ngoại giao, suất nội bộ\" nhà ở xã hội: bẫy đặt cọc Bộ Công an vừa cảnh báo",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 128.68,
+   "input_tokens": 10,
+   "output_tokens": 6374,
+   "cost_usd": 0.7010930000000001
+  }
+ ]
+}

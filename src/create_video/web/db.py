@@ -66,6 +66,45 @@ CREATE TABLE IF NOT EXISTS ideas (
   updated_at REAL NOT NULL,
   PRIMARY KEY (channel, idea_id)
 );
+-- 2026-10-08 (research/23): số TikTok theo thời gian — create_video.tiktok_stats ghi mỗi 3 giờ (timer systemd).
+CREATE TABLE IF NOT EXISTS tiktok_stats (
+  video_id TEXT NOT NULL,
+  ts REAL NOT NULL,
+  views INTEGER, likes INTEGER, comments INTEGER, shares INTEGER, saves INTEGER,
+  avg_watch REAL, reach INTEGER,             -- chỉ bài đăng qua Buffer (Insights bản Free: 30 ngày)
+  PRIMARY KEY (video_id, ts)
+);
+-- 2026-10-08 (research/24): trang phân tích kênh — MỌI bài TikTok của kênh (kể cả đăng tay, bài cũ), không chỉ video web.
+CREATE TABLE IF NOT EXISTS tk_posts (
+  tiktok_id TEXT PRIMARY KEY,
+  channel TEXT NOT NULL,
+  created_ts REAL, description TEXT, duration REAL,
+  video_id TEXT,                             -- video web tương ứng (nếu có)
+  updated_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tk_snap (
+  tiktok_id TEXT NOT NULL, ts REAL NOT NULL,
+  views INTEGER, likes INTEGER, comments INTEGER, shares INTEGER, saves INTEGER,
+  PRIMARY KEY (tiktok_id, ts)
+);
+-- 2026-10-08 (research/probes/w7-lich-dang-research.md): lịch đăng — mỗi video tối đa một lịch. Timer xuong-lich (mỗi phút)
+-- tới giờ thì đăng qua đúng đường nút "Đăng" (tiktok_post.post_video) rồi ghi buffer_* vào reviews như bấm tay.
+CREATE TABLE IF NOT EXISTS schedule (
+  video_id TEXT PRIMARY KEY,
+  channel TEXT NOT NULL,
+  due_at REAL NOT NULL,
+  status TEXT NOT NULL DEFAULT 'scheduled',   -- scheduled | posting | posted | missed | failed | cancelled
+  mode TEXT,                                  -- automatic | notification — chốt lúc đăng
+  error TEXT,
+  created_at REAL NOT NULL,
+  updated_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS schedule_due ON schedule(status, due_at);
+CREATE TABLE IF NOT EXISTS channel_snap (
+  channel TEXT NOT NULL, ts REAL NOT NULL,
+  followers INTEGER, hearts INTEGER, videos INTEGER, following INTEGER,
+  PRIMARY KEY (channel, ts)
+);
 """
 
 
@@ -74,11 +113,30 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
     path.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(path, timeout=10, isolation_level=None)   # autocommit; giao dịch mở tay
     con.row_factory = sqlite3.Row
+    # 2026-10-10 (web treo lần 3–4, ngăn xếp faulthandler): mọi luồng kẹt ở connect() khi một luồng đang close() —
+    # close() của kết nối CUỐI làm checkpoint WAL + fsync trên ổ HDD đang bị job dựng video ghi hàng GB → chờ rất lâu
+    # trong khi giữ khoá inode chung của SQLite. Không checkpoint khi đóng; checkpoint tự động (1000 trang) vẫn chạy.
+    try:
+        con.setconfig(sqlite3.SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, True)
+    except (AttributeError, sqlite3.Error):
+        pass
     con.execute("PRAGMA journal_mode=WAL")
     con.execute("PRAGMA busy_timeout=10000")
     con.execute("PRAGMA synchronous=NORMAL")
     con.execute("PRAGMA foreign_keys=ON")
     return con
+
+
+_KEEP: dict[str, sqlite3.Connection] = {}
+
+
+def keep_open(path: Path | None = None) -> None:
+    """Giữ MỘT kết nối mở suốt đời tiến trình (web, worker) → kết nối của từng request không bao giờ là kết nối cuối,
+    nên đóng không kích hoạt dọn WAL + fsync (2026-10-10). Gọi lúc khởi động tiến trình dài hạn."""
+    key = str(Path(path or DB_PATH))
+    if key not in _KEEP:
+        init(path)
+        _KEEP[key] = connect(path)
 
 
 @contextmanager
@@ -93,7 +151,11 @@ def db(path: Path | None = None) -> Iterator[sqlite3.Connection]:
 # W5 (2026-10-02): cột thêm sau — ALTER nếu DB cũ chưa có (SQLite không có ADD COLUMN IF NOT EXISTS).
 _MIGRATE = {
     "reviews": {"reason": "TEXT", "views": "INTEGER", "avg_watch": "REAL", "full_pct": "REAL",
-                "captured_at": "REAL"},
+                "captured_at": "REAL",
+                # 2026-10-08 (research/22): đăng 1 nút qua Buffer
+                "buffer_post_id": "TEXT", "buffer_status": "TEXT", "buffer_error": "TEXT", "pub_file": "TEXT",
+                # 2026-10-11: bài đăng có gắn nhãn AI không (thử nghiệm bỏ nhãn, research/28 §6)
+                "ai_label": "INTEGER"},
     "jobs": {"auto_approved": "INTEGER NOT NULL DEFAULT 0",
              # 2026-10-04 (research/13 §6.3): video cũ tự thành kênh 'ai'
              "channel": "TEXT NOT NULL DEFAULT 'ai'", "pillar": "TEXT", "idea_id": "TEXT"},
@@ -229,7 +291,8 @@ def get_review(video_id: str, path: Path | None = None) -> dict:
 
 def set_review(video_id: str, path: Path | None = None, **fields) -> dict:
     ok = {"hook", "voice", "visual", "content", "decision", "posted_at", "tiktok_url", "note", "reason",
-          "views", "avg_watch", "full_pct", "captured_at"}
+          "views", "avg_watch", "full_pct", "captured_at", "buffer_post_id", "buffer_status", "buffer_error", "pub_file",
+          "ai_label"}
     fields = {k: v for k, v in fields.items() if k in ok}
     with db(path) as con:
         con.execute("INSERT INTO reviews(video_id, updated_at) VALUES(?,?) ON CONFLICT(video_id) DO NOTHING",
@@ -284,3 +347,179 @@ def add_idea(channel: str, title: str, pillar: str, path: Path | None = None, *,
 def idea_rows(channel: str, path: Path | None = None) -> dict[str, dict]:
     with db(path) as con:
         return {r["idea_id"]: dict(r) for r in con.execute("SELECT * FROM ideas WHERE channel=?", (channel,))}
+
+
+# ── số TikTok theo thời gian (2026-10-08, research/23) ─────────────────────────
+STAT_COLS = ("views", "likes", "comments", "shares", "saves", "avg_watch", "reach")
+
+
+def add_stat(video_id: str, ts: float, path: Path | None = None, **vals) -> None:
+    vals = {k: vals.get(k) for k in STAT_COLS}
+    with db(path) as con:
+        con.execute(f"INSERT OR REPLACE INTO tiktok_stats(video_id, ts, {','.join(STAT_COLS)}) VALUES(?,?{',?' * len(STAT_COLS)})",
+                    (video_id, ts, *vals.values()))
+
+
+def stats_for(video_id: str, path: Path | None = None) -> list[dict]:
+    with db(path) as con:
+        return [dict(r) for r in con.execute("SELECT * FROM tiktok_stats WHERE video_id=? ORDER BY ts", (video_id,))]
+
+
+def latest_stats(path: Path | None = None) -> dict[str, dict]:
+    with db(path) as con:
+        return {r["video_id"]: dict(r) for r in con.execute(
+            "SELECT s.* FROM tiktok_stats s JOIN (SELECT video_id, MAX(ts) m FROM tiktok_stats GROUP BY video_id) x "
+            "ON s.video_id = x.video_id AND s.ts = x.m")}
+
+
+def save_channel_run(channel: str, ts: float, entries: list[dict], links: dict[str, str], cstats: dict | None,
+                     path: Path | None = None) -> None:
+    """Một lượt theo dõi của một kênh: mọi bài (meta + mốc số) + số kênh. `links`: {tiktok_id: video_id web}."""
+    with db(path) as con:
+        for e in entries:
+            con.execute("INSERT INTO tk_posts(tiktok_id, channel, created_ts, description, duration, video_id, updated_at) "
+                        "VALUES(?,?,?,?,?,?,?) ON CONFLICT(tiktok_id) DO UPDATE SET description=excluded.description, "
+                        "duration=excluded.duration, video_id=COALESCE(excluded.video_id, tk_posts.video_id), "
+                        "updated_at=excluded.updated_at",
+                        (e["id"], channel, e.get("timestamp"), e.get("description"), e.get("duration"),
+                         links.get(e["id"]), ts))
+            con.execute("INSERT OR REPLACE INTO tk_snap VALUES(?,?,?,?,?,?,?)",
+                        (e["id"], ts, e.get("view_count"), e.get("like_count"), e.get("comment_count"),
+                         e.get("repost_count"), e.get("save_count")))
+        if cstats:
+            con.execute("INSERT OR REPLACE INTO channel_snap VALUES(?,?,?,?,?,?)",
+                        (channel, ts, cstats.get("followers"), cstats.get("hearts"), cstats.get("videos"),
+                         cstats.get("following")))
+
+
+def channel_data(channel: str, path: Path | None = None) -> dict:
+    with db(path) as con:
+        posts = [dict(r) for r in con.execute("SELECT * FROM tk_posts WHERE channel=? ORDER BY created_ts", (channel,))]
+        ids = [p["tiktok_id"] for p in posts]
+        snaps: dict[str, list[dict]] = {i: [] for i in ids}
+        for r in con.execute("SELECT s.* FROM tk_snap s JOIN tk_posts p USING(tiktok_id) WHERE p.channel=? ORDER BY s.ts",
+                             (channel,)):
+            snaps[r["tiktok_id"]].append(dict(r))
+        cs = [dict(r) for r in con.execute("SELECT * FROM channel_snap WHERE channel=? ORDER BY ts", (channel,))]
+    return {"posts": posts, "snaps": snaps, "channel": cs}
+
+
+# ── lịch đăng (2026-10-08) ────────────────────────────────────────────────────
+def set_schedule(video_id: str, channel: str, due_at: float, path: Path | None = None) -> None:
+    now = time.time()
+    with db(path) as con:
+        con.execute("INSERT INTO schedule (video_id, channel, due_at, status, created_at, updated_at) "
+                    "VALUES (?, ?, ?, 'scheduled', ?, ?) ON CONFLICT(video_id) DO UPDATE SET "
+                    "channel=excluded.channel, due_at=excluded.due_at, status='scheduled', error=NULL, mode=NULL, "
+                    "updated_at=excluded.updated_at", (video_id, channel, due_at, now, now))
+
+
+def update_schedule(video_id: str, path: Path | None = None, **fields) -> None:
+    fields["updated_at"] = time.time()
+    cols = ", ".join(f"{k} = ?" for k in fields)
+    with db(path) as con:
+        con.execute(f"UPDATE schedule SET {cols} WHERE video_id = ?", (*fields.values(), video_id))
+
+
+def delete_schedule(video_id: str, path: Path | None = None) -> None:
+    with db(path) as con:
+        con.execute("DELETE FROM schedule WHERE video_id = ?", (video_id,))
+
+
+def get_schedule(video_id: str, path: Path | None = None) -> dict | None:
+    with db(path) as con:
+        return _row(con.execute("SELECT * FROM schedule WHERE video_id = ?", (video_id,)).fetchone())
+
+
+def list_schedule(start: float | None = None, end: float | None = None, statuses: tuple[str, ...] | None = None,
+                  path: Path | None = None) -> list[dict]:
+    q, args = "SELECT * FROM schedule WHERE 1=1", []
+    if start is not None:
+        q += " AND due_at >= ?"; args.append(start)   # noqa: E702
+    if end is not None:
+        q += " AND due_at < ?"; args.append(end)   # noqa: E702
+    if statuses:
+        q += f" AND status IN ({','.join('?' * len(statuses))})"; args += list(statuses)   # noqa: E702
+    with db(path) as con:
+        return [dict(r) for r in con.execute(q + " ORDER BY due_at", args)]
+
+
+# ── chống đăng trùng (2026-10-10, rà soát chuỗi đăng) ─────────────────────────
+CLAIMED = "claimed"   # buffer_status lúc đang gửi Buffer, CHƯA có post id
+
+
+def claim_post(video_id: str, path: Path | None = None) -> bool:
+    """Giành quyền gửi video lên Buffer — NGUYÊN TỬ: nút Đăng (kể cả bấm 2 lần) và timer lịch chỉ một bên thắng.
+    Thua = đã có bài/đang gửi/đã đăng tay."""
+    with db(path) as con:
+        con.execute("INSERT INTO reviews(video_id, updated_at) VALUES(?,?) ON CONFLICT(video_id) DO NOTHING",
+                    (video_id, time.time()))
+        cur = con.execute(
+            "UPDATE reviews SET buffer_status=?, buffer_error=NULL, updated_at=? WHERE video_id=? "
+            "AND COALESCE(decision,'') NOT IN ('post','drop') AND COALESCE(buffer_status,'') != ? "
+            "AND (buffer_post_id IS NULL OR buffer_status='error')", (CLAIMED, time.time(), video_id, CLAIMED))
+        return cur.rowcount == 1
+
+
+def release_post(video_id: str, error: str | None = None, path: Path | None = None) -> None:
+    """Gửi Buffer THẤT BẠI chắc chắn (Buffer từ chối / chưa gọi được) → trả quyền; `error` ghi lý do."""
+    with db(path) as con:
+        con.execute("UPDATE reviews SET buffer_status=?, buffer_error=?, updated_at=? WHERE video_id=? AND buffer_status=?",
+                    ("error" if error else None, error, time.time(), video_id, CLAIMED))
+
+
+def claim_schedule(video_id: str, mode: str, path: Path | None = None) -> bool:
+    """Timer giành lịch: chỉ khi lịch VẪN đang 'scheduled' (nút Đăng tay có thể vừa huỷ)."""
+    with db(path) as con:
+        cur = con.execute("UPDATE schedule SET status='posting', mode=?, updated_at=? WHERE video_id=? AND status='scheduled'",
+                          (mode, time.time(), video_id))
+        return cur.rowcount == 1
+
+
+def cancel_schedule_if(video_id: str, reason: str, path: Path | None = None) -> bool:
+    with db(path) as con:
+        cur = con.execute("UPDATE schedule SET status='cancelled', error=?, updated_at=? WHERE video_id=? AND status='scheduled'",
+                          (reason, time.time(), video_id))
+        return cur.rowcount == 1
+
+
+def set_review_retry(video_id: str, tries: int = 6, wait: float = 2.0, **fields) -> None:
+    """Ghi kết quả SAU KHI đã đăng — không được mất (mất = video bị xếp lịch đăng lại). Thử lại khi DB bận."""
+    for k in range(tries):
+        try:
+            set_review(video_id, **fields)
+            return
+        except sqlite3.OperationalError:
+            if k == tries - 1:
+                raise
+            time.sleep(wait)
+
+
+# ── đổi chỗ trên trang Lịch (2026-10-10) ──────────────────────────────────────
+def swap_schedule(a: str, b: str, path: Path | None = None) -> bool:
+    """Đổi giờ hai video CÙNG kênh, cả hai đang 'scheduled' — NGUYÊN TỬ (timer có thể đang giành một trong hai)."""
+    with db(path) as con:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            ra = con.execute("SELECT * FROM schedule WHERE video_id=? AND status='scheduled'", (a,)).fetchone()
+            rb = con.execute("SELECT * FROM schedule WHERE video_id=? AND status='scheduled'", (b,)).fetchone()
+            if not ra or not rb or ra["channel"] != rb["channel"] or a == b:
+                con.execute("ROLLBACK")
+                return False
+            now = time.time()
+            con.execute("UPDATE schedule SET due_at=?, error=NULL, updated_at=? WHERE video_id=?", (rb["due_at"], now, a))
+            con.execute("UPDATE schedule SET due_at=?, error=NULL, updated_at=? WHERE video_id=?", (ra["due_at"], now, b))
+            con.execute("COMMIT")
+            return True
+        except Exception:
+            con.execute("ROLLBACK")
+            raise
+
+
+def move_schedule(video_id: str, due_at: float, path: Path | None = None) -> bool:
+    """Chuyển video đang 'scheduled' sang giờ khác (ô trống)."""
+    with db(path) as con:
+        cur = con.execute("UPDATE schedule SET due_at=?, error=NULL, updated_at=? WHERE video_id=? AND status='scheduled'",
+                          (due_at, time.time(), video_id))
+        return cur.rowcount == 1
+
