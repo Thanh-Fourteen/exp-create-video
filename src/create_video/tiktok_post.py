@@ -42,6 +42,80 @@ class PostError(RuntimeError):
     pass
 
 
+# ── ngân sách gọi Buffer (2026-10-12, research/31) ──────────────────────────────────────────────────────────────────
+# Buffer Free: 100 lần/15 phút · 250 lần/24h · 3.000 lần/30 ngày, mỗi client, cửa sổ trượt (developers.buffer.com/guides/
+# api-limits, R 2026-10). 12/10 bị 429 window 24h: số liệu 3h/lần × 26 bài (~208/ngày) + tự kiểm mỗi giờ (~64/ngày, mỗi 15
+# phút khi hỏng). Sổ đếm chung mọi tiến trình; lượt "check" (tự kiểm, số liệu) nhường chỗ cho lượt "post" (đăng, đồng bộ).
+LEDGER = REPO_ROOT / "exp" / "web" / "buffer-calls.json"
+CHECK_CAP_24H = 150          # lượt check bị hoãn khi 24h qua đã ≥ 150 lần (chừa ≥ 100 cho đăng)
+# 2026-11-06: trần 30 ngày của Free là 1.000 × số kênh (2 kênh → 2.000), KHÔNG phải 3.000 (developers.buffer.com/guides/api-limits,
+# verified 2026-11-06). Buffer vẫn báo 429 window 30d dù sổ này mới đếm 1.521 → sổ đếm thiếu (key dùng chung với MCP/ứng dụng
+# khác?) nên chừa dư: check/số liệu dừng ở 1.200.
+CHECK_CAP_30D = 1200
+BLOCK_30D_SEC = 24 * 3600    # 429 window 30d: cửa sổ trượt từng ngày — nghỉ mọi lượt check/số liệu 24h
+BACKOFF_429_SEC = 2 * 3600   # bị 429 → lượt check nghỉ 2 giờ
+
+
+def _ledger(update=None) -> dict:
+    """Đọc (và sửa) sổ dưới khoá file — timer lịch, số liệu, tự kiểm, web chạy song song."""
+    import fcntl
+    import time as _t
+
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    with open(LEDGER, "a+", encoding="utf-8") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        f.seek(0)
+        try:
+            d = json.loads(f.read() or "{}")
+        except ValueError:
+            d = {}
+        now = _t.time()
+        d["calls"] = [c for c in d.get("calls", []) if now - c[0] < 30 * 86400]
+        if update:
+            update(d, now)
+            f.seek(0)
+            f.truncate()
+            f.write(json.dumps(d))
+        return d
+
+
+def usage() -> dict:
+    """{h24, d30, by_kind_24h, last_429} — cho trang lịch / chẩn đoán."""
+    import time as _t
+
+    d, now = _ledger(), _t.time()
+    day = [c for c in d["calls"] if now - c[0] < 86400]
+    kinds: dict[str, int] = {}
+    for c in day:
+        kinds[c[1]] = kinds.get(c[1], 0) + 1
+    return {"h24": len(day), "d30": len(d["calls"]), "by_kind_24h": kinds, "last_429": d.get("last_429")}
+
+
+def quota_blocked_30d(retry_after: float = 3 * 3600) -> bool:
+    """True nếu Buffer vừa báo hết hạn mức 30 ngày (429 window 30d) trong `retry_after` giây qua. Thử lại từng phút vô ích —
+    cửa sổ trượt theo ngày, không hồi trong vài phút."""
+    import time as _t
+
+    b = _ledger().get("blocked_30d")
+    return bool(b) and _t.time() - b < retry_after
+
+
+def _admit(kind: str) -> None:
+    import time as _t
+
+    if kind == "post":
+        return
+    u, now = usage(), _t.time()
+    b30 = _ledger().get("blocked_30d")
+    if b30 and now - b30 < BLOCK_30D_SEC:
+        raise PostError("Buffer hết hạn mức 30 ngày — tạm dừng lượt " + kind + " 24h (chỉ lượt đăng được thử)")
+    if u["last_429"] and now - u["last_429"] < BACKOFF_429_SEC:
+        raise PostError(f"Buffer vừa báo vượt giới hạn — tạm hoãn lượt {kind} tới "
+                        f"{_t.strftime('%H:%M', _t.localtime(u['last_429'] + BACKOFF_429_SEC))} (để dành cho lượt đăng)")
+    if u["h24"] >= CHECK_CAP_24H or u["d30"] >= CHECK_CAP_30D:
+        raise PostError(f"Ngân sách Buffer: {u['h24']} lần/24h, {u['d30']} lần/30 ngày — hoãn lượt {kind} (để dành cho đăng)")
+
+
 def _env(name: str) -> str | None:
     if os.environ.get(name):
         return os.environ[name]
@@ -53,17 +127,25 @@ def _env(name: str) -> str | None:
     return None
 
 
-def gql(query: str, variables: dict | None = None) -> dict:
+def gql(query: str, variables: dict | None = None, kind: str = "post") -> dict:
+    """`kind`: "post" (đăng, đồng bộ trạng thái — luôn được gọi) | "check" | "stats" (hoãn khi gần trần, xem `_admit`)."""
     key = _env("BUFFER_API_KEY")
     if not key:
         raise PostError("Chưa có BUFFER_API_KEY trong .env")
+    _admit(kind)
+    _ledger(lambda d, now: d["calls"].append([round(now), kind]))
     req = urllib.request.Request(API, data=json.dumps({"query": query, "variables": variables or {}}).encode(),
                                  headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=60) as r:
             out = json.load(r)
     except urllib.error.HTTPError as e:
-        raise PostError(f"Buffer HTTP {e.code}: {e.read().decode(errors='replace')[:300]}") from None
+        body = e.read().decode(errors="replace")
+        if e.code == 429:
+            _ledger(lambda d, now: d.__setitem__("last_429", now))
+            if '"window":"30d"' in body.replace(" ", ""):
+                _ledger(lambda d, now: d.__setitem__("blocked_30d", now))
+        raise PostError(f"Buffer HTTP {e.code}: {body[:300]}") from None
     except urllib.error.URLError as e:
         raise PostError(f"Không gọi được Buffer: {e.reason}") from None
     except (TimeoutError, OSError) as e:   # hết giờ ĐỌC phản hồi: yêu cầu có thể đã tới Buffer (2026-10-10)
@@ -73,12 +155,12 @@ def gql(query: str, variables: dict | None = None) -> dict:
     return out["data"]
 
 
-def channels() -> list[dict]:
-    orgs = gql("{ account { organizations { id name } } }")["account"]["organizations"]
+def channels(kind: str = "post") -> list[dict]:
+    orgs = gql("{ account { organizations { id name } } }", kind=kind)["account"]["organizations"]
     out = []
     for o in orgs:
         q = "query($o: OrganizationId!){ channels(input:{organizationId:$o}){ id name service isDisconnected } }"
-        out += [{**c, "organizationId": o["id"]} for c in gql(q, {"o": o["id"]})["channels"]]
+        out += [{**c, "organizationId": o["id"]} for c in gql(q, {"o": o["id"]}, kind=kind)["channels"]]
     return out
 
 
@@ -252,6 +334,8 @@ def post_video(vid: str, scheduling: str = "automatic") -> dict:
     text = ((res.get("post") or {}).get("caption") or res.get("caption") or res.get("title") or "").strip()
     cover = next((d / c for c in ((res.get("post") or {}).get("cover"), "post/cover.jpg") if c and (d / c).exists()), None)
     ai_label = ai_label_for(ch.id)
+    if quota_blocked_30d():   # không dựng/chép file công khai rồi mới bị 429 (mỗi lần tốn ~2 phút CPU)
+        raise PostError("Buffer HTTP 429 RATE_LIMIT_EXCEEDED window 30d (hết hạn mức 30 ngày, chưa thử lại)")
     pub, url, thumb_ms = stage(d / res["mp4"], cover)
     try:
         check_public(url)
@@ -266,7 +350,8 @@ def post_video(vid: str, scheduling: str = "automatic") -> dict:
 # Lỗi CHẮC CHẮN chưa tạo bài trên Buffer → được thử lại / trả quyền. Lỗi mơ hồ (hết giờ đọc phản hồi, HTTP 5xx,
 # UnexpectedError) có thể bài ĐÃ tạo → không tự thử lại (2026-10-10: rà soát — thử lại = đăng trùng).
 SAFE_RETRY = ("could not be read", "url công khai", "không gọi được buffer", "chưa có buffer_api_key",
-              "chưa có xuong_pub_url", "invalidinputerror", "limitreachederror", "unauthorizederror", "notfounderror")
+              "chưa có xuong_pub_url", "invalidinputerror", "limitreachederror", "unauthorizederror", "notfounderror",
+              "rate_limit_exceeded")   # 429: Buffer từ chối trước khi tạo bài (research/31)
 
 
 def definitely_not_posted(msg: str) -> bool:

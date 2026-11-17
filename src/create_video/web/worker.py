@@ -21,6 +21,7 @@ import json
 import os
 import shutil
 import signal
+import sqlite3
 import subprocess
 import sys
 import time
@@ -244,12 +245,18 @@ def run_job(job: dict) -> str:
     cancelled = False
     while proc.poll() is None:
         time.sleep(HEARTBEAT_SEC)
-        db.update_job(jid, heartbeat_at=time.time())
+        # 2026-10-22: "database is locked" ở đây từng làm worker thoát → systemd SIGKILL pipeline đang chạy.
+        # Lỡ một nhịp heartbeat thì vô hại (lease 120s) — bỏ qua, nhịp sau ghi lại.
+        try:
+            db.update_job(jid, heartbeat_at=time.time())
+            cur = db.get_job(jid)
+        except sqlite3.OperationalError as e:
+            log(f"⚠ heartbeat lỡ nhịp: {e}")
+            continue
         try:
             prep_tick(jid)
         except Exception as e:   # làn phụ hỏng không được làm hỏng job chính
             log(f"⚠ làn chuẩn bị lỗi: {e}")
-        cur = db.get_job(jid)
         if cur and cur["cancel_requested"]:
             log(f"✗ huỷ {jid}")
             _kill(proc)

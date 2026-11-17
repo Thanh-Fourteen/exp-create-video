@@ -226,54 +226,83 @@ class VieneuLocalBackend(EchoBackend):
             return out
 
         r = toks(ref)
-        a = toks(heard or "")[: len(r) + 1]
-        return difflib.SequenceMatcher(None, r, a).ratio() if r else 1.0
+        if not r:
+            return 1.0
+        a = toks(heard or "")
+        # W6 (2026-11-17): lấy điểm cao hơn của tiền tố dài len(r) và len(r)+1 — chỉ +1 thì hook 3 từ nghe ĐÚNG vẫn chỉ
+        # 6/7 = 0,86 < HOOK_MIN → luôn đọc lại 2 bản thừa (từ kế tiếp của thân bài luôn lọt vào tiền tố).
+        return max(difflib.SequenceMatcher(None, r, a[: len(r) + d]).ratio() for d in (0, 1))
 
-    def _hook_clip(self, wav: Path, ref: str) -> Path:
+    # W6 (2026-11-17, AUDIT #10): nghe lại CẢ BÀI, không chỉ 3 giây hook. Ngưỡng viết trước khi bật (research/38): mức nền
+    # đo trên 2 video 1116 là giống 0,936 / 0,883 → dưới 0,80 hoặc có cụm LẶP mà kịch bản không có = đọc hỏng thật.
+    BODY_MIN = 0.80
+
+    @staticmethod
+    def body_similarity(heard: str, ref: str) -> float:
+        import difflib
+        import re as _re
+
+        toks = lambda x: _re.sub(r"[^\w\s]", " ", (x or "").lower()).split()   # noqa: E731
+        r = toks(ref)
+        return difflib.SequenceMatcher(None, r, toks(heard)).ratio() if r else 1.0
+
+    def _asr_clip(self, wav: Path) -> Path:
+        """Cả bản đọc → 16 kHz mono cho ASR (cùng định dạng clip hook cũ)."""
         import os
         import shutil
         import subprocess
 
         ff = os.environ.get("FFMPEG_BIN") or shutil.which("ffmpeg") or "/home/tony/miniconda3/bin/ffmpeg"
-        sec = len(ref.split()) / 3.6 + 0.6
-        clip = wav.with_name(wav.stem + ".hook.wav")
-        subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav), "-t", f"{sec:.2f}",
-                        "-ac", "1", "-ar", "16000", str(clip)], check=True)
+        clip = wav.with_name(wav.stem + ".asr.wav")
+        subprocess.run([ff, "-hide_banner", "-loglevel", "error", "-y", "-i", str(wav), "-ac", "1", "-ar", "16000",
+                        str(clip)], check=True)
         return clip
+
+    def judge_take(self, heard: str, hook_ref: str, body_ref: str) -> dict:
+        """Chấm một bản đọc cả đoạn: hook giống, thân giống, lặp chữ → `ok` + `score` để chọn bản tốt nhất."""
+        hook = self.hook_similarity(heard, hook_ref)
+        body = self.body_similarity(heard, body_ref)
+        rep = self.asr_repeat(heard, body_ref)
+        ok = hook >= self.HOOK_MIN and body >= self.BODY_MIN and rep is None
+        return {"hook": round(hook, 3), "body": round(body, 3), "repeat": rep, "ok": ok,
+                "score": hook + body - (0.5 if rep else 0.0)}
 
     def _synth_checked(self, text: str, n_sent: int = 1):
         ref = self._hook_ref
         if n_sent <= 1 or not ref:
             return super()._synth_checked(text, n_sent)
         base = self.seed
-        cands: list[tuple[float, int, tuple]] = []
+        cands: list[tuple[dict | None, int, tuple]] = []
         try:
             for k in range(self.HOOK_TRIES):
                 self.seed = base if k == 0 else (base or 0) + 7919 * k
-                cands.append((-1.0, self.seed, super()._synth_checked(text, n_sent)))
+                cands.append((None, self.seed, super()._synth_checked(text, n_sent)))
                 if k == 0 or k == self.HOOK_TRIES - 1:
-                    todo = [i for i, c in enumerate(cands) if c[0] < 0]
-                    heard = self._asr_batch([self._hook_clip(cands[i][2][0], ref) for i in todo])
+                    todo = [i for i, c in enumerate(cands) if c[0] is None]
+                    clips = {i: self._asr_clip(cands[i][2][0]) for i in todo}
+                    heard = self._asr_batch(list(clips.values()))
                     if heard is None:
-                        print("    ⚠ không chạy được ASR kiểm hook — giữ bản đầu", flush=True)
+                        print("    ⚠ không chạy được ASR kiểm giọng — giữ bản đầu", flush=True)
                         return cands[0][2]
-                    if all(heard.get(str(self._hook_clip(cands[i][2][0], ref))) is None for i in todo):
+                    if all(heard.get(str(clips[i])) is None for i in todo):
                         print("    ⚠ ASR không nghe được bản nào — giữ bản đầu, không đọc thêm", flush=True)
                         return cands[0][2]
                     for i in todo:
-                        h = heard.get(str(self._hook_clip(cands[i][2][0], ref))) or ""
-                        cands[i] = (self.hook_similarity(h, ref), cands[i][1], cands[i][2])
-                        self.asr_log = getattr(self, "asr_log", []) + [{"hook_seed": cands[i][1], "heard": h,
-                                                                        "sim": round(cands[i][0], 3)}]
-                    if k == 0 and cands[0][0] >= self.HOOK_MIN:
+                        h = heard.get(str(clips[i])) or ""
+                        j = self.judge_take(h, ref, text)
+                        cands[i] = (j, cands[i][1], cands[i][2])
+                        self.asr_log = getattr(self, "asr_log", []) + [{"seed": cands[i][1], "heard": h,
+                                                                        **{x: j[x] for x in ("hook", "body", "repeat")}}]
+                    j0 = cands[0][0]
+                    if k == 0 and j0["ok"]:
                         return cands[0][2]
                     if k == 0:
-                        print(f"    ⚠ ASR nghe hook «{(heard.get(str(self._hook_clip(cands[0][2][0], ref))) or '')[:80]}» "
-                              f"giống {cands[0][0]:.2f} < {self.HOOK_MIN} — đọc thêm "
-                              f"{self.HOOK_TRIES - 1} bản seed khác", flush=True)
-            best = max(cands, key=lambda c: c[0])
-            print(f"    ✓ chọn bản đọc seed {best[1]} (hook giống {best[0]:.2f}; các bản: "
-                  + ", ".join(f"{c[0]:.2f}" for c in cands) + ")", flush=True)
+                        print(f"    ⚠ ASR: hook {j0['hook']:.2f} (≥ {self.HOOK_MIN}) · thân {j0['body']:.2f} (≥ "
+                              f"{self.BODY_MIN})" + (f" · {j0['repeat']}" if j0["repeat"] else "")
+                              + f" — đọc thêm {self.HOOK_TRIES - 1} bản seed khác", flush=True)
+            best = max(cands, key=lambda c: (c[0]["ok"], c[0]["score"]))
+            print(f"    ✓ chọn bản đọc seed {best[1]} (hook {best[0]['hook']:.2f}, thân {best[0]['body']:.2f}; các bản: "
+                  + ", ".join(f"{c[0]['hook']:.2f}/{c[0]['body']:.2f}" for c in cands) + ")", flush=True)
             return best[2]
         finally:
             self.seed = base

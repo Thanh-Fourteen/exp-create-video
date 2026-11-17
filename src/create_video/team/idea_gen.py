@@ -36,6 +36,9 @@ class GenOut(BaseModel):
     ideas: list[GenIdea]
 
 
+DEMO_MARK = "🎬 có demo trong repo · "   # W5: tiền tố ghi chú — suggest() cộng điểm
+
+
 def _toks(s: str) -> set[str]:
     s = unicodedata.normalize("NFC", s.lower())
     return {w for w in re.findall(r"\w+", s) if len(w) > 1}
@@ -79,7 +82,7 @@ LUẬT
 1. `title` là chủ đề CỤ THỂ, ≤ 90 ký tự, đọc lên biết ngay video nói gì ("Tin nhắn báo trúng thưởng đơn hàng 11.11:
    ba dấu hiệu lừa đảo"), không chung chung ("Mẹo hay cuộc sống").
 {ch.text("idea_scope", IDEA_SCOPE_MEO)}
-4. Rải đều các pillar; không hai ý tưởng cùng một ý.
+{ch.text("idea_mix", "4. Rải đều các pillar; không hai ý tưởng cùng một ý.")}
 5. `why` ≤ 120 ký tự: vì sao LÚC NÀY người xem cần biết."""
 
 
@@ -98,13 +101,31 @@ def generate(channel_id: str = "meo", n: int = 12, *, model: str | None = None, 
     recent = existing[-60:]
     prompt = ("Đã có các chủ đề sau (KHÔNG lặp lại, kể cả đổi cách nói):\n" + "\n".join(f"- {t}" for t in recent)
               + f"\n\nĐề xuất {n} ý tưởng mới theo schema.")
+    tools = ["WebSearch"]
+    # 2026-10-12 (research/30): kênh khai `trend.repo_feed` → code chèn danh sách repo AI hot tuần (GitHub Trending + repo
+    # mới 7 ngày) kèm license/trang chủ/README do code lấy sẵn.
+    trend = ch.raw.get("trend") or {}
+    if trend.get("repo_feed"):
+        from .repo_feed import established_block, prompt_block
+
+        # 2026-10-19: repo mới ≤ 8 + repo đã có tiếng ≤ 8 (khảo sát 130 video AI: repo bùng với người thường là repo cũ)
+        block = "\n\n".join(b for b in (prompt_block(8), established_block(8)) if b)
+        if block:
+            prompt = block + "\n\n" + prompt
+    # 2026-10-12 (Tony: "ý tưởng về tin tức AI mới trong ngày, trong tuần" — research/30 §5): tin AI 7 ngày do code thu.
+    if trend.get("news_feed"):
+        from .news_feed import prompt_block as news_block
+
+        block = news_block()
+        if block:
+            prompt = block + "\n\n" + prompt
     run_dir = REPO_ROOT / "team" / "ideas" / ch.id
     run_dir.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y-%m-%d-%H%M")
     state = State.load(run_dir / f"{stamp}.run", video_id=f"ideas-{ch.id}-{stamp}")
     state.begin("idea_gen", "")
-    out = run_role("idea_gen", prompt, GenOut, system_prompt=_system(ch, n), tools=["WebSearch"],
-                   max_turns=16, max_budget_usd=1.5, model=model, state=state)
+    out = run_role("idea_gen", prompt, GenOut, system_prompt=_system(ch, n), tools=tools,
+                   max_turns=16, max_budget_usd=2.5, model=model, state=state)   # 1,5 → 2,5 (2026-10-19): thêm khối repo đã có tiếng, kênh AI chạm 1,5
     state.done("idea_gen", [])
     added, dropped = [], []
     seen = list(existing)
@@ -115,7 +136,14 @@ def generate(channel_id: str = "meo", n: int = 12, *, model: str | None = None, 
         if why:
             dropped.append({"title": t, "why": why})
             continue
-        iid = db.add_idea(ch.id, t, it.pillar, path=db_path, source="may", note=f"{it.why} — nguồn gợi ý: {it.hint}"[:300])
+        note = f"{it.why} — nguồn gợi ý: {it.hint}"
+        if trend.get("repo_feed"):
+            # W5: kênh AI — ý tưởng có GIF/MP4 demo trong repo (license OSI) được đánh dấu, `idea_scout.suggest` xếp lên trước
+            from ..visual.demo import demoability
+
+            if demoability(it.hint) == "repo_media":
+                note = DEMO_MARK + note
+        iid = db.add_idea(ch.id, t, it.pillar, path=db_path, source="may", note=note[:300])
         added.append({"id": iid, "title": t, "pillar": it.pillar})
         seen.append(t)
     log = {"at": stamp, "channel": ch.id, "added": added, "dropped": dropped,

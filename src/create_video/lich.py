@@ -334,7 +334,9 @@ def tick(now: float | None = None) -> dict:
             log["cancelled"].append(vid)
             continue
         if now - s["due_at"] > GRACE_SEC:
-            db.update_schedule(vid, status="missed", error=f"trễ {int((now - s['due_at']) / 60)} phút (máy tắt?)")
+            last = (s.get("error") or "").replace("[thử lại] ", "").strip()   # giữ lý do thật của lần thử cuối
+            why = f" — lần thử cuối: {last[:200]}" if last else " (máy tắt?)"
+            db.update_schedule(vid, status="missed", error=f"trễ {int((now - s['due_at']) / 60)} phút{why}")
             log["missed"].append(vid)
             continue
         mode = mode_for(cid)
@@ -357,7 +359,11 @@ def tick(now: float | None = None) -> dict:
                 _heal_once(log)   # Funnel đóng với Internet (09/10) — sửa ngay, lần thử phút sau sẽ qua
             if tp.definitely_not_posted(msg):
                 db.release_post(vid)
-                if now < s["due_at"] + GRACE_SEC:
+                if "window\":\"30d" in msg.replace(" ", "") or "window 30d" in msg:
+                    # hết hạn mức 30 ngày: thử lại từng phút không giúp gì (và tốn CPU) — báo rõ, chờ cửa sổ trượt
+                    db.update_schedule(vid, status="failed", error="Buffer hết hạn mức 30 ngày (429) — đăng lại khi hạn mức hồi")
+                    log["failed"].append(vid)
+                elif now < s["due_at"] + GRACE_SEC:
                     # Buffer CHẮC CHẮN chưa tạo bài → thử lại mỗi phút tới hết GRACE (Funnel tự sửa mất 1,5–10 phút)
                     db.update_schedule(vid, status="scheduled", error="[thử lại] " + msg[:240])
                     log.setdefault("retry", []).append(vid)

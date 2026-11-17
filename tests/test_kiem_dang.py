@@ -13,7 +13,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(kd, "HEAL_WAITS", (0, 0, 0, 0, 0))
     monkeypatch.setattr(kd.time, "sleep", lambda s: None)
     monkeypatch.setattr(kd, "timer_active", lambda name: True)
-    monkeypatch.setattr(tp, "channels", lambda: [{"id": "6ac766106a5c39ccb64ed6db", "isDisconnected": False},
+    monkeypatch.setattr(tp, "channels", lambda kind="post": [{"id": "6ac766106a5c39ccb64ed6db", "isDisconnected": False},
                                                  {"id": "6ac766a56a5c39ccb64eda36", "isDisconnected": False}])
     st = {"funnel_open": True, "heals": 0, "drafts": 0, "deleted": 0}
     monkeypatch.setattr(kd, "buffer_reads_url", lambda cid: (True, "ok") if st["funnel_open"] else
@@ -45,7 +45,7 @@ def test_khong_tu_sua_thi_bao_hong(env):
 
 
 def test_kenh_mat_ket_noi(env, monkeypatch):
-    monkeypatch.setattr(tp, "channels", lambda: [{"id": "6ac766106a5c39ccb64ed6db", "isDisconnected": True}])
+    monkeypatch.setattr(tp, "channels", lambda kind="post": [{"id": "6ac766106a5c39ccb64ed6db", "isDisconnected": True}])
     r = kd.run()
     bad = [c["name"] for c in r["checks"] if not c["ok"]]
     assert not r["ok"] and set(bad) == {"kênh ai", "kênh meo"}
@@ -59,7 +59,7 @@ def test_nhap_that_luon_bi_xoa_va_don_file(tmp_path, monkeypatch):
     (tmp_path / "t.mp4").write_bytes(b"\0" * 100)
     calls = []
 
-    def gql(q, v=None):
+    def gql(q, v=None, kind="post"):
         calls.append(q)
         if "createPost" in q:
             assert v["i"]["saveToDraft"] is True and v["i"]["dueAt"].startswith("2030")
@@ -69,7 +69,7 @@ def test_nhap_that_luon_bi_xoa_va_don_file(tmp_path, monkeypatch):
     ok, _ = kd.buffer_reads_url("c")
     assert ok and len(calls) == 2 and "createPost" in calls[0] and "deletePost" in calls[1]   # nháp luôn bị xoá
     assert not list((tmp_path / "pub").iterdir())
-    monkeypatch.setattr(tp, "gql", lambda q, v=None: {"createPost": {"__typename": "InvalidInputError", "message": "could not be read"}})
+    monkeypatch.setattr(tp, "gql", lambda q, v=None, kind="post": {"createPost": {"__typename": "InvalidInputError", "message": "could not be read"}})
     ok, msg = kd.buffer_reads_url("c")
     assert not ok and "could not be read" in msg and not list((tmp_path / "pub").iterdir())
 
@@ -93,8 +93,9 @@ def test_bat_lai_lau_moi_thong(env, monkeypatch):
 
 
 
-def test_auto_bo_qua_khi_vua_on(env, monkeypatch):
+def test_auto_bo_qua_khi_vua_on(env, monkeypatch, tmp_path):
     calls = []
+    monkeypatch.setattr(tp, "LEDGER", tmp_path / "buffer-calls.json")   # không đọc sổ đếm Buffer thật
     monkeypatch.setattr(kd, "run", lambda heal=True: calls.append(1) or {"ok": True, "checks": []})
     db.kv_set("kiem_dang", {"ok": True, "ts": kd.time.time() - 600})
     kd.main(["--auto"])
@@ -102,3 +103,19 @@ def test_auto_bo_qua_khi_vua_on(env, monkeypatch):
     db.kv_set("kiem_dang", {"ok": False, "ts": kd.time.time() - 600})
     kd.main(["--auto"])
     assert calls == [1]
+
+
+def test_auto_ngu_sau_429_va_ngan_sach(env, monkeypatch, tmp_path):
+    """research/31: đang nghỉ sau 429 → --auto không kiểm; lượt check bị chặn khi gần trần, lượt post thì không."""
+    monkeypatch.setattr(tp, "LEDGER", tmp_path / "buffer-calls.json")
+    calls = []
+    monkeypatch.setattr(kd, "run", lambda heal=True: calls.append(1) or {"ok": True, "checks": []})
+    db.kv_set("kiem_dang", {"ok": False, "ts": kd.time.time() - 600})
+    tp._ledger(lambda d, now: d.__setitem__("last_429", now - 60))
+    kd.main(["--auto"])
+    assert calls == []
+    tp._ledger(lambda d, now: (d.__setitem__("last_429", None),
+                               d["calls"].extend([[now - 10, "stats"]] * tp.CHECK_CAP_24H)))
+    with pytest.raises(tp.PostError):
+        tp._admit("check")
+    tp._admit("post")

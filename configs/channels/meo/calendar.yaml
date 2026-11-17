@@ -2,6 +2,15 @@
 # `from`/`to`: MM-DD (lặp hằng năm, được vắt qua năm mới) hoặc YYYY-MM-DD (một lần).
 # Nguồn ngày ghi cạnh từng mục — V verified / R reported (2026-10-04).
 seasons:
+  - id: dau_dong
+    name: "Gió mùa đầu đông miền Bắc"
+    from: "10-10"
+    to: "11-30"          # gió mùa đông bắc đầu mùa T10–T11 (A, báo chí — research/30 §2); nồm là T2–T4, chưa phải lúc này
+    pillar: theo_mua
+    ideas:
+      - "Chăn bông cất cả năm bị mùi: 3 bước trước khi đắp"
+      - "Bình nóng lạnh: bật trước khi tắm bao lâu rồi tắt cho đỡ tiền điện"
+      - "Điều hoà chế độ sưởi: để bao nhiêu độ là vừa ấm vừa đỡ điện"
   - id: nom_am
     name: "Nồm ẩm miền Bắc"
     from: "02-20"
@@ -26,8 +35,9 @@ seasons:
     to: "11-30"          # Nam Bộ T5–T11, đỉnh T9 (V, Wikipedia Khí hậu VN — nguồn thứ cấp)
     pillar: theo_mua
     ideas:
-      - "Mùa mưa: cách giữ điện thoại khi bị ướt (và việc tuyệt đối đừng làm)"
-      - "Đi xe máy dưới mưa lớn: những điều nên biết để an toàn"
+      # 2026-10-12 (Tony: "thân quen trong nhà", research/30): bỏ ý ngoài đường (đi xe máy dưới mưa, điện thoại ướt).
+      - "Phơi đồ trong nhà mùa mưa không bị mùi chua: 4 mẹo"
+      - "Giày ướt sũng: nhét giấy báo đúng cách, đừng hơ gần lửa"
   - id: mua_bao
     name: "Mùa bão"
     from: "07-01"
@@ -50,9 +60,9 @@ seasons:
     to: "11-30"          # 11.11 cố định; Black Friday 2026-11-27 (R)
     pillar: tien_bac
     ideas:
-      - "Săn sale 11.11: mẹo nhận ra giá bị nâng lên rồi giảm"
-      - "Tin nhắn 'trúng thưởng đơn hàng' mùa sale: nhận ra lừa đảo thế nào"
-      - "Mua trả góp 0 phần trăm: phí ẩn nằm ở đâu"
+      # 2026-10-12 (research/30): chỉ còn đồ trong nhà — bỏ lừa đảo, trả góp.
+      - "11/11 mua đồ gia dụng: 3 món nên mua, 3 món mua về để xó"
+      - "Tiền điện tháng lạnh tăng: 4 thiết bị trong nhà ngốn điện nhất"
   - id: tet_2027
     name: "Tết Đinh Mùi"
     from: "2027-01-05"

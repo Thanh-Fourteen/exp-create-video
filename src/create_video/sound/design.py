@@ -190,7 +190,9 @@ def sfx_events(spec: dict) -> list[tuple[float, str]]:
     for k, sh in enumerate(shots):
         kind = sh["asset"]["kind"]
         if kind in ("stat", "chart", "chat", "list"):
-            cand.append((sh["start_sec"] + 0.12, "pop", 1))
+            # W6: thẻ có cue `counter` (mốc từ con số) → pop đúng lúc giọng đọc số, không phải lúc thẻ hiện
+            cue = next((c["at_sec"] for c in sh.get("cues") or [] if c.get("type") == "counter"), None)
+            cand.append((cue if cue is not None else sh["start_sec"] + 0.12, "pop", 1))
         elif k > 0 and (kind == "image") != (shots[k - 1]["asset"]["kind"] == "image"):
             cand.append((max(0.0, sh["start_sec"] - 0.18), "whoosh", 2))
     ev: list[tuple[float, str]] = []

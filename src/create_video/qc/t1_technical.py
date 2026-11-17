@@ -19,7 +19,7 @@ import re
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
@@ -47,6 +47,7 @@ class Check:
     name: str
     ok: bool
     detail: str
+    at: list = field(default_factory=list)   # giây của khung vi phạm (nếu kiểm theo khung) — để vòng QC biết shot nào
 
     def __str__(self) -> str:
         return f"{'✓' if self.ok else '✗'} {self.name}: {self.detail}"
@@ -344,21 +345,29 @@ def check_safe_area_pixels(mp4: Path, spec: dict, n_samples: int = 12) -> Check:
     }
 
     worst = {k: 0.0 for k in bands}
+    fps = cap.get(cv2.CAP_PROP_FPS) or float(spec.get("fps") or 30)
+    limit = 0.004
+    at: list[float] = []
     for i in range(n_samples):
-        cap.set(cv2.CAP_PROP_POS_FRAMES, int(total * (i + 0.5) / n_samples))
+        fno = int(total * (i + 0.5) / n_samples)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, fno)
         ok, frame = cap.read()
         if not ok:
             continue
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         edges = cv2.morphologyEx(gray, cv2.MORPH_GRADIENT, np.ones((3, 3), np.uint8))
         textish = ((gray > 200) & (edges > 60)).astype(np.uint8)
+        hit = False
         for name, (x0, y0, x1, y1) in bands.items():
             reg = textish[y0:y1, x0:x1]
             if reg.size:
-                worst[name] = max(worst[name], float(reg.mean()))
+                v = float(reg.mean())
+                worst[name] = max(worst[name], v)
+                hit = hit or v > limit
+        if hit:
+            at.append(round(fno / fps, 2))
     cap.release()
 
-    limit = 0.004
     bad = {k: v for k, v in worst.items() if v > limit}
     return Check(
         "vùng an toàn (pixel)", not bad,
@@ -367,6 +376,7 @@ def check_safe_area_pixels(mp4: Path, spec: dict, n_samples: int = 12) -> Check:
         if bad else
         "không thấy cụm chữ nào trong dải bị UI che "
         + f"(cao nhất {max(worst.values()) * 100:.2f}% < {limit * 100:.1f}%)",
+        at=at,
     )
 
 
@@ -410,10 +420,43 @@ def _transition_frames(spec: dict | None, fps: float) -> set[int]:
     return out
 
 
+BORDER_PROBE = 64          # px soi từ mép (research/36)
+BORDER_PERSIST = 3         # mẫu liên tiếp (mỗi 2 frame) — dải nháy 1 khung không phải viền
+BORDER_SIDES = ("trái", "phải", "trên", "dưới")
+
+
+def border_px(strips) -> int:
+    """Độ rộng dải VIỀN ở một mép: các dải sát mép tối + phẳng, KẾT THÚC trong cửa sổ soi bằng một biên rõ
+    (dải kế tiếp sáng hơn ≥ 10 hoặc có kết cấu, độ lệch ≥ 6). Không có biên → ảnh tối tràn mép → 0 (research/36)."""
+    n = 0
+    last = None
+    for st in strips:
+        m, s = float(st.mean()), float(st.std())
+        if m < 20 and s < 1.0:
+            n += 1
+            last = m
+            continue
+        if n == 0:
+            return 0
+        return n if (m >= last + 10 or s >= 6.0) else 0
+    return 0       # tối tới hết cửa sổ soi → không có biên trong tầm nhìn
+
+
+def border_sides(gray) -> dict[str, int]:
+    p = BORDER_PROBE
+    return {
+        "trái": border_px(gray[:, x] for x in range(p)),
+        "phải": border_px(gray[:, -1 - x] for x in range(p)),
+        "trên": border_px(gray[y, :] for y in range(p)),
+        "dưới": border_px(gray[-1 - y, :] for y in range(p)),
+    }
+
+
 def check_frame_edges_and_motion(mp4: Path, spec: dict | None, th: dict) -> list[Check]:
     """Hai kiểm cùng một lượt đọc frame (đọc mp4 là phần đắt nhất).
 
-    1. **Viền đen** — dải sát mép khung tối VÀ phẳng (luma < 20, độ lệch < 1,0).
+    1. **Viền đen** — dải sát mép khung tối VÀ phẳng (luma < 20, độ lệch < 1,0), kết thúc bằng một biên rõ và bền
+       ≥ BORDER_PERSIST mẫu (research/36, 2026-11-16: 35/35 ca cũ là ảnh tối tràn mép, không phải lộ nền).
        Hiệu chỉnh 2026-10-01 trên số đo thật: nền lộ ra do Ken Burns pan quá
        scale có độ lệch ≤ 0,62 (demo-02, ~19px mép trái/phải); mặt bàn tối trong
        ảnh SDXL có độ lệch ~2,4 — ngưỡng cũ < 3 đã báo nhầm nó là viền.
@@ -436,35 +479,31 @@ def check_frame_edges_and_motion(mp4: Path, spec: dict | None, th: dict) -> list
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     skip = _transition_frames(spec, fps)
 
-    def dark_run(strips) -> int:
-        n = 0
-        for st in strips:
-            if float(st.mean()) < 20 and float(st.std()) < 1.0:
-                n += 1
-            else:
-                break
-        return n
-
     worst_border, worst_at, worst_side = 0, 0.0, ""
     static_run, worst_static, static_at = 0, 0, 0.0
     prev = None
     idx = 0
-    probe = 32  # chỉ soi 32px sát mép — đủ bắt dải lộ nền mà rẻ
+    # research/36 (2026-11-16): dải tối chỉ là VIỀN khi kết thúc trong cửa sổ soi bằng một biên rõ và bền ≥ BORDER_PERSIST
+    # mẫu liên tiếp. Ảnh tối tràn mép (35/35 ca chặn nhầm) không có biên → không tính.
+    streak = {s: 0 for s in BORDER_SIDES}
+    streak_px = {s: 0 for s in BORDER_SIDES}
     while True:
         ok, frame = cap.read()
         if not ok:
             break
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         if max_border is not None and idx % 2 == 0 and idx not in skip:
-            sides = {
-                "trái": dark_run(gray[:, x] for x in range(probe)),
-                "phải": dark_run(gray[:, -1 - x] for x in range(probe)),
-                "trên": dark_run(gray[y, :] for y in range(probe)),
-                "dưới": dark_run(gray[-1 - y, :] for y in range(probe)),
-            }
-            side, px = max(sides.items(), key=lambda kv: kv[1])
-            if px > worst_border:
-                worst_border, worst_at, worst_side = px, idx / fps, side
+            for side, px in border_sides(gray).items():
+                if px > max_border:
+                    streak[side] += 1
+                    streak_px[side] = max(streak_px[side], px) if streak[side] > 1 else px
+                    if streak[side] >= BORDER_PERSIST and streak_px[side] > worst_border:
+                        worst_border, worst_at, worst_side = streak_px[side], idx / fps, side
+                else:
+                    streak[side] = 0
+        elif max_border is not None and idx in skip:
+            for side in BORDER_SIDES:      # transition cắt chuỗi — dải trước và sau transition không cộng dồn
+                streak[side] = 0
         if max_static is not None:
             small = cv2.resize(gray, (135, 240), interpolation=cv2.INTER_AREA).astype(np.int16)
             if prev is not None and float(np.abs(small - prev).mean()) < 0.15:

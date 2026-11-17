@@ -165,4 +165,11 @@ def _voices_cached(mtime: float) -> list[dict]:
 
 def voices() -> list[dict]:
     p = REPO_ROOT / "data" / "voice" / "voices.json"
-    return _voices_cached(p.stat().st_mtime if p.exists() else 0.0)
+    vs = _voices_cached(p.stat().st_mtime if p.exists() else 0.0)
+    # 2026-10-18: giọng Tony chưa qua voice/giong_dat.py → pipeline đọc bằng Trúc Ly; nói rõ trên nút chọn giọng.
+    from ..voice.giong_dat import FALLBACK, tony_ref
+
+    if tony_ref() is None:
+        vs = [{**v, "description": f"Chưa đạt yêu cầu — video sẽ đọc bằng {FALLBACK}"} if v["id"] == "tony" else v
+              for v in vs]
+    return vs

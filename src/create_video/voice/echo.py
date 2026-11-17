@@ -83,7 +83,8 @@ def apply_pronounce(text: str, table: dict[str, str]) -> str:
     import re as _re
 
     for k in sorted(table, key=len, reverse=True):
-        text = _re.sub(rf"(?<![\w-]){_re.escape(k)}(?![\w-])", table[k], text, flags=_re.IGNORECASE)
+        # (?![.,]\d): "GPT-6.5"/"GPT-6,5" không phải "gpt-6" + ".5" (AUDIT #10, 2026-11-16 — từng ra "GPT sáu.5")
+        text = _re.sub(rf"(?<![\w-]){_re.escape(k)}(?![\w-]|[.,]\d)", table[k], text, flags=_re.IGNORECASE)
     return text
 
 

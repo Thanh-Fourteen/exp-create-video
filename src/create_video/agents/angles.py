@@ -120,11 +120,18 @@ def recent_end_styles(n: int = RECENT_ENDS) -> list[str]:
 
 
 def pick_end_style(recent: list[str]) -> str:
-    """Kiểu đầu tiên theo thứ tự END_STYLES chưa dùng ở `recent` — xoay vòng tất định, không lặp 2 video liền."""
-    for k in END_STYLES:
+    """Kiểu đầu tiên theo thứ tự chưa dùng ở `recent` — xoay vòng tất định, không lặp 2 video liền.
+
+    Kênh khai `end_styles` (2026-10-19, research/34 — kênh mẹo: 22/55 video bùng kết ở hậu quả mẹo cuối, 12/55 mời bình luận)
+    → chỉ xoay trong danh sách đó; nhớ len-1 video gần nhất."""
+    from ..channel import current
+
+    order = [k for k in (current().raw.get("end_styles") or END_STYLES) if k in END_STYLES]
+    recent = recent[: max(1, len(order) - 1)]
+    for k in order:
         if k not in recent:
             return k
-    return next(iter(END_STYLES))
+    return order[0]
 
 
 def _gen_system() -> str:
@@ -149,12 +156,20 @@ DẠNG VIDEO CỦA KÊNH:
 Chỉ dùng sự thật trong đề bài. Không bịa số."""
 
 
+# W4 (AUDIT #3): trọng tài trước đây chấm MÙ (chỉ thấy hook) → chọn hook kêu nhất kể cả khi đề bài không đỡ được nó.
+# Cắt đề bài ở 3000 ký tự: đủ phần facts đầu, giữ chi phí lượt judge gần như cũ (brief 1116 ~ 4–6 nghìn ký tự).
+JUDGE_BRIEF_CHARS = 3000
+
 JUDGE_SYSTEM = """Bạn là GIÁM KHẢO hook TikTok tiếng Việt. Với MỖI CẶP phương án (a, b), chọn phương án khiến một người
 Việt đang lướt TikTok DỪNG LẠI và XEM TỚI CUỐI nhiều hơn. Tiêu chí, theo thứ tự:
 1. 3 giây đầu có thông tin cụ thể / khoảng trống tò mò rõ, không chung chung, không chào hỏi.
 2. Lợi ích hoặc cảm xúc mạnh với người xem (tiền, thời gian, rủi ro, kinh ngạc) — không phải "tin cho biết".
 3. Có lý do ở lại tới cuối (đếm ngược, câu trả lời để dành, chỗ ngoặt).
 4. Tự nhiên như người Việt nói, không sáo rỗng.
+5. (W4 2026-11-17) ĐÚNG ĐỀ BÀI: phương án hứa con số / kết quả / bước làm mà SỰ THẬT ĐÃ KIỂM bên dưới không có → THUA cặp
+   đó, dù hook hay hơn. Video bị bóc sai mất uy tín cả kênh.
+6. Cho XEM được: lời hứa minh hoạ được bằng hình thật (thao tác, trang nguồn, số liệu, đồ vật thật) thắng lời hứa chỉ kể
+   suông được.
 Phán từng cặp độc lập. `reason` một câu."""
 
 
@@ -198,7 +213,11 @@ def choose_angle(topic: str, brief_txt: str | None, *, state: "State | None" = N
         listing = "\n".join(f"[{i}] ({c.format}) hook: {c.hook} | chữ bìa: {c.hook_text} | góc: {c.angle} | "
                             f"giữ chân: {c.why_finish}" for i, c in enumerate(cands))
         pairs = list(itertools.combinations(range(len(cands)), 2))
-        jp = (f"CHỦ ĐỀ: {topic}\n\nCÁC PHƯƠNG ÁN:\n{listing}\n\nPhán đủ {len(pairs)} cặp (a, b): "
+        facts = (brief_txt or "").strip()
+        if len(facts) > JUDGE_BRIEF_CHARS:
+            facts = facts[:JUDGE_BRIEF_CHARS] + " …"
+        jp = (f"CHỦ ĐỀ: {topic}\n\n" + (f"SỰ THẬT ĐÃ KIỂM (đề bài):\n{facts}\n\n" if facts else "")
+              + f"CÁC PHƯƠNG ÁN:\n{listing}\n\nPhán đủ {len(pairs)} cặp (a, b): "
               + ", ".join(f"({a},{b})" for a, b in pairs))
         try:
             j = run_role("angle_judge", jp, JudgeOut, system_prompt=JUDGE_SYSTEM, tools=[], max_turns=4,
@@ -218,10 +237,14 @@ def choose_angle(topic: str, brief_txt: str | None, *, state: "State | None" = N
     for i, c in enumerate(cands):
         if c.format in recent:
             score[i] -= 0.5 * (RECENT_FORMATS - recent.index(c.format))
-    best = max(score, key=lambda i: (score[i], -cands[i].probability))
+    # Hoà điểm khi ĐÃ chấm: chọn phương án ít "đồng phục" hơn (probability thấp — đúng tinh thần Verbalized Sampling).
+    # Trọng tài HỎNG (không verdict nào): không có tín hiệu chất lượng → chọn phương án angle_gen tin nhất, không chọn
+    # phương án lạ nhất một cách mù (AUDIT #3, 2026-11-16).
+    judged = bool(verdicts)
+    best = max(score, key=lambda i: (score[i], -cands[i].probability if judged else cands[i].probability))
     ends = recent_end_styles()
     res = {"chosen": cands[best].model_dump(), "candidates": [c.model_dump() for c in cands], "scores": score,
-           "verdicts": verdicts, "dropped": dropped, "recent_formats": recent,
+           "verdicts": verdicts, "judged": judged, "dropped": dropped, "recent_formats": recent,
            "end_style": pick_end_style(ends), "recent_end_styles": ends}
     if artifact is not None:
         artifact.write_text(json.dumps(res, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -244,7 +267,8 @@ def angle_for_script(res: dict) -> str:
 
     c = res["chosen"]
     f = (current().raw.get("formats") or {}).get(c["format"], {})
-    return ("\n\nGÓC KỂ ĐÃ CHỌN (bắt buộc theo — đã chấm so cặp với 4 phương án khác):\n"
+    how = "đã chấm so cặp với các phương án khác" if res.get("judged", True) else "trọng tài lỗi — chọn theo độ tin của bước sinh"
+    return (f"\n\nGÓC KỂ ĐÃ CHỌN (bắt buộc theo — {how}):\n"
             f"  DẠNG: {c['format']} — {f.get('desc', '')}\n"
             + (f"  CẤU TRÚC DẠNG NÀY: {_structure(f['structure'], res.get('end_style'))}\n" if f.get("structure") else "")
             + f"  HOOK (giữ ý, được chỉnh chữ cho tự nhiên): {c['hook']}\n"

@@ -439,6 +439,10 @@
                     }
                   }
                 }
+              },
+              "stock_query": {
+                "type": "string",
+                "description": "2026-10-18 (research/33): từ khoá đã dùng tìm clip/ảnh stock — QC T2 chấm độ khớp theo nó (alt là prompt ảnh AI dự phòng, quá chi tiết cho cảnh quay thật)."
               }
             },
             "description": "Thứ hiện trong shot. image/video/color/screenshot cần `path`; stat/chart/code là dữ liệu, Remotion tự vẽ (P3b.S4) — không có file.",
@@ -544,9 +548,38 @@
                     },
                     "to": {
                       "$ref": "#/definitions/frameState"
+                    },
+                    "start_frac": {
+                      "description": "1.4 (W3 2026-11-17): mốc bắt đầu đoạn theo tỉ lệ thời lượng shot (đầu câu). Thiếu → chia đều.",
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
                     }
                   }
                 }
+              }
+            }
+          },
+          "label": {
+            "description": "1.4 (W5 2026-11-17): nhãn trung thực của hình — Demo thật / Minh hoạ / Nguồn. Remotion vẽ chip nhỏ.",
+            "type": "object",
+            "required": [
+              "text",
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 48
+              },
+              "kind": {
+                "enum": [
+                  "demo",
+                  "illustration",
+                  "source"
+                ]
               }
             }
           },
@@ -592,6 +625,33 @@
               },
               "emphasis": {
                 "type": "boolean"
+              }
+            }
+          },
+          "cues": {
+            "description": "1.4 (W6 2026-11-17): mốc theo TỪ (aligner) — thẻ số nảy + SFX pop đúng lúc giọng đọc con số.",
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "required": [
+                "at_sec",
+                "type"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "at_sec": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "type": {
+                  "enum": [
+                    "counter",
+                    "punch",
+                    "highlight",
+                    "sfx"
+                  ]
+                }
               }
             }
           }

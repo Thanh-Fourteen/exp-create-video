@@ -8,6 +8,7 @@ import { KenBurns } from "./components/KenBurns";
 import { OverlayText } from "./components/Overlay";
 import { Transition } from "./components/Transition";
 import { dbToGain, type VideoSpec } from "./types";
+import { fontStack } from "./fonts";
 
 /**
  * Composition chính: `video-spec.json` → mp4 1080×1920.
@@ -111,6 +112,16 @@ const BrandBar: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
  * TRONG một khung. Nhãn dạng video + tiêu đề cố định ở 12–23% chiều cao; ảnh trong khung bo góc 25–56%; phụ đề 58%+.
  */
 const FRAME_LEFT = 62;   // = Evidence CARD_LEFT — mép phải 874px < lề UI phải 18% (886px)
+const HOOK_BIG_SEC = 2.6;
+
+/** Tiêu đề hai màu: phần sau (ý chốt) tô màu nhấn. Cắt ở dấu câu giữa câu, không có thì ở giữa số từ. */
+export const splitTitle = (title: string): [string, string] => {
+  const w = title.trim().split(/\s+/);
+  if (w.length < 3) return [title.trim(), ""];
+  const p = w.findIndex((x, i) => i > 0 && i < w.length - 1 && /[,:;—–]$/.test(x));
+  const k = p >= 0 ? p + 1 : Math.ceil(w.length / 2);
+  return [w.slice(0, k).join(" "), w.slice(k).join(" ")];
+};
 
 const Headline: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
   const { height, fps } = useVideoConfig();
@@ -120,7 +131,14 @@ const Headline: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
   // 2026-10-06 (research/20 §4): KHÔNG fade-in — TikTok tự phát từ frame 0 và frame 0 là bìa dự phòng; bản cũ mở
   // bằng tiêu đề mờ 35% đang trượt lên, đúng 1–2 giây quyết định lướt đi.
   const title = lay.title ?? "";
-  const size = title.length > 34 ? 66 : title.length > 22 ? 78 : 92;
+  const small = title.length > 34 ? 66 : title.length > 22 ? 78 : 92;
+  // 2026-10-12 (research/29 §6): 2,6 giây đầu tiêu đề TO (~1,4×, như video bùng @ai.unbox0026 "Họp xong là / quên sạch.")
+  // rồi thu về cỡ thường — cỡ to chiếm tới ~35% chiều cao, đè vùng thẻ bằng chứng (25%) nên chỉ bật khi không có thẻ.
+  const big = title.length > 30 ? 96 : title.length > 22 ? 112 : title.length > 14 ? 128 : 150;
+  const evidenceEarly = spec.shots.some((sh) => sh.start_sec < HOOK_BIG_SEC + 0.3 && EVIDENCE_KINDS.has(sh.asset.kind));
+  const size = evidenceEarly ? small : interpolate(t, [HOOK_BIG_SEC, HOOK_BIG_SEC + 0.3], [big, small], {
+    extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) });
+  const [head, tail] = splitTitle(title);
   return (
     <div style={{ position: "absolute", left: FRAME_LEFT, width: CARD_W, top: height * 0.115, display: "flex",
                   flexDirection: "column", gap: 14 }}>
@@ -132,7 +150,8 @@ const Headline: React.FC<{ spec: VideoSpec }> = ({ spec }) => {
       ) : null}
       <div style={{ fontFamily: '"Be Vietnam Pro", sans-serif', fontWeight: 900, fontSize: size, lineHeight: 1.08,
                     color: "#FFFFFF", textShadow: "0 6px 30px rgba(0,0,0,0.6)", textWrap: "balance" as never }}>
-        {title}
+        {head}
+        {tail ? <><br /><span style={{ color: accent }}>{tail}</span></> : null}
       </div>
     </div>
   );
@@ -153,6 +172,21 @@ const Scrim: React.FC = () => (
 
 /** Hiệu màu nhẹ cho lớp hình: sáng/bão hoà hơn — "brightness" là top-3 yếu tố (cùng nguồn trên). */
 const GRADE = "saturate(1.18) contrast(1.06) brightness(1.05)";
+
+// W5 (2026-11-17): chip nhãn trung thực ở góc trên-trái DẢI TIỀN CẢNH demo (visual/demo.py: dải 26–64%, x 62) — nhỏ, tĩnh,
+// không animation (AUDIT #8: đã thừa lớp chữ). Người xem phân biệt cảnh thật với minh hoạ.
+const ShotLabel: React.FC<{ label: { text: string; kind: string } }> = ({ label }) => (
+  <div
+    style={{
+      position: "absolute", left: 74, top: Math.round(1920 * 0.26) + 12, padding: "6px 14px", borderRadius: 10,
+      background: label.kind === "demo" ? "rgba(16,120,72,0.88)" : "rgba(15,17,21,0.78)", color: "#FFFFFF",
+      fontFamily: fontStack("Be Vietnam Pro"), fontWeight: 800, fontSize: 28, letterSpacing: 0.3,
+      maxWidth: 760, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+    }}
+  >
+    {label.kind === "demo" ? "● " : ""}{label.text}
+  </div>
+);
 
 export const VideoFromSpec: React.FC<VideoSpec> = (spec) => {
   const { fps } = useVideoConfig();
@@ -236,6 +270,7 @@ export const VideoFromSpec: React.FC<VideoSpec> = (spec) => {
               {shot.overlay ? (
                 <OverlayText overlay={shot.overlay} spec={spec} durationInFrames={dur} />
               ) : null}
+              {shot.label ? <ShotLabel label={shot.label} /> : null}
             </Transition>
           </Sequence>
         );

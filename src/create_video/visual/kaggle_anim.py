@@ -125,7 +125,11 @@ def submit(items: list[dict], *, frames: int = 49, steps: int = 20, w: int = 480
 
 
 def status(handle: dict) -> str:
-    s = _kg("kernels", "status", f"{handle['user']}/{KERNEL}", timeout=60).lower()
+    # 2026-10-22: CLI kaggle treo > 60s (mạng/HDD bận) từng làm hỏng cả job mẹo — coi như "unknown", vòng poll đợi tiếp.
+    try:
+        s = _kg("kernels", "status", f"{handle['user']}/{KERNEL}", timeout=60).lower()
+    except subprocess.TimeoutExpired:
+        return "unknown"
     for k in ("complete", "error", "cancel", "running", "queued"):
         if k in s:
             return k
@@ -146,7 +150,11 @@ def collect(handle: dict, dst_dir: Path, *, deadline: float, poll: int = 30) -> 
     if dl.exists():
         shutil.rmtree(dl)
     dl.mkdir(parents=True)
-    _kg("kernels", "output", f"{handle['user']}/{KERNEL}", "-p", str(dl), timeout=600)
+    try:
+        _kg("kernels", "output", f"{handle['user']}/{KERNEL}", "-p", str(dl), timeout=600)
+    except subprocess.TimeoutExpired:
+        print("  ⚠ Kaggle: tải output quá 600s — dùng ảnh tĩnh", flush=True)
+        return {}
     res_p = dl / "result.json"
     res = json.loads(res_p.read_text()) if res_p.exists() else {}
     # Notebook `xuong-anim` DÙNG CHUNG mọi job: output hiện tại có thể của job khác đã đẩy sau (2026-10-05: video mẹo

@@ -12,3 +12,12 @@ def _khong_dung_funnel_that(monkeypatch):
     from create_video import kiem_dang
 
     monkeypatch.setattr(kiem_dang, "heal_funnel", lambda: "giả (test)")
+
+
+@pytest.fixture(autouse=True)
+def _so_dem_buffer_rieng(monkeypatch, tmp_path):
+    """2026-11-06: sổ đếm lượt gọi Buffer thật (exp/web/buffer-calls.json) có cờ `blocked_30d` → post_video bị chặn và
+    test đỏ theo trạng thái máy. Mỗi test dùng sổ riêng."""
+    from create_video import tiktok_post
+
+    monkeypatch.setattr(tiktok_post, "LEDGER", tmp_path / "buffer-calls.json")

@@ -14,7 +14,7 @@ Quyền từng tầng (todos P4, `configs/thresholds.yaml`):
 
 | Tầng | Lỗi → | Patch về |
 |---|---|---|
-| T1 kỹ thuật (code) | **chặn** | không ai — dựng lại không sửa được lỗi tất định → dừng, gửi Tony |
+| T1 kỹ thuật (code) | **chặn** | không ai — dựng lại không sửa được lỗi tất định → dừng, gửi Tony. Ngoại lệ duy nhất (2026-11-17): "vùng an toàn (pixel)" mà mọi khung vi phạm nằm trong shot ẢNH/STOCK → `regen` thay đúng shot đó, T1 chấm lại ngưỡng cũ |
 | T2 hình (VLM) | đề xuất | `visual/regen.py` render lại ĐÚNG shot đó (prompt sửa + seed khác) |
 | T3 sức hút (critic) | đề xuất | `scriptwriter.revise_script` với lỗi cụ thể |
 | T4 sự thật (fact-checker) | **chặn** | `scriptwriter.revise_script` với url + trích nguồn |
@@ -47,6 +47,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 MAX_ROUNDS = 2
 
 TIERS = ("t1", "t2", "t3", "t4")
+BLOCKING_TIERS = ("t1", "t4")          # tầng là CỔNG: không chạy được thì chặn (AUDIT #2)
 REGEN_ISSUES = {"anatomy_error", "garbled_text_in_image"}
 # VRAM tối thiểu còn trống trước bước GPU (nvidia-smi, GPU dùng chung với dự án khác).
 # VLM T2 đỉnh 1.760 MiB, SDXL offload đỉnh 624 MiB (+ cuBLAS) — p4-s1.md, p3s3-sdxl.md.
@@ -105,8 +106,8 @@ def run_t1(ctx: dict) -> TierResult:
                                "failed": [c.name for c in bad],
                                "retention_warn": [asdict(c) for c in warn]}, ensure_ascii=False, indent=2) + "\n",
                    encoding="utf-8")
-    return TierResult("t1", ok=not bad, blocking=[{"key": f"t1:{c.name}", "check": c.name, "detail": c.detail}
-                                                  for c in bad],
+    return TierResult("t1", ok=not bad, blocking=[{"key": f"t1:{c.name}", "check": c.name, "detail": c.detail,
+                                                   **({"at": c.at} if c.at else {})} for c in bad],
                       summary={"passed": len(checks) - len(bad), "total": len(checks)}, artifact=str(art))
 
 
@@ -161,7 +162,24 @@ def _pre_cached(ctx: dict, tier: str) -> "TierResult | None":
     d = json.loads(g.read_text(encoding="utf-8"))
     if d.get("sha") != script_sha(ctx["script"]) or tier not in d:
         return None
-    return TierResult(**{**d[tier], "reused_from": -1})
+    r = TierResult(**{**d[tier], "reused_from": -1})
+    if tier == "t4" and not r.ok and not r.blocking and r.artifact and Path(r.artifact).exists():
+        # gate.json ghi trước bản sửa AUDIT #1 (2026-11-16): T4 "block" vì thiếu tier1 nhưng blocking rỗng → dựng lại
+        # danh sách chặn từ t4.json (không gọi lại LLM).
+        rep = json.loads(Path(r.artifact).read_text(encoding="utf-8"))
+        if rep.get("verdict") == "block":
+            r.blocking = [{"key": f"t4:{i.get('line')}:{str(i.get('claim', ''))[:40]}", **i} for i in rep.get("issues") or []]
+    return r
+
+
+# 2026-10-18 (research/33 §3): điểm T3 KHÔNG tương quan với số thật — 41 bài, 30/41 chấm 9,4–10; Spearman với avg_watch
+# −0,15, với view 24h −0,18 (kênh AI −0,44). Ngưỡng viết trước (eval-discipline, research/33 §4.5): ρ < 0,3 → sửa/bỏ.
+# T3 vẫn chấm + ghi (để đo lại khi sửa rubric) nhưng KHÔNG sinh vòng sửa kịch bản; 5 giây đầu giờ do code kiểm (V1–V3).
+T3_DRIVES_REVISION = False
+
+
+def _t3_notes(r3_summary: dict) -> list:
+    return list(r3_summary.get("notes") or []) if T3_DRIVES_REVISION else []
 
 
 def pre_gate(out_dir: Path, script, state, revise) -> object:
@@ -177,7 +195,7 @@ def pre_gate(out_dir: Path, script, state, revise) -> object:
     lg: dict = {}
     while True:
         r3, r4 = run_t3(ctx), run_t4(ctx)
-        notes = list(r4.summary.get("notes") or []) + list(r3.summary.get("notes") or [])
+        notes = list(r4.summary.get("notes") or []) + _t3_notes(r3.summary)
         if listen_on:
             from .listener import listen_gate
 
@@ -190,7 +208,7 @@ def pre_gate(out_dir: Path, script, state, revise) -> object:
               f"{r4.summary.get('contradicted')} mâu thuẫn {'✓' if r4.ok else '✗'}"
               + (f" · nghe thử {lg.get('n_issues', '?')} vướng/{lg.get('n_appeal', '?')} khó chịu {'✓' if lg.get('ok') else '✗'}"
                  if listen_on else ""), flush=True)
-        if (r3.ok and r4.ok and lg.get("ok", True)) or revised >= PRE_MAX_REVISE or not notes:
+        if ((r3.ok or not T3_DRIVES_REVISION) and r4.ok and lg.get("ok", True)) or revised >= PRE_MAX_REVISE or not notes:
             break
         try:
             script = revise(script, notes)
@@ -228,8 +246,10 @@ def run_t4(ctx: dict) -> TierResult:
 
     art = ctx["rdir"] / "t4.json"
     rep = t4_facts.check(ctx["script"], state=ctx["state"], artifact=art)
-    blk = [{"key": f"t4:{c['line']}:{c['claim'][:40]}", **i}
-           for c, i in zip(rep.contradicted, rep.issues)]
+    # Mọi issue của bản T4 bị chặn đều là lỗi CHẶN — cả claim mâu thuẫn lẫn claim sức khoẻ/thực phẩm thiếu nguồn tier1.
+    # Bản cũ zip(contradicted, issues) làm rơi nhánh tier1 → 6 video kênh mẹo bị T4 chặn vẫn được đăng (AUDIT #1, 2026-11-16).
+    blk = [{"key": f"t4:{i.get('line')}:{str(i.get('claim', ''))[:40]}", **i} for i in rep.issues] \
+        if rep.verdict == "block" else []
     return TierResult("t4", ok=rep.verdict == "pass", blocking=blk,
                       summary={"claims": len(rep.claims), "contradicted": len(rep.contradicted),
                                "inconclusive": len(rep.unverified), "flag_unverified": rep.flag_unverified,
@@ -314,7 +334,15 @@ def evaluate(ctx: dict, round_: int, prev: dict | None, tiers, runners) -> dict:
         try:
             r = runners[t](ctx)
         except Exception as e:
-            r = TierResult(t, ran=False, skipped=f"lỗi: {type(e).__name__}: {e}"[:300])
+            msg = f"lỗi: {type(e).__name__}: {e}"[:300]
+            r = TierResult(t, ran=False, skipped=msg)
+            if t in BLOCKING_TIERS:
+                # T1/T4 là cổng: không chạy được = KHÔNG biết video có đạt không → chặn, không coi là đạt
+                # (AUDIT #2, 2026-11-16). T2/T3 chỉ đề xuất nên lỗi của chúng vẫn chỉ là "bỏ qua".
+                r.ok = False
+                r.blocking = [{"key": f"{t}:crash", "where": "toàn video", "module": "infra",
+                               "why": f"tầng {t.upper()} không chạy được — {msg}",
+                               "suggested_fix": "xem log, chạy lại QC: python -m create_video.qc.loop <id>"}]
             if st is not None:
                 st.fail(stage, e)
         else:
@@ -329,17 +357,54 @@ def evaluate(ctx: dict, round_: int, prev: dict | None, tiers, runners) -> dict:
         "suggestions": [dict(s, tier=t) for t, r in results.items() for s in r["suggestions"]],
         "patches_sent": None,
     }
+    # W7 (2026-11-17): lỗi mọi tầng theo MỘT schema có mốc thời gian (qc/issues.py) — ghi vết, không đổi cổng
+    try:
+        from .issues import normalize
+
+        rec["issues"] = normalize(rec, ctx["spec"])
+    except Exception as e:   # chỉ là ghi vết: lỗi chuẩn hoá không được làm hỏng vòng QC
+        rec["issues"], rec["issues_error"] = [], f"{type(e).__name__}: {e}"[:200]
     _archive(out_dir, rdir)
     return rec
 
 
-def plan_patches(rec: dict) -> dict:
+T1_PIXEL = "vùng an toàn (pixel)"
+
+
+def t1_image_shots(blocking: list[dict], spec: dict | None) -> list[str] | None:
+    """T1 chặn vì "vùng an toàn (pixel)" mà MỌI khung vi phạm nằm trong shot ảnh (AI hoặc stock) → id các shot đó; khác → None.
+
+    Bộ kiểm đếm pixel "trắng + biên gắt" trong dải UI TikTok che — phím laptop sáng, giấy trắng trong ẢNH cũng dính (12/109
+    video cũ chặn kiểu này, V 2026-11-17: 1117-bench-ai-demo, phím laptop Pexels ở dải phải 0,58%). Chữ của mình (phụ đề,
+    thẻ) không vẽ lại được bằng regen nên mọi trường hợp khác vẫn dừng như cũ. NGƯỠNG KHÔNG ĐỔI: bản thay vẫn qua đúng bộ
+    kiểm đó ở vòng sau; vẫn vi phạm thì hết trần → chặn."""
+    if not spec or not blocking or any(b.get("check") != T1_PIXEL or not b.get("at") for b in blocking):
+        return None
+    from ..visual.regen import is_stock
+
+    ids: list[str] = []
+    for t in sorted({x for b in blocking for x in b["at"]}):
+        sh = next((s for s in spec.get("shots", []) if s["start_sec"] <= t < s["end_sec"]), None)
+        a = (sh or {}).get("asset") or {}
+        if not sh or not (a.get("kind") == "image" or is_stock(a)):
+            return None
+        if is_stock(a) and not a.get("alt"):
+            return None
+        if sh["id"] not in ids:
+            ids.append(sh["id"])
+    return ids or None
+
+
+def plan_patches(rec: dict, spec: dict | None = None) -> dict:
     """Lỗi → patch về đúng vai. Trả {"visual": {...}|None, "script": [...], "stop": lý do|None}."""
     t = rec["tiers"]
+    t1_ids: list[str] = []
     if t["t1"]["blocking"]:
-        return {"visual": None, "script": [],
-                "stop": "T1 chặn — lỗi kỹ thuật tất định, dựng lại không sửa được; cần người"}
-    notes = list(t["t4"]["summary"].get("notes") or []) + list(t["t3"]["summary"].get("notes") or [])
+        t1_ids = t1_image_shots(t["t1"]["blocking"], spec) or []
+        if not t1_ids:
+            return {"visual": None, "script": [],
+                    "stop": "T1 chặn — lỗi kỹ thuật tất định, dựng lại không sửa được; cần người"}
+    notes = list(t["t4"]["summary"].get("notes") or []) + _t3_notes(t["t3"]["summary"])
     vis = None
     # Phase V5 (2026-10-02): regen tự động CHỈ cho lỗi người xem thấy ngay (giải phẫu, chữ méo).
     # demo-03: 2/3 lần regen vì "lệch prompt" ra ảnh tệ hơn (đèn chói → T1 chặn) và tốn ~330s/vòng
@@ -353,6 +418,14 @@ def plan_patches(rec: dict) -> dict:
         return "topic_mismatch" in issues if s.get("stock") else bool(issues & REGEN_ISSUES)
 
     regen = [s for s in t["t2"]["suggestions"] if _regen(s)]
+    # W7: một hướng sửa / mục tiêu — câu đang bị T4 bắt viết lại thì không vẽ lại ảnh của câu cũ (qc/issues.py)
+    if regen and notes and rec.get("issues") and spec:
+        from .issues import superseded_shots
+
+        skip = superseded_shots(rec["issues"], spec)
+        regen = [s for s in regen if s["shot_id"] not in skip]
+    if t1_ids:   # thay ảnh đang làm T1 chặn — dù T4 bắt viết lại câu đó (ảnh mới vẫn phải qua T1)
+        regen = regen + [{"shot_id": i, "t1": True} for i in t1_ids if i not in {s["shot_id"] for s in regen}]
     if regen:
         vis = {"shot_ids": [s["shot_id"] for s in regen],
                "fixes": {s["shot_id"]: s["fix"] for s in regen if s.get("fix")},
@@ -401,7 +474,7 @@ def run_loop(video_id: str, *, topic: str | None = None, duration_sec: int | Non
         state.round = n
         rec = evaluate(ctx, n, prev, tiers, runners)
         history.append(rec)
-        plan = plan_patches(rec)
+        plan = plan_patches(rec, ctx.get("spec"))
         if plan["stop"]:
             stop = plan["stop"]
         elif n == cap:

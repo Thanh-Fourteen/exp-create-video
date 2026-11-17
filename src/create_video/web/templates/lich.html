@@ -21,7 +21,14 @@
 {% else %}
 
 {# tự kiểm đường đăng mỗi giờ (create_video.kiem_dang, 2026-10-09) #}
-{% if kd_bad or kd_stale %}
+{% if kd_rate %}
+<div class="mt-6 rounded-field border border-warning/40 bg-warning/10 px-4 py-3 flex flex-col gap-1 text-[14px]">
+  <b class="font-medium text-warning">Buffer đang tạm giới hạn lượt gọi — key vẫn còn hạn, đường đăng không hỏng</b>
+  <span>Gói Free cho 250 lượt/24 giờ, 3.000 lượt/30 ngày (cửa sổ trượt). Hệ thống {% if kd_retry %}tạm nghỉ tự kiểm tới <b class="num font-medium">{{ fmt(kd_retry) }}</b>{% else %}sẽ tự kiểm lại ở lượt kế tiếp{% endif %} để dành lượt cho đăng bài.</span>
+  <span>Lịch vẫn chạy: tới giờ sẽ thử đăng; Buffer còn từ chối thì tự thử lại trong 20 phút.</span>
+  <small class="text-muted">Lỗi lúc {{ fmt(kd.ts) }} · đã gọi {{ bufu.h24 }} lượt/24h, {{ bufu.d30 }} lượt/30 ngày (từ khi bắt đầu đếm 12/10) · research/31</small>
+</div>
+{% elif kd_bad or kd_stale %}
 <div class="mt-6 rounded-field border border-error/50 bg-error/10 px-4 py-3 flex flex-col gap-1 text-[14px]">
   <b class="font-medium text-error">{{ 'Đường đăng đang HỎNG — lịch tới giờ sẽ không đăng được' if kd_bad else 'Chưa tự kiểm đường đăng hơn 3 giờ' }}</b>
   {% for c in kd_bad %}<span>· {{ c.name }}: {{ c.msg }}</span>{% endfor %}

@@ -53,6 +53,8 @@ remotion/out/
 # dữ liệu runtime của team: bản sao trang web bên thứ ba (fact-check) + kết quả trend scout — không phải mã nguồn
 team/snapshots/
 team/trends/
+team/repo_feed/
+team/news_feed/
 
 # file nghe thử giọng sinh lại được (scripts/make_voice_previews.py); giọng Tony là riêng tư
 data/voice/previews/

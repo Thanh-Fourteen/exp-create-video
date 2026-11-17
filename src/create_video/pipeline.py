@@ -60,6 +60,13 @@ def _load_model_cfg() -> dict:
         return yaml.safe_load(f)
 
 
+def video_seed(video_id: str) -> int:
+    """Seed gốc ảnh AI theo id video (W4): tất định, khác nhau giữa các video, cách nhau đủ xa cho regen (+1000/vòng)."""
+    import zlib
+
+    return (zlib.crc32(video_id.encode("utf-8")) % 997) * 10_000
+
+
 def _stamp(t0: float, label: str) -> float:
     now = time.time()
     print(f"  ⏱ {label}: {now - t0:.1f}s", flush=True)
@@ -107,6 +114,14 @@ def run(
     pillar = pillar or job.get("pillar")
     if voice is None and ch.voice:
         voice = ch.voice
+    # 2026-10-18 (Tony: "nếu giọng tôi không đạt yêu cầu default dùng giọng Trúc Ly"): giọng Tony chỉ dùng khi mẫu đã
+    # qua voice/giong_dat.py (research/33 §4.1). Ghi giọng THẬT vào job.json → result.json/thống kê không ghi nhầm "tony".
+    if voice in (None, "tony"):
+        from .voice.giong_dat import FALLBACK, tony_ref
+
+        if tony_ref() is None:
+            print(f"  giọng Tony chưa đạt (data/voice/tony-dat.json) → {FALLBACK}", flush=True)
+            voice = FALLBACK
     job.update({"topic": topic, "voice": voice, "duration_sec": duration_sec, "visual": visual,
                 "channel": ch.id, **({"pillar": pillar} if pillar else {})})
     job_path.write_text(json.dumps(job, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -231,10 +246,14 @@ def _run(
 
         _vl = _tts_cfg.get("vieneu_local", {})
         # `voice` None/"tony" = giọng Tony clone (models.yaml ref_audio); tên khác = preset Apache.
-        clone = (voice in (None, "tony", _vl.get("voice"))) and bool(_vl.get("ref_audio"))
+        from .voice.giong_dat import FALLBACK, tony_ref
+
+        _ref = tony_ref()
+        clone = voice in (None, "tony", _vl.get("voice")) and _ref is not None
+        if voice in (None, "tony", _vl.get("voice")) and _ref is None:
+            voice = FALLBACK   # gọi run() thẳng không qua job (vd. eval) cũng không đọc bằng mẫu chưa đạt
         be = VieneuLocalBackend(voice=_vl.get("voice") if clone else voice, seed=_vl.get("seed"),
-                                out_dir=out_dir / "tts",
-                                ref_audio=_vl.get("ref_audio") if clone else None)
+                                out_dir=out_dir / "tts", ref_audio=_ref if clone else None)
         _echo = {**_echo, "voice": be.voice, "seed": be.seed, "style": "vieneu-3.8.3"}
     else:
         be = EchoBackend(
@@ -247,7 +266,14 @@ def _run(
             out_dir=out_dir / "tts",
         )
     _post = _tts_cfg.get("post") or {}
-    be.tempo, be.voice_fx = float(_post.get("tempo") or 1.0), str(_post.get("fx") or "")
+    # 2026-10-21 (research/35 §3.1): kênh khai `voice_tempo_test` → nhân thêm tốc độ đã qua nghe mù (/nghe-thu); chưa nghe = 1,0.
+    from .channel import current as _cur_ch
+    from .voice.tempo_test import tempo_for
+
+    _ch_tempo = tempo_for(_cur_ch())
+    be.tempo, be.voice_fx = float(_post.get("tempo") or 1.0) * _ch_tempo, str(_post.get("fx") or "")
+    if abs(_ch_tempo - 1) > 1e-3:
+        print(f"  tốc độ giọng kênh ×{_ch_tempo} (nghe mù /nghe-thu)", flush=True)
     be.pauses = _post.get("pauses") or None
     be.pace = _post.get("pace") or None
     print(f"  giọng: {be.voice} · {be.style}", flush=True)
@@ -260,6 +286,7 @@ def _run(
     h_tts = hash_inputs(
         [l.text for l in lines], be.voice, be.style, _echo.get("seed"), join_mode,
         int(_join.get("group_size", 3)), _ln, _post,
+        *([be.tempo] if abs(_ch_tempo - 1) > 1e-3 else []),   # chỉ khi tốc độ kênh ≠ 1 — giữ nguyên cache giọng cũ
         getattr(be, "_ref_sha", None), _tts_cfg.get("vieneu_local", {}).get("bwe"),
         # ĐÃ PARSE, không bytes file — chú thích trong yaml không được kích hoạt TTS lại.
         _yaml.safe_load((REPO_ROOT / "configs" / "pronounce.yaml").read_text(encoding="utf-8"))
@@ -284,8 +311,10 @@ def _run(
         tts, spans = _synth_no_drop(be, [l.text for l in lines], join_mode, int(_join.get("group_size", 3)))
         # BWE CHỈ cho giọng clone (mẫu ~4 kHz) — preset đã đủ băng thông, LavaSR thay dải > cutoff
         # bằng phần tự sinh sẽ làm preset kém đi.
+        # 2026-10-18: mẫu clone giờ phải ĐẠT ≥ 7 kHz không cần LavaSR (giong_dat) → không BWE nữa; giữ khối cho mẫu cũ.
         _bwe = (_tts_cfg.get("vieneu_local", {}).get("bwe")
-                if _tts_cfg.get("backend") == "vieneu_local" and getattr(be, "ref_audio", None) else None)
+                if _tts_cfg.get("backend") == "vieneu_local" and getattr(be, "ref_audio", None)
+                and "tony-ref-bwe" in str(be.ref_audio) else None)
         if _bwe:
             # Phase V1: mở rộng băng thông giọng clone (mẫu Tony ~4 kHz) — TRƯỚC loudnorm.
             from .voice import bwe as _bwe_mod
@@ -327,17 +356,22 @@ def _run(
     kept = [i for i, l in enumerate(script.lines) if l.strip()]
     brk = router.breaks(script.shots, kept)
     groups = _shot_groups(spans, brk)
-    visuals = router.plan(script.shots, groups, kept)
-    evidence = _build_evidence(visuals, script, out_dir, state)
+    visuals = router.plan(script.shots, groups, kept, script.beats)
+    # độ dài từng shot → stock tìm clip đủ dài (AUDIT 2026-11-16: want_sec không được truyền, luôn 5s → clip 4s phủ shot 7–9s)
+    durs = [max(spans[g[-1]].end - spans[g[0]].start, 0.0) for g in groups] if len(groups) == len(visuals) else []
+    evidence = _build_evidence(visuals, script, out_dir, state, durs=durs)
     n_ev = len(evidence)
     if router.anchored(script.shots):
         ratio = n_ev / max(len(visuals), 1)
         flag = "✓" if ratio >= 1 / 3 else "⚠"
         print(f"  {flag} shot bằng chứng: {n_ev}/{len(visuals)} ({ratio:.0%}, luật ≥ 33%) · "
               + " ".join(v.kind if k in evidence else "img" for k, v in enumerate(visuals)), flush=True)
+    # W4 (2026-11-17): seed gốc theo id video — trước đây mọi video dùng seed 0,1,2… → bố cục ảnh AI na ná giữa các video.
+    # Tất định theo id nên dựng lại cùng video vẫn ra đúng ảnh; manifest ghi seed thật (regen cộng SEED_STRIDE từ đó).
+    seed0 = video_seed(out_dir.name)
     prompts = [
-        ShotPrompt(id=f"s{k + 1}", prompt=v.prompt)
-        for k, v in enumerate(visuals) if k not in evidence
+        ShotPrompt(id=f"s{k + 1}", prompt=v.prompt, seed=seed0 + n)
+        for n, (k, v) in enumerate((k, v) for k, v in enumerate(visuals) if k not in evidence)
     ] if script.shots else []
     img_ks = [k for k, _v in enumerate(visuals) if k not in evidence] if script.shots else []
     n_shots = len(prompts)
@@ -345,7 +379,9 @@ def _run(
     img_dir = out_dir / "gen"
     images: list[Path] = []
     if prompts:
-        existing = sorted(img_dir.glob("*.png"))
+        # CHỈ ảnh gốc NN.png — vòng sửa T2 ghi thêm NN.ai.png vào cùng thư mục, mà "00.ai.png" < "00.png" khi sắp xếp →
+        # dựng lại sau một vòng sửa gán ảnh lệch một shot (2026-11-16: ảnh rót giấm rơi vào câu cảnh báo javel, AUDIT B14).
+        existing = sorted(p for p in img_dir.glob("*.png") if re.fullmatch(r"\d+", p.stem))
         # Phần `visual` ĐÃ PARSE của models.yaml, không cả file: sửa một dòng chú thích
         # (2026-10-02) đã làm SDXL sinh lại toàn bộ ảnh của một demo đã dựng.
         h_img = hash_inputs([(p.id, p.prompt) for p in prompts], visual,
@@ -374,11 +410,31 @@ def _run(
                 images = ColorCardBackend().generate(prompts, img_dir)
             elif visual == "flux2":
                 # P3b.S8 (2026-10-02): FLUX.2-klein-4B, Apache-2.0 — research/probes/p3b-s8-anh.md
+                import torch
+
                 from .visual.flux2 import Flux2Klein
 
-                with Flux2Klein() as gen:
-                    images = gen.generate(prompts, img_dir)
-                    print(f"  VRAM đỉnh (torch): {gen.peak_vram_mib:.0f} MiB", flush=True)
+                images = None
+                try:
+                    with Flux2Klein() as gen:
+                        images = gen.generate(prompts, img_dir)
+                        print(f"  VRAM đỉnh (torch): {gen.peak_vram_mib:.0f} MiB", flush=True)
+                except (torch.OutOfMemoryError, RuntimeError) as e:
+                    if "out of memory" not in str(e):
+                        raise
+                    # 2026-10-23: GPU dùng chung — dự án khác giữ 1,1GB, FLUX light (đỉnh ~4,2GB) không vừa → hỏng
+                    # cả job. Lùi về SDXL (đỉnh ~624 MiB) thay vì chết; `sequential` thì cần ~16GB RAM (p3b-s8-anh).
+                    print(f"  ⚠ FLUX OOM ({str(e)[:120]}) — lùi về SDXL", flush=True)
+                if images is None:
+                    import gc
+
+                    from .visual.sdxl import SdxlLightning
+
+                    gc.collect()
+                    torch.cuda.empty_cache()
+                    with SdxlLightning() as gen:
+                        images = gen.generate(prompts, img_dir)
+                        print(f"  VRAM đỉnh (torch, SDXL dự phòng): {gen.peak_vram_mib:.0f} MiB", flush=True)
             else:
                 from .visual.sdxl import SdxlLightning
 
@@ -389,7 +445,7 @@ def _run(
                     print(f"  VRAM đỉnh (torch): {gen.peak_vram_mib:.0f} MiB", flush=True)
             # Manifest ảnh: file ↔ prompt ↔ seed. T2 (P4.S1) render lại ĐÚNG shot hỏng
             # bằng prompt đã sửa + seed khác — phải biết ảnh nào sinh từ đâu.
-            manifest = [{"file": f"gen/{pth.name}", "prompt": sp.prompt, "seed": k}
+            manifest = [{"file": f"gen/{pth.name}", "prompt": sp.prompt, "seed": sp.seed if sp.seed is not None else k}
                         for k, (pth, sp) in enumerate(zip(images, prompts))]
             (img_dir / "manifest.json").write_text(
                 json.dumps({"visual": visual, "shots": manifest}, ensure_ascii=False, indent=1) + "\n",
@@ -724,7 +780,15 @@ def _hero_submit(script, out_dir: Path, state, visual: str) -> dict | None:
         return h
     except Exception as e:   # Kaggle hỏng không được làm hỏng video
         print(f"  ⚠ Kaggle clip bỏ qua: {type(e).__name__}: {e}"[:300], flush=True)
-        return None
+    # 2026-10-22: FLUX OOM giữa chừng → __exit__ dọn VRAM khi traceback còn giữ tensor → ~3,2GB kẹt trong cache tới
+    # hết job, aligner (1,9GB) OOM ở bước sau. Dọn lại SAU khi exception đã được nhả.
+    import gc
+
+    import torch
+
+    gc.collect()
+    torch.cuda.empty_cache()
+    return None
 
 
 def _hero_apply(hero: dict, visuals, evidence: dict, img_ks: list[int], images, depths, prompts, out_dir: Path):
@@ -732,7 +796,8 @@ def _hero_apply(hero: dict, visuals, evidence: dict, img_ks: list[int], images, 
     from .visual import kaggle_anim
 
     hdir = out_dir / "hero"
-    have = {p.stem: p for p in hdir.glob("h*.mp4")}
+    # chỉ clip GỐC h0, h1… — bản cũ lấy cả h0-pp.mp4 rồi ping-pong tiếp mỗi lần dựng lại (h0-pp-pp-pp.mp4, AUDIT B13)
+    have = {p.stem: p for p in hdir.glob("h*.mp4") if re.fullmatch(r"h\d+", p.stem)}
     if not have:
         deadline = hero["pushed_at"] + float(_hero_cfg().get("max_wait_sec", 1500))
         have = kaggle_anim.collect(hero, hdir, deadline=deadline)
@@ -762,7 +827,7 @@ def _hero_apply(hero: dict, visuals, evidence: dict, img_ks: list[int], images, 
             [prompts[i] for i in keep])
 
 
-def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
+def _build_evidence(visuals, script, out_dir: Path, state, durs: list[float] | None = None) -> dict[int, dict]:
     """Shot bằng chứng → asset đúng schema spec, theo chỉ số nhóm.
 
     Screenshot hỏng (mạng, selector, URL ngoài danh sách) → shot đó lùi về b-roll
@@ -774,6 +839,37 @@ def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
     from .visual.code import tokenize
 
     evidence: dict[int, dict] = {}
+    # 2026-10-21 (research/35 §3.2): cảnh DEMO thật — GIF/MP4 trong repo (license OSI) → quay cuộn trang công khai.
+    # Hỏng → shot thành screenshot cùng url (khối dưới chụp tiếp), không làm chết video.
+    demos = [(k, v) for k, v in enumerate(visuals) if v.kind == "demo"]
+    if demos:
+        from .visual import demo as _demo
+
+        state.begin("demo", "")
+        played: dict[str, float] = {}      # url → số giây demo đó đã phát ở shot trước (W5: lần sau chạy tiếp, không lặp)
+        demo_credits = []
+        for k, v in demos:
+            off = played.get(v.url, 0.0)
+            d = _demo.make(v.url, out_dir / "demo" / f"{k:02d}.mp4", offset_sec=off)
+            if d.ok:
+                played[v.url] = off + (durs[k] if durs and k < len(durs) else 5.0)
+                evidence[k] = {"kind": "video", "path": f"demo/{k:02d}.mp4", "source_url": v.url,
+                               "label": {"text": _demo.label_text(v.url, d.source),
+                                         "kind": "demo" if d.source == "repo_media" else "source"},
+                               **({"alt": v.prompt} if v.prompt else {})}
+                if not any(c["url"] == v.url for c in demo_credits):
+                    demo_credits.append({"shot": k, "url": v.url, "source": d.source, "media_url": d.media_url,
+                                         "license": d.license})
+                print(f"  🎬 demo {d.source} · {v.url} · {d.sec:.0f}s" + (f" · từ giây {off:.1f}" if off else ""),
+                      flush=True)
+            else:
+                v.kind = "screenshot"
+                print(f"  ⚠ demo hỏng → screenshot: {v.url} — {d.error}", flush=True)
+        (out_dir / "demo").mkdir(exist_ok=True)
+        # W5: license demo vào credits (publish.py → nguon.txt) — media lấy từ repo phải ghi license của repo.
+        (out_dir / "demo" / "credits.json").write_text(json.dumps(demo_credits, ensure_ascii=False, indent=1) + "\n",
+                                                      encoding="utf-8")
+        state.done("demo", [])
     shots = [(k, v) for k, v in enumerate(visuals) if v.kind == "screenshot"]
     if shots:
         from .visual.screenshot import capture
@@ -801,7 +897,9 @@ def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
         from .visual import stock as _stock
 
         state.begin("stock", "")
-        used: set[str] = set()
+        # 2026-10-18 (research/33 §4.4): clip video khác đã dùng 7 ngày qua cũng bị loại — không lặp cảnh giữa các video.
+        recent = _stock.recent_used(out_dir.name)
+        used: set[str] = set(recent)
         credits = []
         # Lựa chọn stock của lần đầu được GIỮ khi dựng lại (2026-10-07, research/21 §8): vòng QC dựng lại gọi lại API, kết quả
         # đổi (shot lần trước có clip, lần này rơi về ảnh AI) → danh sách ảnh AI xê dịch → img/00.png sinh lại với prompt
@@ -825,25 +923,26 @@ def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
                     continue
             # cảnh mở đầu khắt khe hơn (research/20 §4): lạc đề ở 1–2 giây đầu là người xem lướt đi
             need = _stock.MIN_SCORE_HOOK if k == 0 else _stock.MIN_SCORE
+            want = max(5.0, durs[k] + 0.5) if durs and k < len(durs) else 5.0
             c = _stock.fetch(v.data.get("query") or v.prompt, out_dir / "stock" / f"{k:02d}.mp4", exclude=used,
-                             min_score=need)
+                             min_score=need, want_sec=want, action=v.data.get("action", ""))
             if c.ok:
                 used.add(f"{c.provider}:{c.id}")
                 # alt = prompt ảnh dự phòng của shot (viết cho ĐÚNG câu) — T2 chấm clip/ảnh stock theo nó; lệch thì vòng QC
                 # thay bằng ảnh AI vẽ đúng prompt này (2026-10-06, research/21 §8 C5).
                 evidence[k] = {"kind": "video", "path": f"stock/{k:02d}.mp4", "source_url": c.page_url,
-                               **({"alt": v.prompt} if v.prompt else {})}
+                               "stock_query": c.query, **({"alt": v.prompt} if v.prompt else {})}
                 credits.append({"shot": k, "query": c.query, "provider": c.provider, "url": c.page_url,
                                 "author": c.author, "credit": c.credit()})
                 print(f"  🎥 {c.provider} {c.width}×{c.height} {c.duration:.0f}s · {c.query}", flush=True)
             else:
                 # Không có clip → ẢNH CHỤP THẬT (Pexels/Pixabay) trước, ảnh AI là đường cuối (research/19).
                 ph = _stock.fetch_photo(v.data.get("query") or v.prompt, out_dir / "stock" / f"{k:02d}.jpg",
-                                        exclude=used, min_score=need)
+                                        exclude=used, min_score=need, action=v.data.get("action", ""))
                 if ph.ok:
                     used.add(f"{ph.provider}:{ph.id}")
                     evidence[k] = {"kind": "image", "path": f"stock/{k:02d}.jpg", "source_url": ph.page_url,
-                                   **({"alt": v.prompt} if v.prompt else {})}
+                                   "stock_query": ph.query, **({"alt": v.prompt} if v.prompt else {})}
                     credits.append({"shot": k, "query": ph.query, "provider": ph.provider, "url": ph.page_url,
                                     "author": ph.author, "credit": ph.credit()})
                     print(f"  📷 {ph.provider} ảnh thật · {ph.query}", flush=True)
@@ -861,6 +960,7 @@ def _build_evidence(visuals, script, out_dir: Path, state) -> dict[int, dict]:
         chosen_p.write_text(json.dumps(chosen, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
         (out_dir / "stock" / "credits.json").write_text(json.dumps(credits, ensure_ascii=False, indent=1) + "\n",
                                                        encoding="utf-8")
+        _stock.mark_used(used - recent, out_dir.name)
         state.done("stock", [])
     from .visual import emoji as _emoji
 

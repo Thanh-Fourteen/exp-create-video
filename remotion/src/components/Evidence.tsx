@@ -11,6 +11,7 @@ import {
 } from "remotion";
 import { fontStack } from "../fonts";
 import type { ChartData, ChatData, CodeData, ListData, Shot, StatData, VideoSpec } from "../types";
+import { segAt, segStarts } from "../types";
 
 /**
  * Shot "bằng chứng" (P3b.S4): stat · chart · code · screenshot.
@@ -131,7 +132,8 @@ const Label: React.FC<{ text: string; size?: number; color?: string }> = ({ text
 // ── stat ───────────────────────────────────────────────────────────────────
 // `instant`: shot 0 — frame 0 là thumbnail, phải hiện ĐÚNG số cuối ngay (2026-10-02: đếm lên làm frame 0
 // hiện "185.020 từ" cho giá trị 500.000 — số SAI trên thumbnail).
-const StatCard: React.FC<{ data: StatData; spec: VideoSpec; instant?: boolean }> = ({ data, spec, instant = false }) => {
+const StatCard: React.FC<{ data: StatData; spec: VideoSpec; instant?: boolean; popAt?: number }> = ({
+  data, spec, instant = false, popAt = 12 }) => {
   const f = useCurrentFrame();
   const frame = instant ? 60 : f;
   const { fps } = useVideoConfig();
@@ -142,7 +144,8 @@ const StatCard: React.FC<{ data: StatData; spec: VideoSpec; instant?: boolean }>
     extrapolateRight: "clamp",
     easing: Easing.out(Easing.exp),
   });
-  const pop = spring({ frame: frame - 12, fps, config: { damping: 9, stiffness: 160 } });
+  // W6: nảy đúng lúc giọng đọc con số (`shot.cues` counter, khung tính từ đầu shot); không có cue → khung 12 như cũ
+  const pop = spring({ frame: frame - (instant ? 12 : popAt), fps, config: { damping: 9, stiffness: 160 } });
   const scale = 1 + 0.08 * Math.sin(Math.PI * Math.min(pop, 1));
   const shown = fmt(data.value * settle(p), data.decimals ?? 0);
   const final = `${data.prefix ?? ""}${fmt(data.value, data.decimals ?? 0)}${data.unit ?? ""}`;
@@ -275,7 +278,7 @@ const CodeCard: React.FC<{ data: CodeData }> = ({ data }) => {
 
 // ── screenshot ─────────────────────────────────────────────────────────────
 const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFrames: number; spec: VideoSpec; top?: number; bottom?: number;
-  segments?: { from: { scale?: number }; to: { scale?: number } }[] }> = ({
+  segments?: { from: { scale?: number }; to: { scale?: number }; start_frac?: number }[] }> = ({
   src,
   sourceUrl,
   durationInFrames,
@@ -302,10 +305,8 @@ const ScreenshotCard: React.FC<{ src: string; sourceUrl?: string; durationInFram
   // chỗ đó ở ~35% chiều cao ảnh). Đổi đoạn = cắt cứng, như đổi góc máy.
   let zoom = 1;
   if (segments && segments.length >= 2) {
-    const segLen = durationInFrames / segments.length;
-    const si = Math.min(segments.length - 1, Math.floor(frame / segLen));
-    const lf = frame - si * segLen;
-    zoom = interpolate(lf, [0, Math.max(segLen - 1, 1)], [segments[si].from.scale ?? 1, segments[si].to.scale ?? 1], {
+    const { si, lf, lDur } = segAt(segStarts(segments, durationInFrames), frame, durationInFrames);
+    zoom = interpolate(lf, [0, Math.max(lDur - 1, 1)], [segments[si].from.scale ?? 1, segments[si].to.scale ?? 1], {
       extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   }
   const focusY = Math.max(0, 0.35 * imgH - y);
@@ -500,7 +501,9 @@ export const Evidence: React.FC<{
   const top = lay ? LAYOUT_ZONE_TOP : belowHook ? HOOK_ZONE_TOP : ZONE_TOP;
   const bottom = lay ? LAYOUT_ZONE_BOTTOM : ZONE_BOTTOM;
   let body: React.ReactNode = null;
-  if (a.kind === "stat" && a.stat) body = <StatCard data={a.stat} spec={spec} instant={belowHook} />;
+  const cue = shot.cues?.find((c) => c.type === "counter");
+  const popAt = cue ? Math.max(0, Math.round((cue.at_sec - shot.start_sec) * spec.format.fps)) : 12;
+  if (a.kind === "stat" && a.stat) body = <StatCard data={a.stat} spec={spec} instant={belowHook} popAt={popAt} />;
   else if (a.kind === "chart" && a.chart) body = <ChartCard data={a.chart} spec={spec} instant={belowHook} />;
   else if (a.kind === "code" && a.code) body = <CodeCard data={a.code} />;
   else if (a.kind === "chat" && a.chat)

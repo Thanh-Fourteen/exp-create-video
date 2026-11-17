@@ -109,8 +109,9 @@ def rerender(out_dir: Path, shot_ids: list[str], fixes: dict[str, str] | None = 
             with SdxlLightning() as gen:   # `with` = nhả VRAM trước bước depth
                 new = gen.generate(prompts, tmp)
         for j, src in zip(draw, new):
-            shutil.copy2(src, out_dir / j["gen"])
-            shutil.copy2(src, out_dir / j["img"])
+            for dst in (out_dir / j["gen"], out_dir / j["img"]):
+                dst.parent.mkdir(parents=True, exist_ok=True)   # video toàn stock không có gen/ (1117-bench-ai-demo)
+                shutil.copy2(src, dst)
         if any(j["depth"] for j in jobs) and visual != "color":
             from .depth import DepthEstimator
 

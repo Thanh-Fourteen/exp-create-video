@@ -11,6 +11,15 @@ import pytest
 
 from create_video.agents.scriptwriter import Script
 from create_video.qc import loop
+
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _t3_sua(monkeypatch):
+    """Test cơ chế T3 → vòng sửa (giữ để bật lại); mặc định từ 2026-10-18 tắt — xem test_t3_khong_sua_mac_dinh."""
+    monkeypatch.setattr(loop, "T3_DRIVES_REVISION", True)
 from create_video.qc.loop import TierResult
 
 
@@ -254,3 +263,47 @@ def test_cong_nguoi_nghe_thu(tmp_path, monkeypatch):
     monkeypatch.setenv("CV_LISTEN_GATE", "1")
     out = loop.pre_gate(tmp_path / "on", s0, None, revise)
     assert out.hook == "B" and calls == ["A", "B"] and got["notes"] == ["Người nghe thử (mất mạch) ở \"x\""]
+
+
+# ── AUDIT 2026-11-16 #1, #2 ─────────────────────────────────────────────────────────────────────────────────────────
+
+def test_t4_chan_vi_thieu_tier1_la_loi_chan(tmp_path, monkeypatch):
+    """Claim thực phẩm thiếu nguồn tier1 (không mâu thuẫn) PHẢI vào blocking — bản cũ zip(contradicted, issues) làm rơi."""
+    from create_video.qc import t4_facts
+
+    rep = t4_facts.T4Report(verdict="block", contradicted=[], unverified=[], flag_unverified=False, claims=[],
+                            sources=[], issues=[{"where": "câu 2", "line": 2, "claim": "Măng phải luộc ba lần nước",
+                                                 "why": "claim food_safety không có nguồn tier1 xác nhận",
+                                                 "suggested_fix": "bỏ câu"}])
+    monkeypatch.setattr(t4_facts, "check", lambda *a, **k: rep)
+    d = _setup(tmp_path)
+    ctx = {"out_dir": d, "rdir": d, "script": Script.from_dict(json.loads((d / "script.json").read_text())),
+           "state": None}
+    r = loop.run_t4(ctx)
+    assert not r.ok and len(r.blocking) == 1 and "tier1" in r.blocking[0]["why"]
+
+
+def test_t4_pass_khong_co_loi_chan(tmp_path, monkeypatch):
+    from create_video.qc import t4_facts
+
+    rep = t4_facts.T4Report(verdict="pass", contradicted=[], unverified=[], flag_unverified=False, claims=[],
+                            sources=[], issues=[])
+    monkeypatch.setattr(t4_facts, "check", lambda *a, **k: rep)
+    d = _setup(tmp_path)
+    ctx = {"out_dir": d, "rdir": d, "script": Script.from_dict(json.loads((d / "script.json").read_text())),
+           "state": None}
+    assert loop.run_t4(ctx).blocking == []
+
+
+@pytest.mark.parametrize("tier", ["t1", "t4"])
+def test_tang_cong_crash_thi_chan_khong_coi_la_dat(tmp_path, tier):
+    _setup(tmp_path)
+    _, pat = _calls()
+
+    def boom(ctx):
+        raise RuntimeError("OOM")
+
+    runners = {"t1": _ok("t1"), "t2": _ok("t2"), "t3": _ok("t3"), "t4": _ok("t4"), tier: boom}
+    d = loop.run_loop("v", out_root=tmp_path, runners=runners, patchers=pat, duration_sec=40)
+    assert d["status"] == "blocked" and not d["publishable"]
+    assert any(b["key"] == f"{tier}:crash" and b["tier"] == tier for b in d["remaining_blocking"])

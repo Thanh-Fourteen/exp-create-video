@@ -74,6 +74,8 @@ export interface Shot {
     alt?: string;
     depth_path?: string;
     source_url?: string;
+    /** 2026-10-18: từ khoá tìm stock — chỉ QC T2 dùng, Remotion bỏ qua. */
+    stock_query?: string;
     stat?: StatData;
     chart?: ChartData;
     code?: CodeData;
@@ -84,13 +86,17 @@ export interface Shot {
     type: "none" | "ken_burns" | "parallax";
     from?: FrameState;
     to?: FrameState;
-    /** 2026-10-06 (research/21 §3): đổi khung bên trong shot ảnh dài — chia đều thời lượng, mỗi đoạn một from→to. */
-    segments?: { from: FrameState; to: FrameState }[];
+    /** 2026-10-06 (research/21 §3): đổi khung bên trong shot ảnh dài. 1.4: `start_frac` = mốc đầu câu; thiếu → chia đều. */
+    segments?: { from: FrameState; to: FrameState; start_frac?: number }[];
   };
   transition_in?: {
     type: "cut" | "fade" | "whip-pan" | "slide-up";
     duration_frames?: number;
   };
+  /** 1.4 (W5): nhãn trung thực — "Demo thật · github.com/x/y" | "Minh hoạ" | "Nguồn: …". */
+  label?: { text: string; kind: "demo" | "illustration" | "source" };
+  /** 1.4 (W6): mốc theo từ — `counter`: thẻ số nảy đúng lúc giọng đọc con số. */
+  cues?: { at_sec: number; type: "counter" | "punch" | "highlight" | "sfx" }[];
   overlay?: {
     text: string;
     position?: "top" | "center" | "bottom";
@@ -192,3 +198,19 @@ export interface VideoSpec {
 /** dB → hệ số nhân biên độ. Remotion `<Audio volume>` nhận hệ số, không nhận dB. */
 export const dbToGain = (db: number | undefined): number =>
   db === undefined ? 1 : Math.pow(10, db / 20);
+
+/** Mốc khung bắt đầu từng đoạn (W3 2026-11-17): theo `start_frac` nếu đủ và tăng dần, không thì chia đều. */
+export const segStarts = (segs: { start_frac?: number }[], durationInFrames: number): number[] => {
+  const n = segs.length;
+  const fr = segs.map((s) => s.start_frac);
+  const ok = fr.every((f, i) => typeof f === "number" && (i === 0 || f > (fr[i - 1] as number)));
+  return segs.map((_, i) => Math.round((ok ? (fr[i] as number) : i / n) * durationInFrames));
+};
+
+/** Đoạn đang phát ở `frame`: chỉ số + khung bắt đầu + độ dài (khung). */
+export const segAt = (starts: number[], frame: number, durationInFrames: number) => {
+  let si = 0;
+  for (let i = 0; i < starts.length; i++) if (frame >= starts[i]) si = i;
+  const end = si + 1 < starts.length ? starts[si + 1] : durationInFrames;
+  return { si, lf: frame - starts[si], lDur: Math.max(end - starts[si], 1) };
+};

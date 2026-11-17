@@ -22,7 +22,7 @@ from pathlib import Path
 FFMPEG = shutil.which("ffmpeg") or "/home/tony/miniconda3/bin/ffmpeg"
 FFPROBE = shutil.which("ffprobe") or "/home/tony/miniconda3/bin/ffprobe"
 # Mốc công thức nội dung: đổi khi đổi luật viết/ý tưởng đáng kể — gom số TikTok theo mốc để so (2026-10-11).
-RECIPE = "2026-10-11-noi-kho-luu-chia-se"
+RECIPE = "2026-10-19-hoc-363-video"   # research/34; trước: 2026-10-18-gia-tri-6-giay (research/33), 2026-10-11-noi-kho-luu-chia-se
 THUMB_W = 360          # lưới thư viện: thẻ ~150–200px CSS × DPR 2
 COVER_W = 1080         # bìa đầy đủ để tải về / dán tay vào TikTok
 
@@ -195,6 +195,11 @@ def write_post_package(out_dir: Path, mp4: Path, script: dict, res: dict) -> dic
     cred_p = out_dir / "stock" / "credits.json"
     creds = json.loads(cred_p.read_text(encoding="utf-8")) if cred_p.exists() else []
     lines_src = list(res.get("sources") or []) + [f"Cảnh quay: {c['credit']} — {c['url']}" for c in creds]
+    # W5 (2026-11-17): demo thật — ghi nguồn + license (media trong repo dùng theo license của repo)
+    dem_p = out_dir / "demo" / "credits.json"
+    for c in (json.loads(dem_p.read_text(encoding="utf-8")) if dem_p.exists() else []):
+        lines_src.append(f"Demo: {c['url']}" + (f" — license {c['license']}" if c.get("license") else "")
+                         + (f" ({c['media_url']})" if c.get("media_url") else ""))
     (post / "nguon.txt").write_text("\n".join(lines_src) + "\n", encoding="utf-8")
     if creds:
         provs = sorted({c["provider"].capitalize() for c in creds})

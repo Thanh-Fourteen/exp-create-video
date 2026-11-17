@@ -16,16 +16,36 @@ pillars:                     # trước đây định nghĩa 3 lần (researcher
   so_sanh:  {vi: "So sánh",  desc: "so sánh hai lựa chọn (model, tool, gói giá) — chọn cái nào"}
   tu_do:    {vi: "Tự đo",    desc: "tự chạy/tự đo trên máy thật (RTX 2060 6GB) — số đo của chính kênh"}
   canh_bao: {vi: "Cảnh báo", desc: "bóc tin đồn, cảnh báo lừa đảo/rủi ro khi dùng AI"}
-shot_kinds: [image, stock, stat, chart, code, screenshot, list]   # stock 2026-10-05 (research/16) · list 2026-10-11 (research/28: thẻ tóm tắt để lưu)
+  # 2026-10-12 (Tony, research/30): trục chính của kênh — repo AI hot trong tuần, kể cho người phổ thông.
+  repo_hay: {vi: "Repo hay",  desc: "một repo/app mã nguồn mở (mới hot HOẶC đã có tiếng — 2026-10-19) — làm được việc gì quen, dùng thử thế nào (bản web/app/file cài), thay được app trả phí nào"}
+  kien_thuc_repo: {vi: "Kiến thức repo", desc: "kiến thức AI mới rút từ repo hot tuần này — repo X làm được nhờ ý tưởng gì, giải thích dễ hiểu cho người không code"}
+shot_kinds: [image, stock, stat, chart, code, screenshot, list, demo]   # demo 2026-10-21 (research/35 §3.2)   # stock 2026-10-05 (research/16) · list 2026-10-11 (research/28: thẻ tóm tắt để lưu)
 rules:
   # 2026-10-05 (Tony: "cần tỷ lệ hình ảnh thật, video thật nhiều hơn"): ≥ 25% shot là `stock` (người dùng điện thoại/
   # laptop, văn phòng, phố…) — kênh AI còn cần screenshot/stat làm bằng chứng (research/19).
   real_min_ratio: 0.25
   keep_english_terms: true   # model, fine-tune, inference… giữ nguyên (T3 V_TERMS)
+  # 2026-10-19 (exp/khao-sat/2026-10-19-ai, research/34): câu ngoặt thật thà hay nằm sát câu kết (73–80%) → nới 40–75% thành 40–90%.
+  twist: [0.40, 0.90]
+  # 2026-10-21 (research/35 §3.4): lưu/view cộng dồn 0,27% vs xu hướng 1,71%. Thẻ list cuối đang hiện 1,8–2,9s (câu kết ngắn)
+  # → câu kết ≥ 10 từ (~2,6s) khi shot cuối là thẻ list, để kịp chụp màn hình.
+  final_card_min_words: 10
+  # 2026-10-21 (research/35 §3.1): đọc 3,8 từ/s vs 4,5–5,3 ở 8/11 kênh xu hướng → tốc độ ×1,12/×1,20 CHỈ bật sau nghe mù /nghe-thu
+  voice_tempo_test: true
+  # 2026-11-17 (W5, AUDIT #5): demo thật chiếm ~6% thời lượng video AI (ngưỡng ≥ 20%). Video thuộc các pillar này mà đề bài có
+  # link repo/trang công khai → kịch bản cần ≥ 2 shot `demo` (code kiểm, loại MỀM; demo cùng url lần 2 chạy tiếp, không lặp).
+  demo_pillars: [repo_hay, cong_cu, kien_thuc_repo]
+  demo_min_shots: 2
 trend:
   # 2026-10-10 (research/26): gợi ý ở trang Tạo video lấy từ KHO Ý TƯỞNG (idea_gen mỗi sáng) thay vì trend model mới
   # (HF/arXiv) — Tony: "ý tưởng quá dở"; trend model gần như không bùng nổ ở kênh AI Việt. trend_scout vẫn chạy nền.
   scout: idea_scout
+  # 2026-10-12 (Tony: "kênh AI sửa thành gợi các repo hay, các kiến thức repo AI mới, hot trong tuần" — research/30):
+  # idea_gen nhận danh sách repo AI hot tuần do CODE lấy (team/repo_feed.py) + được WebFetch README để kiểm.
+  repo_feed: true
+  # 2026-10-12 (Tony: "Tôi cần là ý tưởng về tin tức AI mới trong ngày, trong tuần" — research/30 §5): tin AI 7 ngày từ RSS
+  # (genk, Dân trí, The Verge, TechCrunch, OpenAI, Anthropic, DeepMind) + Hacker News — team/news_feed.py.
+  news_feed: true
 
 # R3 (2026-10-04): DẠNG VIDEO — rút từ khảo sát 12 kênh AI Việt, 360 video (research/15-khao-sat-tiktok.md §2). Video
 # bùng nổ (×20–113 trung vị kênh) đều thuộc các dạng dưới. agents/angles.py chọn 1 dạng/video, phạt dạng vừa dùng.
@@ -33,7 +53,7 @@ formats:
   meo_it_nguoi_biet:
     label: "Mẹo ít người biết"
     desc: "mẹo/tính năng dùng được NGAY mà ít người biết (lệnh, cài đặt, công cụ miễn phí) — @hieuanca 1,2M view ×113"
-    structure: "hook = lợi ích cụ thể + 'ít người biết' · từng mẹo: làm gì → kết quả thấy được (ảnh chụp/thẻ list) · mẹo hay nhất để CUỐI · CTA lưu lại"
+    structure: "hook = lợi ích cụ thể + 'ít người biết' · từng mẹo: làm gì → kết quả thấy được (ảnh chụp/thẻ list) · CTA lưu lại"
   dung_nua:
     label: "Đừng làm thế nữa"
     desc: "'Đừng … nữa, dùng cái này' — chỉ ra cách đang làm tốn công và cách thay thế — @hungnpv 645K ×17,9; @ainius.net 90K ×21"
@@ -50,6 +70,16 @@ formats:
     label: "Vì sao?"
     desc: "câu hỏi 'Vì sao …?' về một chuyện AI khó hiểu, trả lời dễ hiểu — @ainius.net 'Vì sao model mới vừa khôn vừa rẻ' ×5"
     structure: "hook = câu hỏi người xem đang thắc mắc · trả lời sai thường gặp · câu trả lời thật (từng bước, có hình) · ý nghĩa với bạn"
+  # 2026-10-19 (exp/khao-sat/2026-10-19-ai, research/34): video nhiều mục "gõ X → được Y" lưu 2,14%/view (một chuyện 1,15%);
+  # @hieuanca 7 lệnh 40s 1,4M lưu 4,4%; "hồi trước phải… giờ chỉ cần…" ở 8/10 video bùng của @hungnpv.
+  lenh_nhanh:
+    label: "Lệnh nhanh"
+    desc: "4–7 lệnh/thao tác gõ được ngay cho MỘT việc ('Nếu bạn gõ X vào ChatGPT, nó…') — @hieuanca 1,4M lưu 4,4%; @caocuongvuai 1,7M lưu 4,9%"
+    structure: "hook = mục 1 luôn ('Nếu bạn gõ X vào <app quen>, nó <kết quả thấy được>') · mục 2…N, mỗi mục ≤ 2 câu 'gõ X → được Y' · thẻ list cuối tóm tất cả · CTA lưu hoặc quà ở bình luận"
+  truoc_sau:
+    label: "Trước – sau"
+    desc: "'Hồi trước bạn phải… giờ chỉ cần…' — cách cũ tốn công rồi cách mới từng bước, có kết quả nhìn thấy — @hungnpv 454K lưu 2,7%"
+    structure: "hook = 'Đừng/khỏi X nữa' + cái thay thế · hồi trước: 1–2 câu cách cũ cực thế nào · giờ: bước 1, 2, 3 (ảnh chụp trang thật) · kết quả · nhưng… (giới hạn thật) · CTA"
   dem_nguoc:
     label: "Bảng xếp hạng"
     desc: "đếm ngược top N (tool, repo, model) có ô '?' lộ dần — @ainius.net Top GitHub 76,9K"
@@ -74,34 +104,68 @@ prompts:
     - `list`: thẻ các bước / lệnh / mẹo đánh số — {"title": "3 bước tóm biên bản họp", "items": [{"text": "Mở Gemini, tải file ghi âm"},
       {"text": "Gõ: tóm tắt + việc cần làm"}, {"text": "Copy sang Zalo nhóm"}]}. 2–5 mục, mỗi mục ≤ 34 ký tự; `mark` = "num"
       (mặc định) | "ok" | "no". `title` ≤ 32 ký tự. Mỗi mục là điều câu đó (hoặc cả video, ở thẻ cuối) nói.
+    - `demo` (2026-10-21, research/35 — 68% video AI bùng có cảnh demo, kênh mình 0): CẢNH THẬT của công cụ — `url` là repo
+      github.com/<owner>/<repo> hoặc trang web/app công khai đã có trong đề bài. Code lấy GIF/video demo trong repo, không có
+      thì quay cuộn trang thật (ảnh chụp app trong README / trang giới thiệu); hỏng thì thành ảnh chụp trang. Gắn vào câu
+      nói tới CÔNG CỤ ĐANG LÀM VIỆC ("mở trang là thấy…", "kéo file vào là…"). Video về một công cụ/repo cần ≥ 2 shot `demo`
+      (cùng url được — lần sau chạy tiếp cảnh sau), đặt ở câu kể công cụ làm gì; code gắn nhãn "Demo thật" lên hình.
+    THỨ ĐÁNG LƯU (2026-10-21, research/35 — lưu/view kênh 0,27% vs xu hướng 1,71%): video mẹo lệnh/công cụ phải có thứ người xem
+    CHÉP LẠI dùng được: câu lệnh NGUYÊN VĂN (đọc ra + để trên thẻ `code`/`list`), đường bấm đúng chữ trên máy, tên trang
+    web/app viết đúng. Thẻ `list` cuối tóm đúng những thứ đó; câu kết gắn với thẻ cuối dài ≥ 10 từ (thẻ hiện ≥ 2,5s). KHÔNG nói
+    "lưu lại" — để thứ đáng lưu tự nói.
   # 2026-10-10 (research/26 — khảo sát 6 kênh AI Việt, 351 video): bùng nổ = DÙNG AI LÀM VIỆC CỤ THỂ, miễn phí
   # ("Các lệnh ngắn ChatGPT ít người biết" ×87, 1,3M; Google Form/sáng kiến kinh nghiệm/CapCut AI ×20–32; "trang web hay
   # nên biết" ×12–18; tin ảnh hưởng thẳng người Việt ×116). Ra mắt model/benchmark gần như không bùng nổ.
+  # 2026-10-12 (Tony: "gợi các repo hay, kiến thức repo AI mới, hot trong tuần" → rồi "ý tưởng về tin tức AI mới trong ngày,
+  # trong tuần" — research/30 §1, §5). Khảo sát V 2026-10-12 (@ainius.net, 168 video repo ×1,51 trung vị kênh): tiêu đề "chạy
+  # local/offline/trên điện thoại" ×2,40; chữ kỹ thuật (agent, cli, npm, backend) ×0,98 vs ×2,22; "N sao" ×0,57; "Top N GitHub
+  # tuần" ×0,93; bảo mật/lộ ×0,79. Tin kể bằng HỆ QUẢ cho người Việt (@aidev.news 247K ×93 — research/15).
+  # 2026-10-19 (exp/khao-sat/2026-10-19-ai/KET-QUA.md — 130 transcript + metadata 1.527 video 2026, 12 kênh AI Việt; research/34):
+  # tin ra mắt model ×0,87 (yếu nhất) · web/app miễn phí ×1,42 · so sánh/rẻ hơn ×1,38 · lệnh ChatGPT cụ thể 12 bùng/0 thường ·
+  # repo ×1,61 nhưng repo bùng với người thường là repo CŨ làm việc quen (LocalSend 82K, Meetily 58K). Tin bùng có 1 trong 3 cửa.
+  # 2026-10-19 (research/34): lời thật video AI bùng (ASR đã sửa) — học NHỊP và khuôn, không chép nội dung.
+  speech_examples: |-
+    - @ai.unbox0026 LocalSend (82K, lưu 1,7%): "Muốn chuyển ảnh từ điện thoại sang máy tính mà phải gửi qua Zalo cho chính
+      mình, trong khi hai máy ngồi ngay cạnh nhau? LocalSend là ứng dụng mã nguồn mở miễn phí để gửi tập tin giữa các thiết
+      bị ở gần, không cần Internet. … Nhưng hai máy phải cùng một mạng."
+    - @hieuanca 7 lệnh (1,4M, lưu 4,4%): "Nếu bạn gõ /360view vào ChatGPT, nó sẽ tạo ra góc nhìn 360 độ cho sản phẩm của bạn.
+      Và nếu bạn gõ /xray, nó sẽ tạo ra hình minh hoạ kiểu X-quang, cho thấy những gì bên trong sản phẩm."
+    - @hungnpv (454K, lưu 2,7%): "Đừng nói bạn vẫn tự thiết kế với Canva nha, dùng AI này đi. Hồi trước thì bạn tìm một cái
+      khung, chọn rồi sửa từng cái, từng cái, rất là bó buộc đúng không. Bây giờ bạn chỉ cần vẽ một khung, điền thông điệp,
+      ấn nút này."
+    - @cafetek (245K): "Bỗng nhiên SIM của bạn bị khoá không lý do? Mười lăm tháng tư là hạn chót xác thực SIM chính chủ.
+      Bạn chỉ mất đúng ba mươi giây để tự kiểm tra. Cách một, trên VNeID: mở ứng dụng, vào mục Ví giấy tờ…"
   idea_search: >-
-    Dùng WebSearch để tìm cách DÙNG AI LÀM MỘT VIỆC CỤ THỂ mà người Việt phổ thông làm theo được ngay, miễn phí hoặc rẻ:
-    lệnh/prompt ChatGPT–Gemini–Copilot hay ít người biết, AI cho dân văn phòng (Excel, email, slide, tóm tắt họp), cho học
-    sinh–sinh viên–giáo viên (ôn thi, giáo án, đề trắc nghiệm, sáng kiến kinh nghiệm), cho bán hàng online (ảnh sản phẩm,
-    mô tả, video quảng cáo bằng CapCut AI), làm video/ảnh AI đang trend, web/app AI hay nên biết, tính năng mới ra 7–14
-    ngày gần đây của ChatGPT/Gemini/Claude/Copilot/Zalo AI dùng được ngay, và tin AI ảnh hưởng thẳng người Việt (lừa
-    đảo deepfake, giá gói, chính sách). Nguồn: help center/blog của hãng, docs, trang tính năng chính thức.
+    Đầu vào ở đầu đề bài, do code thu sẵn: (1) TIN AI 7 NGÀY QUA (RSS báo Việt + quốc tế + blog hãng + Hacker News, có giờ đăng),
+    (2) REPO MỚI tạo trong 14 ngày, (3) REPO ĐÃ CÓ TIẾNG (mọi tuổi) — kèm license, trang chủ, README — đủ để chọn, KHÔNG cần
+    đọc thêm. Chỉ WebSearch (TỐI ĐA 3 lần) để kiểm một tin định chọn có nguồn chính thống, hoặc tìm lệnh/tính năng
+    ChatGPT/Gemini/Zalo AI mới mà danh sách chưa có.
   idea_scope: |-
-    2. MỞ BẰNG NỖI KHỔ (research/27): `title` dạng "[nỗi khổ quen]? [công cụ]: [lợi ích]" — "Họp xong quên sạch, ghi biên
-       bản mất cả tiếng? Meetily: trợ lý họp AI miễn phí". Nỗi khổ của dân văn phòng / học sinh–sinh viên–giáo viên / người bán
-       hàng online, KHÔNG mở bằng tên dự án/model.
-       MỖI Ý TƯỞNG LÀ MỘT VIỆC LÀM ĐƯỢC SAU KHI XEM: `title` nói rõ làm gì bằng công cụ gì, lợi ích gì ("Dùng ChatGPT
-       chấm bài văn theo barem trong 1 phút", "5 lệnh Gemini tóm tắt file PDF dài", "Tạo ảnh sản phẩm nền trắng miễn phí
-       bằng AI"). KHÔNG: ra mắt model/benchmark/điểm số, paper, repo cho lập trình viên, tin đồn, chủ đề người phổ thông
-       không làm theo được. Tin AI chỉ khi đổi được việc người Việt làm ngay (tính năng mới, giá, lừa đảo).
-    2b. (research/28) Ưu tiên dạng DANH SÁCH "N mẹo / N lệnh / N bước / N trang…" (bùng ×1,64) và góc "ít người biết"
-        (×1,37); tiêu đề KHÔNG mở bằng tên riêng tiếng Anh (×0,71) — tên công cụ để sau dấu ":".
-    3. Phải có NGUỒN chính thống kiểm chứng được (help center, blog, docs của hãng) — ghi domain vào `hint`. Không chắc →
-       đừng đề xuất.
-
+    2. CHỌN THEO VIỆC NGƯỜI XEM LÀM, KHÔNG THEO ĐỘ MỚI. Mỗi ý tưởng trả lời được: "người Việt bình thường dùng nó để làm việc
+       gì HẰNG NGÀY, ngay hôm nay?" (gửi ảnh, viết báo cáo, học bài, chỉnh ảnh, tiết kiệm tiền app, an toàn tài khoản…).
+       `why` nêu việc đó + vì sao bây giờ (ngày sự kiện nếu là tin: "10/10: …").
+       TIN (`tin_nong`, `canh_bao`, `so_sanh`) — chỉ tin ≤ 3 NGÀY và phải qua MỘT trong ba cửa: (a) hệ quả ở VIỆT NAM
+       (cáp biển, SIM, ngân hàng, luật VN, giá ở VN), (b) MIỄN PHÍ / RẺ HƠN kèm con số ("bản miễn phí giờ làm được X", "giá
+       bằng 1/6"), (c) "AI làm thay bạn việc X" dùng được ngay. Ra mắt model/benchmark/gọi vốn/nhân sự KHÔNG qua cửa nào → bỏ.
+       CÔNG CỤ (`repo_hay`, `kien_thuc_repo`) — app/web/repo MỌI TUỔI, miễn làm được việc quen; repo đã có tiếng (danh sách 3)
+       kể như "có app miễn phí làm X" (LocalSend: "gửi ảnh gốc khỏi qua Zalo"), KHÔNG kể như tin. Nỗi khổ/lợi ích trước,
+       tên sau ":" ("Gửi ảnh gốc cho cả nhà khỏi qua Zalo: app miễn phí LocalSend").
+       MẸO LỆNH (`meo`) — 4–7 lệnh/thao tác cụ thể gõ được ngay trong ChatGPT/Gemini/Zalo/Canva cho MỘT việc ("7 lệnh
+       ChatGPT viết báo cáo cuối tháng"). Được là chủ đề lâu năm nếu lệnh CỤ THỂ, có kết quả nhìn thấy; cấm "mẹo ChatGPT"
+       chung chung.
+    2b. Repo phải: license rõ, có trang chủ hoặc demo trong README, dùng được không cần gõ lệnh (hoặc cài 1 file). KHÔNG đồ
+        nghề dev (agent framework, CLI, SDK, MCP, backend, workflow automation), model chỉ có trọng số, hack/pentest/
+        uncensored. Tiêu đề không mở bằng "N sao", "Top GitHub", chữ "repo"/"GitHub", tên công cụ lạ.
+    2c. CÓ GÌ ĐỂ CHO XEM: ưu tiên ý tưởng mà video cho thấy được KẾT QUẢ (trang web/app thật chụp được, ảnh trước–sau, lệnh +
+        câu trả lời) — 68% video AI bùng có demo, lưu 1,8% so với 0,8% không demo (khảo sát 2026-10-19).
+    3. `hint` = link nguồn tin (đúng link trong danh sách hoặc nguồn chính thống đã kiểm) / link github.com / trang chủ công cụ.
+       Không có link → đừng đề xuất.
+  idea_mix: "4. Mỗi 10 ý tưởng: khoảng 3 CÔNG CỤ/REPO (≥ 1 repo đã có tiếng), 2 MẸO LỆNH, 3 TIN qua cửa (a)/(b)/(c), 1 CẢNH BÁO (lừa đảo/an toàn/tin Việt Nam), 1 tự chọn. Không hai ý tưởng cùng một tin/công cụ."
 # Lịch đăng (2026-10-08, research/probes/w7-lich-dang-research.md). Giờ VN; `slots` theo THỨ TỰ ƯU TIÊN.
 posting:
-  slots: ["12:00", "17:30", "08:30", "20:30"]   # 2026-10-09 (§7): 6 kênh AI VN, 351 video — 11–13h ×1,18 (n=46), 17–19h ×1,70 (n=12); 19–22h ×0,77
-  per_day: 4                  # 2026-10-10 Tony: thêm khung tối 20:00/20:30 → 4 video/ngày (khung tối ×0,77 view, §7 — Tony vẫn muốn)
-  min_gap_hours: 2            # 2026-10-10: 17:30 → 20:00 cách 2,5h (trước 3h làm khung 20:00 kênh mẹo không bao giờ trống)
+  slots: ["17:30"]            # 2026-11-11 Tony: "mỗi ngày 1 kênh 1 video lúc chiều thôi" → chỉ 17:30 (khung chiều đo ở §7). Trước: 2026-10-09 (§7): 6 kênh AI VN, 351 video — 11–13h ×1,18 (n=46), 17–19h ×1,70 (n=12); 19–22h ×0,77
+  per_day: 1                  # 2026-11-11 Tony: 2 → 1. Trước: 2026-10-12 Tony: 4 → 2 (research/29 — 4 bài/ngày kèm view 24h tụt ~450 → ~125; bỏ khung tối ×0,77). Đo lại 7 ngày
+  min_gap_hours: 5            # 2026-10-12: chỉ còn trưa + 17:30
   mode: automatic
-  ai_label: false             # 2026-10-11 Tony: THỬ NGHIỆM bỏ nhãn "Nội dung do AI tạo" (research/28 §6) — true để bật lại             # automatic | notification (research/22 §9–10)
+  ai_label: true              # 2026-10-18 Tony: BẬT LẠI (research/33 §2 — Creator Academy: nhãn không giảm phân phối; giọng clone phải gắn). Thử bỏ 11–18/10: research/28 §6             # automatic | notification (research/22 §9–10)
   order: newest               # tin AI cũ nhanh → video mới nhất lên lịch trước

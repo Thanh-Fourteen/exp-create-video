@@ -107,7 +107,8 @@ def balance(ch: Channel, videos: list[dict] | None = None, now: float | None = N
 def bank(ch: Channel, rows: dict[str, dict] | None = None) -> list[dict]:
     """Kho = seed YAML + ý tưởng Tony thêm (DB), kèm trạng thái."""
     rows = rows or {}
-    items = [{**i, "source": "seed"} for i in _yaml(ch, "ideas.yaml").get("ideas") or []]
+    # `disabled` (2026-10-12, research/30): ý tưởng gốc ngoài hướng kênh — giữ trong file để biết đã có, không gợi ý.
+    items = [{**i, "source": "seed"} for i in _yaml(ch, "ideas.yaml").get("ideas") or [] if not i.get("disabled")]
     # Ý tưởng mới nhất (máy sinh hôm nay, anh vừa thêm) lên đầu — gợi ý "đổi mới hằng ngày".
     fresh = sorted((r for r in rows.values() if r.get("source") in ("tony", "may") and r.get("title")),
                    key=lambda r: -float(r.get("updated_at") or 0))
@@ -127,7 +128,7 @@ def suggest(ch: Channel, n: int = 8, *, rows: dict[str, dict] | None = None, tod
             videos: list[dict] | None = None, taken: list[str] | None = None, page: int = 0) -> list[dict]:
     """`taken` = chủ đề các job trong hàng đợi/đã làm (DB web) — Tony 2026-10-04: "gợi ý nào đã tạo video rồi sẽ xoá
     đi". `page` = bấm "Đổi gợi ý": lấy lô kế tiếp. Thứ tự kho xoay theo NGÀY → mỗi sáng một lô khác."""
-    from .idea_gen import is_dup
+    from .idea_gen import DEMO_MARK, is_dup
 
     vids = videos if videos is not None else _videos(ch)
     taken_l = [v["topic"] for v in vids] + list(taken or [])
@@ -144,8 +145,12 @@ def suggest(ch: Channel, n: int = 8, *, rows: dict[str, dict] | None = None, tod
                     "why": why, "idea_id": idea_id, "kinds": [kind]})
 
     rows = rows or {}
+    # 2026-10-12 (research/30): pillar khai `mix: 0` = tạm dừng → không gợi ý (giữ khoá để video cũ vẫn hiện đúng tên).
+    paused = {k for k, p in ch.pillars.items() if "mix" in p and not p["mix"]}
     n_season = 0
     for s in seasons_now(ch, today):
+        if s.get("pillar") in paused:
+            continue
         for j, t in enumerate(s.get("ideas") or []):
             iid = f"{s['id']}:{j}"
             if (rows.get(iid) or {}).get("status") in ("skip", "used") or n_season >= MAX_SEASON:
@@ -156,7 +161,7 @@ def suggest(ch: Channel, n: int = 8, *, rows: dict[str, dict] | None = None, tod
     import random
 
     today = today or dt.date.today()
-    pool = [i for i in bank(ch, rows) if i["status"] == "new"]
+    pool = [i for i in bank(ch, rows) if i["status"] == "new" and i.get("pillar") not in paused]
     fresh = [i for i in pool if i["source"] != "seed"]           # máy sinh / anh thêm: mới nhất trước
     seed = [i for i in pool if i["source"] == "seed"]
     random.Random(today.toordinal()).shuffle(seed)                 # đổi lô mỗi ngày, ổn định trong ngày
@@ -165,6 +170,8 @@ def suggest(ch: Channel, n: int = 8, *, rows: dict[str, dict] | None = None, tod
     by_p: dict[str, list[dict]] = {}
     for i in pool:
         by_p.setdefault(i.get("pillar", ""), []).append(i)
+    for lst in by_p.values():   # W5: trong cùng pillar, ý tưởng có demo thật lên trước (sort ổn định — giữ thứ tự còn lại)
+        lst.sort(key=lambda i: not (i.get("hint") or "").startswith(DEMO_MARK))
     order = sorted(by_p, key=lambda p: -deficit.get(p, 0))
     while any(by_p.values()):
         for p in order:
@@ -174,7 +181,9 @@ def suggest(ch: Channel, n: int = 8, *, rows: dict[str, dict] | None = None, tod
                 why = (f"Pillar {ch.pillar_vi(p)} đang thiếu {d * 100:.0f}% so với mục tiêu" if d > 0.05
                        else f"Kho ý tưởng · {ch.pillar_vi(p)}")
                 kind = "mới" if i["source"] == "may" else "kho"
-                push(i["title"], p, 1.0 + max(d, 0) + (0.3 if kind == "mới" else 0),
+                # W5 (2026-11-17): ý tưởng có demo thật trong repo → +0,4 (68% video AI bùng có demo — research/34)
+                demo = 0.4 if (i.get("hint") or "").startswith(DEMO_MARK) else 0.0
+                push(i["title"], p, 1.0 + max(d, 0) + (0.3 if kind == "mới" else 0) + demo,
                      (i["hint"].split(" — ")[0] if kind == "mới" and i.get("hint") else why)
                      + (f" — nguồn gợi ý: {i['hint']}" if kind == "kho" and i.get("hint") else ""), i["id"], kind)
     seasonal = [x for x in out if x["kinds"] == ["mùa"]]

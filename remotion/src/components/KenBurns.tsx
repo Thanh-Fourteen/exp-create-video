@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AbsoluteFill, Easing, Img, OffthreadVideo, interpolate, useCurrentFrame } from "remotion";
 import type { FrameState, Shot } from "../types";
+import { segAt, segStarts } from "../types";
 import { DepthParallax } from "./DepthParallax";
 
 /**
@@ -32,10 +33,9 @@ export const KenBurns: React.FC<{
   // viral đổi hình mỗi 2–4s (mẹo không mặt 2,6 lần/10s), shot ảnh của mình đứng 5–9s. Mỗi đoạn là một cú cắt góc máy.
   const segs = shot.motion?.segments;
   const nSeg = segs && segs.length >= 2 ? segs.length : 1;
-  const segLen = durationInFrames / nSeg;
-  const si = Math.min(nSeg - 1, Math.floor(frame / segLen));
-  const lf = nSeg > 1 ? frame - Math.round(si * segLen) : frame;
-  const lDur = nSeg > 1 ? Math.round((si + 1) * segLen) - Math.round(si * segLen) : durationInFrames;
+  // 1.4 (W3): mốc đoạn = đầu câu (`start_frac`), spec cũ không có → chia đều như trước
+  const { si, lf, lDur } = nSeg > 1 ? segAt(segStarts(segs!, durationInFrames), frame, durationInFrames)
+    : { si: 0, lf: frame, lDur: durationInFrames };
   const from = { ...DEFAULT_FROM, ...(nSeg > 1 ? segs![si].from : shot.motion?.from ?? {}) };
   const to = { ...DEFAULT_TO, ...(nSeg > 1 ? segs![si].to : shot.motion?.to ?? {}) };
   // Easing nhẹ hai đầu: nội suy tuyến tính làm ảnh "giật" lúc bắt đầu và dừng

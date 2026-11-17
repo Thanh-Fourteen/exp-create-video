@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Nghe thử tốc độ · Xưởng video{% endblock %}
+{% block main %}
+<p class="eyebrow mb-2.5">Kênh AI · nghe mù · research/35 §3.1</p>
+<h1 class="text-[clamp(30px,5.4vw,46px)] leading-[1.06] m-0">Nghe <i class="h-italic">thử</i></h1>
+<div class="mt-6 flex flex-col gap-5 max-w-[720px]">
+  <section class="card-x p-5 flex flex-col gap-2 text-[14px]">
+    <p class="m-0">Mỗi cặp là <b>cùng một đoạn lời</b> đọc ở hai tốc độ, thứ tự ngẫu nhiên. Chọn bản <b>nghe tự nhiên, dễ nghe hơn</b>
+      — đừng đoán bản nào nhanh. Đủ 24 cặp thì pipeline tự quyết: tốc độ nào anh chọn bản gốc ≥ 10/12 lần thì bỏ.</p>
+    <p class="m-0 text-muted">Đã chọn <b class="num">{{ done }}</b> / {{ pairs|length }}.
+      {% if res %}{% for sp in speeds %} · ×{{ sp }}: {{ res[sp].answered }}/{{ res[sp].total }}{% if res[sp].status != 'pending' %} → <b>{{ 'giữ' if res[sp].status == 'ok' else 'bỏ' }}</b>{% endif %}{% endfor %}
+      · kênh AI đang dùng <b class="num">×{{ res.tempo }}</b>{% endif %}</p>
+  </section>
+  {% for p in pairs %}
+  <section class="card-x p-4 flex flex-col gap-3" id="p{{ p.id }}">
+    <div class="flex items-center gap-2"><b class="num">Cặp {{ loop.index }}</b>
+      {% if answers.get(p.id|string) %}<span class="badge badge-ghost badge-sm">đã chọn {{ answers.get(p.id|string) }}</span>{% endif %}</div>
+    {% for side in ('A', 'B') %}
+    <div class="flex items-center gap-3">
+      <span class="w-6 font-medium">{{ side }}</span>
+      <audio controls preload="none" class="flex-1 h-9" src="/nghe-thu/{{ '%02d'|format(p.id) }}-{{ side }}.m4a"></audio>
+      <form method="post" action="/nghe-thu/{{ p.id }}"><input type="hidden" name="pick" value="{{ side }}">
+        <button class="btn btn-sm {{ 'btn-primary' if answers.get(p.id|string) == side else 'btn-ghost border border-base-300' }}">Chọn {{ side }}</button></form>
+    </div>
+    {% endfor %}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

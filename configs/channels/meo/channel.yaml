@@ -8,7 +8,7 @@ buffer_channel_id: "6ac766a56a5c39ccb64eda36"   # đăng 1 nút qua Buffer — r
 tiktok_sec_uid: "MS4wLjABAAAAtDXXfdIyxOKIsvOyYddZjfxIK8kHiFLNOz8h4ZL9sEIkChaa9lY4ddv61sZKwzPV"   # ID kênh cho yt-dlp (tiktokuser:…) — tự theo dõi số, research/23
 accent: "#F2B544"            # vàng mật ong (avatar out/kenh-meo/avatar/)
 audience: "người Việt 18–45, phổ thông: dân văn phòng, sinh viên, người nội trợ, người mới đi làm"
-tone: "thân thiện, chắc chắn, như người anh hiểu chuyện mách nhỏ — không giảng đạo, không hù doạ"
+tone: "thân thiện, chắc chắn, như người nhà hiểu chuyện mách nhỏ — không giảng đạo, không hù doạ"
 rubric: configs/channels/meo/rubric.md
 series: {prefix: "Sống Khéo #"}
 
@@ -20,12 +20,17 @@ pillars:
   # thường (truongnamcao trung vị 57K, luatvietnam 25K). Tỉ lệ chỉnh lại theo khảo sát (A).
   # 2026-10-10 (research/26 — khảo sát 6 kênh mẹo VN, 270 video): mẹo bếp/nhà cửa làm ngay bùng nổ nhất (×47, 4,4M);
   # app đời thường (Zalo, VNeID) ×10–14; pháp luật đời thường ×9; tiền bạc tính cụ thể ×16–93. Tỉ lệ (A).
-  bep_an_toan: {vi: "Mẹo bếp",        mix: 0.30, desc: "mẹo bếp làm ngay: sơ chế, nấu nhanh – ngon hơn, chọn đồ tươi, bảo quản, an toàn thực phẩm"}
-  theo_mua:    {vi: "Nhà cửa",        mix: 0.20, desc: "mẹo nhà cửa: giặt giũ, dọn dẹp, khử mùi, tiết kiệm điện nước, việc nên làm theo mùa"}
-  dien_thoai:  {vi: "Điện thoại",     mix: 0.20, desc: "điện thoại & ứng dụng đời thường — cài đặt, tính năng ẩn, mẹo dùng (iPhone, Android, Zalo, VNeID, app ngân hàng)"}
-  tien_bac:    {vi: "Tiền bạc",       mix: 0.15, desc: "tiền & tiết kiệm & chống lừa đảo — mẹo tiết kiệm, phí ẩn, tính lãi, dấu hiệu lừa đảo"}
-  phap_luat:   {vi: "Pháp luật đời thường", mix: 0.10, desc: "hỏi–đáp pháp luật đời thường — làm thế này có bị phạt không, quyền của bạn (có văn bản)"}
-  giao_tiep:   {vi: "Giao tiếp & tâm lý", mix: 0.05, desc: "câu nói, cách ứng xử dùng được ngay trong tình huống cụ thể"}
+  # 2026-10-12 (Tony: "topic phải thân quen trong nhà, thân thuộc" — research/30 §2): kênh mình bài trong nhà trung vị
+  # 303 view (≥ 24h) vs ngoài nhà 83 (V, n=5 vs 12); 2 bài cao nhất đều là bếp. Giữ khoá cũ (mix 0) cho video cũ.
+  bep_an_toan: {vi: "Mẹo bếp",        mix: 0.45, desc: "sơ chế, nấu nhanh – ngon hơn, chọn đồ tươi theo mùa — việc làm ngay trong bếp nhà mình"}
+  bao_quan:    {vi: "Tủ lạnh & bảo quản", mix: 0.10, desc: "để gì ngăn nào, đồ ăn thừa, rã đông, cất gạo/rau/hành tỏi — mốc giờ/ngày theo Cục ATTP/Bộ Y tế"}
+  giat_don:    {vi: "Giặt & dọn",     mix: 0.20, desc: "giặt phơi, vết bẩn quần áo, khử mùi, dọn bếp/nhà tắm, sắp xếp tủ — đồ có sẵn, không trộn hoá chất"}
+  do_dien:     {vi: "Đồ điện trong nhà", mix: 0.10, desc: "tủ lạnh, máy giặt, nồi cơm, ấm siêu tốc, điều hoà, bình nóng lạnh: dùng đúng, vệ sinh, tiết kiệm điện — theo hướng dẫn hãng/EVN"}
+  theo_mua:    {vi: "Nhà cửa theo mùa", mix: 0.10, desc: "việc nhà đúng lúc: đầu đông (chăn màn, giữ ấm), mưa (phơi đồ, giày ướt), dọn nhà đón Tết"}
+  tien_bac:    {vi: "Tiền chợ & hoá đơn", mix: 0.05, desc: "tiền điện nước, đi chợ, mua đồ gia dụng — con số cụ thể trong nhà; không lừa đảo"}
+  dien_thoai:  {vi: "Điện thoại",     mix: 0.00, desc: "chỉ mẹo dùng điện thoại cho việc nhà (hẹn giờ nấu, đo, ghi chi tiêu)"}
+  phap_luat:   {vi: "Pháp luật đời thường", mix: 0.00, desc: "tạm dừng 2026-10-12 — không đề xuất"}
+  giao_tiep:   {vi: "Giao tiếp & tâm lý", mix: 0.00, desc: "tạm dừng 2026-10-12 — không đề xuất"}
 
 # Loại hình scriptwriter được dùng. `chat` (bong bóng hội thoại) và `list` (thẻ mẹo đánh số / nên–tránh) là
 # bằng chứng của kênh này: mảng giao tiếp không có số liệu hay trang để chụp. Không `code`.
@@ -48,11 +53,17 @@ formats:
   tong_hop:
     label: "Mẹo hay mỗi ngày"
     desc: "tổng hợp 4–6 mẹo cùng chủ đề, đánh số, series — 'Mẹo hay mỗi ngày p180' ×455"
-    structure: "hook = lợi ích chung + 'mẹo số N là hay nhất' · mẹo 1…N, mỗi mẹo: làm gì → vì sao (thẻ list/ảnh) · mẹo hay nhất để CUỐI · CTA lưu lại"
+    structure: "hook = mẹo 1 luôn (tình huống quen + cách làm cùng câu) · mẹo 2…N theo khuôn 4 nhịp (MẸO DÀY) · KHÔNG hứa 'mẹo cuối hay nhất' (0/55 video ≤ 60s) · kết ngay ở kết quả/hậu quả của mẹo cuối"
   ban_dang_sai:
     label: "Bạn đang làm sai"
     desc: "'Đa số đang làm sai …' — chỉnh một thói quen phổ biến bằng nguồn chính thống"
     structure: "hook = 'Đa số người Việt đang X sai' · sai thế nào · vì sao sai (nguồn) · cách đúng (thẻ list ok/no) · CTA"
+  # 2026-10-19 (research/34): @meohaymoingay2026 trung vị 93,8K, 12/12 video khảo sát bùng (2,4–4,4M) — đồ vật tự kể ở ngôi
+  # thứ nhất. Dạng duy nhất không cần lộ mặt/quay tay. Thử: giữ nếu ≥ 6 video có avg_watch ≥ 1,3× bài thường (viết trước).
+  vat_ke:
+    label: "Đồ vật kể"
+    desc: "món ăn/đồ dùng tự kể, xưng 'tớ', trêu nhẹ người xem — 2–3 mẹo khác món cùng mảng — @meohaymoingay2026 4,4M"
+    structure: "mỗi mẹo: vật xưng 'tớ' kể tình huống quen ('Tớ vừa rửa xong còn ướt mà đã quăng vào chảo') → cách làm đúng → tớ thành ra sao (giác quan) → 'Chứ… thì…' hậu quả hài · kết ở hậu quả mẹo cuối. Trêu về ĐỒ ĂN/ĐỒ DÙNG, không trêu sức khoẻ, không 'tao/mày'"
   canh_bao:
     label: "Cảnh báo"
     desc: "cảnh báo lừa đảo/rủi ro đang xảy ra, kể bằng tình huống (thẻ chat tin nhắn lừa) — 'khiến nhiều gia đình mất hết' 364K"
@@ -81,6 +92,14 @@ rules:
   # Pexels/Pixabay) — ảnh AI chỉ khi không quay được ngoài đời (research/19).
   real_min_ratio: 0.4
   keep_english_terms: false   # khán giả phổ thông: nói tiếng Việt, tên app/tính năng giữ nguyên ("Zalo", "Face ID")
+  # 2026-10-19 (exp/khao-sat/2026-10-19-meo, 55 video mẹo bùng ≤ 60s; research/34): "Nhưng…" chỉ 6/55 (mình 10/10) → không
+  # bắt chỗ ngoặt, thay bằng phản đề "chứ… thì…"; hook không cần "bạn"/số (31/55 không có); không mở vòng tò mò thứ hai.
+  twist: false
+  hook_who_num: false
+  second_loop: false
+  # 2026-10-21 (research/35 §3.3): đổi khung toàn/cận mỗi ~1,8s trên ảnh + clip stock (mình 0,26 cắt/s vs 0,7–0,96 ở 7/8 kênh mẹo
+  # xu hướng). A/B mục tiêu ~0,6/s trước (Dost & Huang 2026: cắt quá nhanh phản tác dụng).
+  montage_sec: 1.5
 
 caption:
   disclaimer_for: [bep_an_toan]
@@ -99,7 +118,8 @@ style:
   # @tamlyhocthanhcong dùng lo-fi êm ("Cozy Rain Beats"); Tony muốn "nhịp nhẹ nhàng"
   music: "cozy lo-fi hip hop background music, soft rain ambience, mellow electric piano, gentle vinyl crackle, relaxed, 80 bpm, instrumental, no vocals"
   music_bpm: 80
-duration_default: 55           # 2026-10-06 research/21: trung vị 19 video viral mẹo 53s (cũ 60s, D5 research/15) — tổng hợp vẫn được dài
+end_styles: [ket_o_dinh, hoi_ab]   # 2026-10-19 research/34: kết ở kết quả/hậu quả mẹo cuối 22/55, mời bình luận 12/55
+duration_default: 35           # 2026-10-18 research/33 R2: avg_watch kênh ~6s trên 55s; 12/12 video bùng @meohaymoingay2026 dài 23–32s, 3–4 mẹo (cũ 55 — research/21)
 
 voice: tony
 
@@ -108,23 +128,42 @@ trend:
 
 prompts:
   # 2026-10-10 (research/26): ý tưởng = MẸO HAY làm ngay. Thay IDEA_SEARCH/SCOPE mặc định trong team/idea_gen.py.
+  # 2026-10-12 (Tony: "thân quen trong nhà", research/30 §2) — bỏ lừa đảo/app/pháp luật khỏi nguồn tìm.
   idea_search: >-
-    Dùng WebSearch để tìm MẸO HAY người Việt dùng được ngay hôm nay: mẹo bếp (sơ chế cá/thịt/rau, nấu nhanh mà ngon hơn,
-    chọn đồ tươi ở chợ, bảo quản), mẹo nhà cửa (giặt, tẩy vết bẩn, khử mùi, tiết kiệm điện nước), mẹo điện thoại/ứng
-    dụng (Zalo, VNeID, iPhone, Android, app ngân hàng), mẹo tiền bạc (tiết kiệm, tính lãi, tránh phí, nhận ra lừa đảo),
-    pháp luật đời thường. Học từ dạng video mẹo Việt bùng nổ: "Mẹo rán cá, luộc ốc, xào mực" (4,4 triệu view),
-    "Đừng uống nước dừa nếu chưa biết 3 tuyệt chiêu này", "Tất cả ai dùng Zalo phải biết…", "Bị đánh, đánh lại có phạm
-    tội không?". Nguồn: bachhoaxanh.com, dienmayxanh.com, cooky.vn, support.apple.com, support.google.com, help.zalo.me,
-    trang ngân hàng, thuvienphapluat.vn; tin 7–14 ngày gần đây chỉ để bắt chuyện đang nóng (lừa đảo mới, mùa, Tết).
+    Dùng WebSearch để tìm MẸO TRONG NHÀ người Việt làm được ngay hôm nay với đồ có sẵn: bếp (sơ chế cá/thịt/rau, nấu nhanh
+    mà ngon hơn, chọn đồ tươi theo mùa), tủ lạnh & bảo quản (ngăn nào để gì, đồ ăn thừa, gạo, rau), giặt phơi & dọn dẹp
+    (vết bẩn, khử mùi, nhà tắm, sắp xếp tủ), đồ điện trong nhà (máy giặt, nồi cơm, ấm siêu tốc, điều hoà, bình nóng lạnh —
+    vệ sinh, dùng đúng, tiết kiệm điện), việc nhà theo mùa (tháng 10–11: gió mùa đầu đông + hanh khô miền Bắc, mưa lũ miền
+    Trung; 20/10, 11/11, 20/11; dọn nhà đón Tết từ tháng 12 — nồm là tháng 2–4, chưa phải lúc này). Học từ dạng mẹo Việt
+    bùng nổ: "Mẹo rán cá, luộc ốc, xào mực" (4,4 triệu view), "Mẹo cắt gọt trái cây siêu tốc" (997K, 28K lưu), "Dọn nhà siêu
+    gọn bằng đồ giá rẻ", "Công dụng của nước vo gạo". Nguồn: bachhoaxanh.com, dienmayxanh.com, evnhanoi.vn/evn.com.vn,
+    trang hỗ trợ hãng (samsung.com/vn, panasonic.com/vn), vfa.gov.vn, moh.gov.vn.
   idea_scope: |-
-    2. MỖI Ý TƯỞNG LÀ MỘT MẸO CỤ THỂ LÀM ĐƯỢC NGAY, kết quả thấy được trong vài phút, đồ có sẵn trong nhà. `title` NÓI
-       LUÔN MẸO ("Rán cá không bắn dầu: thấm khô rồi lăn qua lớp bột mỏng", "Áo trắng ố vàng: ngâm nước ấm với baking
-       soda 30 phút") hoặc dạng "N mẹo …" có lợi ích rõ ("3 mẹo luộc rau xanh giòn"). KHÔNG chủ đề cảnh báo chung chung,
-       KHÔNG tin tức thuần, KHÔNG "vì sao/sự thật" không có việc để làm.
-       CẤM: chữa bệnh/"thần dược"/thay thuốc, trộn hoá chất tẩy rửa, làm đẹp, mẹo nguy hiểm (điện, gas, lửa), mẹo dân
-       gian không có nguồn. Mẹo dính sức khoẻ/an toàn thực phẩm chỉ khi cơ quan y tế/ATTP nói.
-    2b. (research/28) Ưu tiên dạng DANH SÁCH "N mẹo / N lệnh / N bước / N trang…" (bùng ×1,64) và góc "ít người biết"
-        (×1,37); tiêu đề KHÔNG mở bằng tên riêng tiếng Anh (×0,71) — tên công cụ để sau dấu ":".
+    1b. THÂN QUEN TRONG NHÀ (Tony 2026-10-12): mỗi ý tưởng xảy ra TRONG NHÀ — bếp, tủ lạnh, máy giặt, phơi đồ, nhà tắm,
+        phòng ngủ, đồ điện, tiền điện nước. Người xem phải gật đầu "nhà mình cũng bị" trong 3 giây đầu. Cụ thể bằng đồ vật
+        ai cũng có (nồi cơm, thớt, chăn bông, ấm siêu tốc). KHÔNG: lừa đảo, luật giao thông, thiên tai ngoài đường,
+        app/ngân hàng, tin tức (chỉ được nói phần việc trong nhà — vd mất điện thì tủ lạnh giữ lạnh bao lâu). Ưu tiên
+        "N mẹo + đồ vật + lợi ích" ("3 chỗ trong máy giặt ít ai lau"), "Công dụng của [đồ sắp bỏ]", việc nhà đúng mùa/miền.
+        Không đề xuất pillar có mix 0.
+    2. (2026-10-19, exp/khao-sat/2026-10-19-meo/KET-QUA.md — 2.106 tiêu đề + 107 transcript mẹo trong nhà, 22 kênh Việt;
+       research/34) VẬT/VIỆC gần như không quyết định bùng (×0,83–1,14) — GÓC KỂ mới quyết định. Mỗi ý tưởng thuộc ĐÚNG MỘT
+       góc sau, ghi góc vào đầu `why`:
+       • "lạ/bất ngờ" (×1,71): mẹo trái trực giác hoặc sự thật bất ngờ VỀ VIỆC ĐANG LÀM ("Chà gừng lên chảo trước khi rán
+         cá", "Cơm nguội hâm lại không hết độc") — được dạng "sự thật", miễn kèm việc làm ngay.
+       • "cảnh báo thói quen" (×1,56): thói quen ai cũng làm đang hỏng đồ/phí tiền ("Đổ nước xả vào khay giặt là phí").
+       • "N mẹo cùng mảng" (×1,37): 2–4 mẹo KHÁC MÓN cùng một việc ("3 mẹo luộc rau giữ màu xanh").
+       • "công dụng đồ có sẵn" (×1,32): đồ sắp bỏ/đồ rẻ làm được việc khác ("Nước vo gạo", "Vỏ cam").
+       • "tiền cụ thể" (×1,30): việc trong nhà ra số tiền + nút bấm ("Điều hoà Casper chỉ 4.000đ một đêm: bấm 3 nút").
+       QUEN HẰNG NGÀY: vật/việc người xem chạm tới MỖI NGÀY hoặc mỗi tuần (nấu, rửa, giặt, phơi, tủ lạnh, nồi cơm) — việc
+       hiếm (vệ sinh bình nóng lạnh, chăn bông cất kho) chỉ khi đúng mùa (khảo sát: việc hằng ngày bùng 68/70, việc hiếm 2/5).
+       MÙA quyết định thiết bị: chỉ đề xuất đồ điện ĐANG được dùng trong mùa này (tháng 10–11: quạt sưởi, chăn điện, bình
+       nóng lạnh, máy sấy, điều hoà chế độ sưởi; KHÔNG điều hoà làm lạnh) — điều hoà bùng 11/15 ở tháng 6, 1/12 ở tháng 8–10.
+       Thiết bị có nhiều hãng: một hãng một ý ("… LG", "… Daikin") — series theo hãng bùng cả 3 bản (2,9M/2,7M/1,0M).
+       `title` NÓI LUÔN MẸO hoặc điều bất ngờ. CẤM: chữa bệnh/"thần dược"/thay thuốc, trộn hoá chất tẩy rửa (nhiều mẹo
+       viral pha hoá chất — không học), làm đẹp, mẹo nguy hiểm (điện, gas, lửa), mẹo dân gian không có nguồn. Mẹo dính sức
+       khoẻ/an toàn thực phẩm chỉ khi cơ quan y tế/ATTP nói.
+    2b. KHÔNG LẶP VẬT CHÍNH: mỗi vật chính (chăn bông, gạo, nồi cơm…) tối đa MỘT ý trong lần đề xuất này, và không trùng vật
+        chính của danh sách "Đã có" ở trên (kho cũ có chăn bông ×5, gạo mọt ×4). Tiêu đề không mở bằng tên tiếng Anh.
     3. Phải có NGUỒN kiểm chứng (trang hướng dẫn uy tín, hãng, cơ quan) — ghi domain vào `hint`. Không chắc → bỏ.
   research_intro: >-
     Bạn là RESEARCHER của kênh TikTok tiếng Việt "Sống Khéo" — mẹo đời sống cho người Việt phổ thông
@@ -152,16 +191,26 @@ prompts:
   research_visuals: "CHỈ trang TIẾNG VIỆT — trang cảnh báo của cơ quan nhà nước, biểu phí ngân hàng, trang hướng dẫn cài đặt của Apple/Google/Zalo bản tiếng Việt, bảng bảo quản thực phẩm; nguồn tiếng Anh vẫn dùng làm sự thật nhưng KHÔNG đưa vào visuals"
   script_intro: >-
     Bạn viết kịch bản video TikTok tiếng Việt cho kênh "Sống Khéo" — mẹo đời sống cho người Việt PHỔ THÔNG
-    (18–45 tuổi, dân văn phòng, sinh viên, người nội trợ). Giọng thân thiện, chắc chắn, như người anh hiểu
+    (18–45 tuổi, dân văn phòng, sinh viên, người nội trợ). Giọng thân thiện, chắc chắn, như người nhà hiểu
     chuyện mách nhỏ — không giảng đạo, không hù doạ.
+    MẸO DÀY (2026-10-19, research/34 — 55 video mẹo bùng ≤ 60s: trung vị 33s, 122 từ, 2 mẹo, mẹo 1 ở giây 3,8): video là
+    MỘT MẢNG (D1 = một mảng, vd "luộc rau", không phải một mẹo) gồm 2–4 mẹo KHÁC MÓN, tổng ~110–140 từ. Mỗi mẹo ~30–40
+    từ theo KHUÔN 4 NHỊP: [tình huống quen ≤ 8 từ] → [cách làm: động từ + đồ có sẵn + lượng nhỏ "tí/vài lát"] → [kết quả
+    giác quan có so sánh: "giòn sần sật", "xanh mướt"] → [phản đề "Chứ <làm sai> thì <hậu quả hài>"]. Không câu giới thiệu,
+    "vì sao" tối đa nửa câu ("axit nó làm mềm thớ thịt"). Mẹo bếp/dọn KHÔNG đọc tên nguồn (D4 chỉ cho claim an toàn thực
+    phẩm). Video ≤ 40s: KHÔNG câu meta nào. Đề bài chỉ có một mẹo → thêm 1–2 mẹo cùng mảng CÓ trong sự thật đã kiểm.
   # 2026-10-05 (research/19): lời thật kênh top (ASR, đã sửa lỗi nhận dạng) — scriptwriter học NHỊP, không chép nội dung.
   speech_examples: |-
-    - @truongnamcao (352K view): "Người ta đánh mình trước, mình đánh lại thì ai là người phạm tội? Đừng nghĩ cứ bị đánh
-      trước thì muốn đánh lại thế nào cũng được. Ranh giới giữa tự vệ và phạm luật đôi khi chỉ nằm ở cách mình chống trả."
-    - @nguyentrangtkneu (364K): "Mình làm nghề tư vấn tài sản cho nhiều gia đình ấy, thì mình nhận thấy có một trường hợp
-      như này này. Mọi người cứ để ý mà xem."
-    - @meohaymoingay2026 (2,4M): "Ninh đậu đen cả buổi không nhừ? Rang sơ đậu cho vỏ săn lại rồi hẵng đổ nước vào ninh.
-      Phi tỏi thì cho tỏi vào lúc dầu còn nguội, rồi mới bật bếp."
+    - @meohaymoingay2026 (2,4M): "Ngồi dòm nồi thịt bò mãi không nhừ à? Ném miếng dứa hoặc thìa giấm vào, axit nó làm mềm
+      thớ thịt ra. Chứ ngồi chờ đấy thì tốn ga tốn điện. / Phi tỏi thì cho tỏi vào lúc dầu còn nguội rồi bật bếp lên, tỏi
+      vàng từ từ, giòn thơm. Chứ đợi dầu sôi sùng sục mới ném vào thì ngoài cháy đen thui, trong còn sống nhăn."
+    - @meohaymoingay2026 (2,9M): "Luộc súp lơ hay đậu que thì cho tí dầu ăn vào nước sôi, vớt ra xanh mướt ngay. / Rau muống
+      luộc xong mà đen thui là do không cho tí muối với dầu ăn vào. Mở vung ra mà luộc, không thì lại bưng ra một đĩa rau
+      bóng đêm."
+    - @bepditu_ (455K, kênh trung vị 630): "Đây là cách xử lý mùi hôi của cá basa nè. Cá mua về cho vô một miếng nước, một
+      miếng đường với miếng nước mắm, ngâm mười phút rồi rửa lại. Kho hay nấu canh gì cũng hết mùi, mà lại thơm. Cả nhà thử nha."
+    - @duycom.real (4,0M): "Vẫn còn nhiều bạn đổ nước giặt với nước xả vải sai chỗ, giặt xong áo không thơm. Khay máy giặt có
+      ba khoang: khoang có hình bông hoa là nước xả, khoang to nhất là nước giặt."
   hook_example: >-
     hook "Đa số người Việt đang rã đông thịt sai cách ngay trên bàn bếp" → hook_text "Rã đông sai cách?"
   terms_rule: |-
@@ -193,9 +242,9 @@ prompts:
 
 # Lịch đăng (2026-10-08, research/probes/w7-lich-dang-research.md). Giờ VN; `slots` theo THỨ TỰ ƯU TIÊN.
 posting:
-  slots: ["12:30", "17:30", "08:30", "20:00"]   # 2026-10-09 (§7): 6 kênh đời sống VN, 270 video — 12–14h ×1,42 (n=24), 17–19h ×1,10; 20–22h ×0,77
-  per_day: 4                  # 2026-10-10 Tony: thêm khung tối 20:00/20:30 → 4 video/ngày (khung tối ×0,77 view, §7 — Tony vẫn muốn)
-  min_gap_hours: 2            # 2026-10-10: 17:30 → 20:00 cách 2,5h (trước 3h làm khung 20:00 kênh mẹo không bao giờ trống)
+  slots: ["17:30"]            # 2026-11-11 Tony: "mỗi ngày 1 kênh 1 video lúc chiều thôi" → chỉ 17:30 (khung chiều đo ở §7). Trước: 2026-10-09 (§7): 6 kênh đời sống VN, 270 video — 12–14h ×1,42 (n=24), 17–19h ×1,10; 20–22h ×0,77
+  per_day: 1                  # 2026-11-11 Tony: 2 → 1. Trước: 2026-10-12 Tony: 4 → 2 (research/29 — 4 bài/ngày kèm view 24h tụt ~450 → ~125; bỏ khung tối ×0,77). Đo lại 7 ngày
+  min_gap_hours: 5            # 2026-10-12: chỉ còn trưa + 17:30
   mode: automatic
-  ai_label: false             # 2026-10-11 Tony: THỬ NGHIỆM bỏ nhãn "Nội dung do AI tạo" (research/28 §6) — true để bật lại
+  ai_label: true              # 2026-10-18 Tony: BẬT LẠI (research/33 §2 — Creator Academy: nhãn không giảm phân phối; giọng clone phải gắn). Thử bỏ 11–18/10: research/28 §6
   order: oldest               # mẹo không hết hạn → video dựng trước đăng trước

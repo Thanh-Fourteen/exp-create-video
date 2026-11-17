@@ -46,6 +46,10 @@ GL="$("$PY" -c 'import json,sys; s=json.load(open(sys.argv[1])); print("swangle"
 echo "gl: $GL"
 
 cd "$REPO/remotion"
+# Remotion chờ Chrome mở tối đa 25s (cứng trong open-browser.js). HDD dùng chung bận (2026-10-22: dự án
+# khác unzip dataset, sdb 92%) → 2 lần render liên tiếp "Timed out ... connect to the browser". Đọc trước
+# 220MB Chrome vào page cache: bước này được phép chậm, còn lúc Chrome khởi động thì đọc từ RAM.
+find node_modules/.remotion/chrome-headless-shell -type f -exec cat {} + > /dev/null 2>&1 || true
 npx remotion render Video "$OUT" \
   --gl="$GL" \
   --props="$PROPS" \

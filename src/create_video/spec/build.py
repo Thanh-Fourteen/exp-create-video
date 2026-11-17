@@ -26,7 +26,7 @@ from .captions import map_line, split_spoken_by_lines
 from .chunks import add_chunks
 from .validate import REPO_ROOT, validate
 
-SPEC_VERSION = "1.3"
+SPEC_VERSION = "1.4"
 
 
 @dataclass
@@ -143,7 +143,11 @@ def _motion_preset(k: int, zoom_lo: float, zoom_hi: float) -> dict:
 INTRO_SEC = 3.0
 # 2026-10-06 (research/21 §3): trần thời gian một KHUNG ảnh tĩnh — 15s đầu ≤ 4s, sau ≤ 6s. Video viral đổi hình mỗi 2–4s
 # (AI trung vị shot 4,2s; mẹo không mặt 2,6 lần cắt/10s; quốc tế 1,5–3s), shot ảnh của mình 5,4–8,9s (n=5).
-REFRAME_EARLY_SEC, REFRAME_LATE_SEC, REFRAME_EARLY_UNTIL = 4.0, 6.0, 15.0
+# 2026-11-17 (W3, UPGRADE-PLAN): trần sau 15s 6,0 → 4,5s, và mốc đổi khung đặt ĐÚNG ĐẦU CÂU bên trong shot (cắt có lý do)
+# thay vì chia đều — video AI 1116 chỉ 0,26 cắt/s, ngưỡng viết trước ≥ 0,40.
+REFRAME_EARLY_SEC, REFRAME_LATE_SEC, REFRAME_EARLY_UNTIL = 4.0, 4.5, 15.0
+SEG_MIN_SEC = 1.2            # đoạn ngắn hơn thế = nháy hình, không phải đổi góc máy
+SEG_MAX = 6                  # schema: segments ≤ 6
 # Khung cận: phóng vào một góc của ảnh (≈ đổi góc máy). scale ≥ 1 + 2·|pan|/100 để không lộ mép.
 _CLOSE = [
     ({"scale": 1.30, "x_pct": -4.0, "y_pct": 2.0}, {"scale": 1.36, "x_pct": -3.0, "y_pct": 1.0}),
@@ -152,29 +156,130 @@ _CLOSE = [
 ]
 
 
-def _reframe(motion: dict, start: float, end: float, k: int) -> dict:
-    """Shot ảnh dài → `segments`: đoạn đầu giữ chuyển động gốc (toàn cảnh), các đoạn sau là khung cận luân phiên."""
-    limit = REFRAME_EARLY_SEC if start < REFRAME_EARLY_UNTIL else REFRAME_LATE_SEC
-    n = min(6, int(-(-(end - start) // limit)))
-    if n < 2 or motion.get("type") != "ken_burns":
+def _montage_sec() -> float | None:
+    """2026-10-21 (research/35 §3.3): kênh khai `rules.montage_sec` → đổi khung mỗi ~N giây (kênh mẹo xu hướng cắt 0,7–0,96
+    lần/giây, mình 0,26; trong kênh mình cắt cảnh ρ +0,43 với view 24h)."""
+    try:
+        from ..channel import current
+
+        v = current().flag("montage_sec")
+        return float(v) if v else None
+    except Exception:
+        return None
+
+
+ACCENT_LEAD_SEC = 0.05     # cắt hơi TRƯỚC từ nhấn: hình đổi đúng lúc chữ bật ra
+
+
+def accent_times(captions: Sequence[dict], emphasis: Sequence[str] = ()) -> list[float]:
+    """W3: mốc bắt đầu mỗi cụm từ nhấn (con số, `emphasis` của kịch bản) theo timestamp aligner — bỏ câu hook (frame 0
+    là tiêu đề, không punch). Không sửa captions (chép từ trước khi đánh dấu)."""
+    from .chunks import mark_emphasis
+
+    out: list[float] = []
+    for c in captions:
+        if c.get("style") == "hook":
+            continue
+        ws = [dict(w) for w in c.get("words") or []]
+        mark_emphasis(ws, emphasis)
+        prev = False
+        for w in ws:
+            if w.get("emph") and not prev:
+                out.append(round(max(0.0, w["start"] - ACCENT_LEAD_SEC), 3))
+            prev = bool(w.get("emph"))
+    return out
+
+
+# Số đọc bằng CHỮ ("trăm triệu", "hai mươi lăm phần trăm") — kịch bản viết số bằng chữ cho TTS nên phụ đề không có chữ số.
+# "một" đứng một mình là mạo từ ("một cốc") → cụm phải có ít nhất một từ số "mạnh".
+_NUM_WEAK = {"một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín", "mười", "mốt", "tư", "lăm", "rưỡi", "phẩy",
+             "linh", "lẻ", "phần"}
+_NUM_STRONG = {"mươi", "trăm", "nghìn", "ngàn", "triệu", "tỷ", "tỉ", "chục"}
+
+
+def number_times(captions: Sequence[dict]) -> list[float]:
+    """W6: mốc bắt đầu mỗi cụm SỐ trong lời đọc (chữ số, hoặc số đọc bằng chữ có từ 'mạnh') — chỉ để đặt cue thẻ số."""
+    from .chunks import _norm
+
+    out: list[float] = []
+    for c in captions:
+        run: list[dict] = []
+        for w in list(c.get("words") or []) + [None]:
+            t = _norm(w["w"]) if w else ""
+            if w and (t in _NUM_WEAK or t in _NUM_STRONG or any(ch.isdigit() for ch in w["w"])):
+                run.append(w)
+                continue
+            if run and any(_norm(x["w"]) in _NUM_STRONG or any(ch.isdigit() for ch in x["w"]) for x in run):
+                out.append(round(max(0.0, run[0]["start"] - ACCENT_LEAD_SEC), 3))
+            run = []
+    return out
+
+
+CUE_KINDS = ("stat", "chart")
+CUE_MIN_LEAD = 0.3      # từ nhấn sát đầu shot (< 0,3s) → giữ nhịp cũ (nảy ở khung 12), không cần cue
+
+
+def add_cues(shots: list[dict], accents: Sequence[float]) -> None:
+    """W6: thẻ số/biểu đồ → cue `counter` ở từ nhấn ĐẦU TIÊN trong shot (con số được đọc). Remotion nảy số + sound/design
+    đặt pop đúng mốc đó thay vì 0,12s sau khi thẻ hiện (thẻ hiện ở đầu câu, con số thường được đọc 1–2s sau)."""
+    for sh in shots:
+        if sh["asset"].get("kind") not in CUE_KINDS or sh["start_sec"] <= 0:   # shot 0: khung 0 là thumbnail, số hiện sẵn
+            continue
+        t = next((a for a in accents if sh["start_sec"] + CUE_MIN_LEAD <= a < sh["end_sec"] - 0.1), None)
+        if t is not None:
+            sh["cues"] = [{"at_sec": round(t, 3), "type": "counter"}]
+
+
+def _limit(start: float) -> float:
+    return _montage_sec() or (REFRAME_EARLY_SEC if start < REFRAME_EARLY_UNTIL else REFRAME_LATE_SEC)
+
+
+def seg_bounds(start: float, end: float, cuts: Sequence[float] = (), limit: float | None = None) -> list[float]:
+    """Mốc bắt đầu từng đoạn (tỉ lệ 0..1 của shot). Ưu tiên đầu câu (`cuts`, giây tuyệt đối) cách mép ≥ SEG_MIN_SEC; đoạn
+    nào vẫn dài hơn `limit` thì chia đều. Trả `[0.0]` khi shot không cần đổi khung. Tối đa SEG_MAX đoạn."""
+    dur = end - start
+    if dur <= 0:
+        return [0.0]
+    limit = limit or _limit(start)
+    seg_min = min(SEG_MIN_SEC, 0.75 * limit)
+    pts = [start]
+    for c in sorted(cuts):
+        if c - pts[-1] >= seg_min and end - c >= seg_min:
+            pts.append(c)
+    edges = pts + [end]
+    out: list[float] = []
+    for a, b in zip(edges, edges[1:]):
+        n = max(1, int(-(-(b - a) // limit)))
+        out += [a + (b - a) * j / n for j in range(n)]
+    if len(out) > SEG_MAX:   # quá nhiều → chia đều SEG_MAX (giữ trần schema)
+        out = [start + dur * j / SEG_MAX for j in range(SEG_MAX)]
+    return [round((t - start) / dur, 4) for t in out]
+
+
+def _reframe(motion: dict, start: float, end: float, k: int, cuts: Sequence[float] = ()) -> dict:
+    """Shot ảnh dài → `segments`: đoạn đầu giữ chuyển động gốc (toàn cảnh), các đoạn sau là khung cận luân phiên.
+    Mốc đổi khung theo `seg_bounds` (đầu câu trước, rồi trần thời gian)."""
+    fr = seg_bounds(start, end, cuts)
+    if len(fr) < 2 or motion.get("type") != "ken_burns":
         return motion
-    segs = [{"from": motion["from"], "to": motion["to"]}]
-    segs += [dict(zip(("from", "to"), _CLOSE[(k + j) % len(_CLOSE)])) for j in range(n - 1)]
+    segs = [{"from": motion["from"], "to": motion["to"], "start_frac": fr[0]}]
+    segs += [{**dict(zip(("from", "to"), _CLOSE[(k + j) % len(_CLOSE)])), "start_frac": fr[j + 1]}
+             for j in range(len(fr) - 1)]
     return {**motion, "segments": segs}
 
 
-def _zoom_screenshot(motion: dict, start: float, end: float, close: float = 1.55) -> dict:
+def _zoom_screenshot(motion: dict, start: float, end: float, close: float = 1.55, cuts: Sequence[float] = ()) -> dict:
     """Ảnh chụp trang dài → xen đoạn CẬN vào chỗ tô vàng (đoạn lẻ ×1,55→1,65). Video viral AI phóng/khoanh vào UI (7/19);
-    v4 2026-10-07: ảnh chụp đứng một khung 7,4s (research/21 §8 C3). Remotion đọc scale từ `segments` (Evidence.tsx)."""
-    limit = REFRAME_EARLY_SEC if start < REFRAME_EARLY_UNTIL else REFRAME_LATE_SEC
-    n = min(6, int(-(-(end - start) // limit)))
-    if n < 2:
+    v4 2026-10-07: ảnh chụp đứng một khung 7,4s (research/21 §8 C3). Remotion đọc scale từ `segments` (Evidence.tsx).
+    Màn hình KHÔNG theo montage kênh (chữ cần thời gian đọc) — chỉ trần đầu/sau."""
+    fr = seg_bounds(start, end, cuts, REFRAME_EARLY_SEC if start < REFRAME_EARLY_UNTIL else REFRAME_LATE_SEC)
+    if len(fr) < 2:
         return motion
     flat = {"scale": 1.0, "x_pct": 0, "y_pct": 0}
     close = ({"scale": close, "x_pct": 0, "y_pct": 0}, {"scale": round(close + 0.1 * (close - 1) / 0.55, 3), "x_pct": 0,
                                                         "y_pct": 0})
-    return {**motion, "segments": [{"from": close[0], "to": close[1]} if j % 2 else {"from": flat, "to": flat}
-                                   for j in range(n)]}
+    return {**motion, "segments": [{"from": close[0], "to": close[1], "start_frac": f} if j % 2 else
+                                   {"from": flat, "to": flat, "start_frac": f} for j, f in enumerate(fr)]}
 
 
 def _mouth_env(wav: Path, a: float, b: float, fps: int) -> list[float]:
@@ -221,6 +326,24 @@ def _mascot(wav: Path, spans: Sequence[LineSpan], cfg: Mapping, fps: int = 30, s
         wins.append({"start_sec": a, "end_sec": b, "mode": mode})
 
     hook_end = spans[0].end if spans else 0.0
+    if str(cfg.get("policy", "roles")) == "roles" and spans:
+        _mascot_role_windows(spans, shots, total, add)
+    else:
+        _mascot_always_windows(shots, total, hook_end, add)
+    # cửa sổ < 0,4s (vd. khoảng hở giữa hook và shot thẻ) → nhập vào cửa sổ trước LIỀN KỀ, khỏi đổi cỡ giật cục.
+    # Không liền kề (chính sách roles có khoảng trống) thì bỏ — nhập qua khoảng trống sẽ kéo nhân vật đè lên thẻ.
+    merged: list[dict] = []
+    for w in wins:
+        if merged and w["end_sec"] - w["start_sec"] < 0.4 and abs(merged[-1]["end_sec"] - w["start_sec"]) < 0.1:
+            merged[-1]["end_sec"] = w["end_sec"]
+        else:
+            merged.append(w)
+    wins = [w for w in merged if w["end_sec"] - w["start_sec"] >= 0.4]
+    return _mascot_tail(wav, spans, cfg, fps, shots, wins)
+
+
+def _mascot_always_windows(shots, total: float, hook_end: float, add) -> None:
+    """Chính sách cũ (Tony 2026-10-05: "nhân vật xuất hiện nhiều hơn") — có mặt suốt video. Bật lại: mascot.policy: always."""
     for sh in shots or [{"start_sec": 0.0, "end_sec": total, "asset": {"kind": "image"}}]:
         card = sh["asset"].get("kind") in DATA_SHOT_KINDS
         a, b = sh["start_sec"], sh["end_sec"]
@@ -231,14 +354,59 @@ def _mascot(wav: Path, spans: Sequence[LineSpan], cfg: Mapping, fps: int = 30, s
             add(hook_end + 0.2, b, "dock")
         else:
             add(a, b, "peek" if card else "dock")
-    # cửa sổ < 0,4s (vd. khoảng hở giữa hook và shot thẻ) → nhập vào cửa sổ trước, khỏi đổi cỡ giật cục
-    merged: list[dict] = []
-    for w in wins:
-        if merged and w["end_sec"] - w["start_sec"] < 0.4:
-            merged[-1]["end_sec"] = w["end_sec"]
-        else:
-            merged.append(w)
-    wins = merged
+
+
+# Chính sách "roles" (Tony 2026-11-16: mascot "không bắt buộc xuất hiện mọi cảnh", phải có vai — dẫn chuyện, phản ứng, đặt câu
+# hỏi, cảnh báo, chuyển ý). Đo video 1116: mascot 14/14 shot, đè thẻ số/biểu đồ/screenshot/demo (AUDIT #8).
+TRANSITION_STARTS = ("nhưng", "vậy", "thế nên", "còn", "giờ", "tóm lại", "cuối cùng", "mẹo", "bước", "thứ hai", "thứ ba",
+                     "điều", "quan trọng", "ngược lại", "thay vào đó")
+MASCOT_MAX_GAP = 10.0      # s — vắng quá lâu thì ló lại ở câu kế (nhận diện kênh), vẫn chỉ trên cảnh không phải thẻ
+
+
+def mascot_role(i: int, n: int, text: str) -> str | None:
+    """Vai của nhân vật ở câu i (luật, không LLM): hook · hỏi · cảnh báo · chuyển ý · kết. None = không xuất hiện."""
+    low = text.strip().lower()
+    if i == 0:
+        return "hook"
+    if i == n - 1:
+        return "ket"
+    if low.endswith("?"):
+        return "hoi"
+    if any(w in low for w in WARN_WORDS):
+        return "canh_bao"
+    if low.startswith(TRANSITION_STARTS):
+        return "chuyen_y"
+    return None
+
+
+def _content_shot(sh: Mapping) -> bool:
+    """Shot có NỘI DUNG cần đọc/nhìn (thẻ, trang chụp, demo) — nhân vật không được đè."""
+    a = sh.get("asset") or {}
+    return a.get("kind") in DATA_SHOT_KINDS or str(a.get("path", "")).startswith("demo/")
+
+
+def _mascot_role_windows(spans, shots, total: float, add) -> None:
+    free = [(sh["start_sec"], sh["end_sec"]) for sh in shots if not _content_shot(sh)] if shots else [(0.0, total)]
+    n = len(spans)
+    last_end = -99.0
+    for i, sp in enumerate(spans):
+        role = mascot_role(i, n, sp.text)
+        if role is None and sp.start - last_end > MASCOT_MAX_GAP:
+            role = "nhan_dien"
+        if role is None:
+            continue
+        a, b = sp.start - 0.15, sp.end + 0.35
+        shown = False
+        for fa, fb in free:
+            lo, hi = max(a, fa), min(b, fb)
+            if hi - lo >= 0.6:
+                add(lo, hi, "peek" if role == "hook" else "dock")
+                shown = True
+        if shown:
+            last_end = b
+
+
+def _mascot_tail(wav: Path, spans, cfg: Mapping, fps: int, shots, wins: list[dict]) -> dict:
     acts = _mascot_actions(spans, shots)
     # Cảnh quay/ảnh dài: tại mỗi hành động "jump" (còn ≥ 1,5s) cắt cửa sổ → nhảy sang góc bên kia (Tony: "nhảy nhảy các
     # chỗ trong khung hình"). Mọi cửa sổ dock luân phiên phải/trái.
@@ -369,6 +537,7 @@ def _plan_shots(
     breaks: Collection[int] = (),
     evidence: Mapping[int, dict] | None = None,
     alts: Sequence[str] = (),
+    accents: Sequence[float] = (),
 ) -> list[dict]:
     """Gom câu thành shot, mỗi shot 3–8 giây, phủ kín [0, total].
 
@@ -391,8 +560,10 @@ def _plan_shots(
         ev = evidence.get(k)
         n_img = k - sum(1 for j in evidence if j < k)
         img = None if ev else (images[n_img] if n_img < len(images) else None)
+        label = None
         if ev:
             asset = dict(ev)
+            label = asset.pop("label", None)     # 1.4: nhãn là của SHOT, không phải asset
         else:
             asset = (
                 {"kind": "image", "path": f"img/{img.name}"}
@@ -415,16 +586,18 @@ def _plan_shots(
             motion = _motion_preset(k + offset, zoom_lo, zoom_hi)
         else:
             motion = {"type": "none"}
-        if ev and ev.get("kind") == "video" and str(ev.get("path", "")).startswith("stock/") and end - start > (
-                REFRAME_EARLY_SEC if start < REFRAME_EARLY_UNTIL else REFRAME_LATE_SEC):
+        # mốc đổi khung có lý do (W3): đầu câu bên trong shot + lúc đọc TỪ NHẤN (punch-in đúng chữ)
+        cuts = sorted({spans[i].start for i in g[1:]} | {a for a in accents if start < a < end})
+        if ev and ev.get("kind") == "video" and str(ev.get("path", "")).startswith("stock/") and len(
+                seg_bounds(start, end, cuts)) >= 2:
             # clip stock dài: vẫn một góc máy → chèn đoạn cận như ảnh (v9 2026-10-07: clip 8,1s, research/21 §8 C3)
             motion = {"type": "ken_burns", "from": {"scale": 1.0, "x_pct": 0, "y_pct": 0},
                       "to": {"scale": 1.04, "x_pct": 0, "y_pct": 0}}
         if not ev or ev.get("kind") in ("image", "video"):
-            motion = _reframe(motion, start, end, k)
+            motion = _reframe(motion, start, end, k, cuts)
         elif ev.get("kind") == "screenshot":
             # ×1,35 neo mép trái (v6 2026-10-07: ×1,55 quanh tâm cắt mất đầu dòng của trang căn trái — "e inputs")
-            motion = _zoom_screenshot(motion, start, end, close=1.35)
+            motion = _zoom_screenshot(motion, start, end, close=1.35, cuts=cuts)
         # Thẻ (stat/chart/list/chat/code) KHÔNG zoom: thẻ đã chiếm gần hết bề ngang an toàn (x 62–874px) — v8 2026-10-07
         # ×1,15 đẩy mép thẻ vào dải UI trái → T1 chặn cả 2 video; không lấn chỉ còn ≤ ×1,04 (vô nghĩa). Thẻ dài xử lý ở kịch
         # bản: thẻ chỉ gắn câu ≤ 18 từ (scriptwriter `_check_visual_soft`).
@@ -445,6 +618,8 @@ def _plan_shots(
             "motion": motion,
             "transition_in": trans,
         }
+        if label:
+            shot["label"] = label
         shots.append(shot)
     # Phòng vệ cuối (2026-10-10): shot dài < 0,2s (câu bị căn 0 giây) → gộp vào shot trước, không để validator chặn cả video.
     out: list[dict] = []
@@ -552,6 +727,11 @@ def build(
             mid = round((a["end_sec"] + b["start_sec"]) / 2, 3)
             a["end_sec"], b["start_sec"] = mid, mid
     captions[0]["start_sec"] = max(0.0, captions[0]["start_sec"])
+    # 2026-10-13 (video 1013-jeff-bezos…): aligner đặt từ cuối ở 58,66s, wav chỉ dài 58,56s → validator chặn cả
+    # video vì 0,1 giây. Tony: quá vài phần giây không tính là lỗi → kẹp về cuối audio (từ được kẹp ở vòng dưới).
+    _end = round(tts.duration_sec, 3)
+    for c in captions:
+        c["start_sec"], c["end_sec"] = min(c["start_sec"], _end), min(c["end_sec"], _end)
     # Phòng vệ (2026-10-10): caption dài ≤ 0 (câu bị căn 0 giây) làm validator chặn cả video → bỏ caption đó.
     captions[:] = [c for i, c in enumerate(captions) if i == 0 or c["end_sec"] - c["start_sec"] > 0.01]
     # Phase V3: chữ tiêu đề frame 0 khác lời đọc (research/11 §4.1 — chữ > hình > lời).
@@ -592,8 +772,10 @@ def build(
     duration = round(tts.duration_sec, 3)
     # Lệch điểm bắt đầu vòng chuyển động theo id: các video không mở cùng một kiểu.
     offset = sum(video_id.encode("utf-8")) % 4
+    accents = accent_times(captions, emphasis)
     shots = _plan_shots(spans, duration, img_dst, style_cfg, style["palette"]["bg"], offset, dep_dst,
-                        breaks=breaks, evidence=evidence, alts=alts)
+                        breaks=breaks, evidence=evidence, alts=alts, accents=accents)
+    add_cues(shots, sorted(set(accents) | set(number_times(captions))))
 
     overlays = _timed_overlays(lines, spans, duration)
     _masc = _cur().style.get("mascot")

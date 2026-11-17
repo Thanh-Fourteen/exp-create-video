@@ -163,6 +163,20 @@ def relevance(query: str, text: str) -> int:
     return score
 
 
+def _stem(w: str) -> str:
+    for suf in ("ing", "ed", "es", "s"):
+        if len(w) > len(suf) + 2 and w.endswith(suf):
+            return w[: -len(suf)]
+    return w
+
+
+def action_bonus(action: str, text: str) -> int:
+    """W4 (2026-11-17, AUDIT #4): +1 / động từ-hành động của beat có trong mô tả clip ("pouring" ~ "pour"). Chỉ dùng để
+    XẾP HẠNG giữa các clip đã qua ngưỡng `relevance` — không nới ngưỡng, nên không kéo clip lạc đề vào."""
+    a = {_stem(w) for w in _words(action)}
+    return len(a & {_stem(w) for w in _words(text)}) if a else 0
+
+
 # Ngưỡng (viết 2026-10-06, research/20 §4, trước khi chạy): clip phải khớp ≥ 1 khái niệm; cảnh mở đầu (hook — 1–2 giây
 # quyết định lướt) ≥ 2. Không đạt → ảnh chụp thật cùng ngưỡng → ảnh AI vẽ đúng prompt.
 MIN_SCORE, MIN_SCORE_HOOK = 2, 4
@@ -229,8 +243,38 @@ def _dark_edge(mp4: Path) -> bool:
     return False
 
 
+LEDGER = CACHE / "used.json"
+REPEAT_DAYS = 7
+
+
+def recent_used(video_id: str, days: int = REPEAT_DAYS) -> set[str]:
+    """Clip/ảnh ("pexels:123") VIDEO KHÁC đã dùng trong `days` ngày — loại khỏi ứng viên (2026-10-18, research/33 §4.4:
+    người xem lướt kênh thấy cùng một cảnh ở hai video liền)."""
+    try:
+        d = json.loads(LEDGER.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    cut = time.time() - days * 86400
+    return {k for k, uses in d.items() if any(u["video"] != video_id and u["ts"] >= cut for u in uses)}
+
+
+def mark_used(keys: set[str], video_id: str) -> None:
+    try:
+        d = json.loads(LEDGER.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        d = {}
+    now, cut = time.time(), time.time() - 30 * 86400
+    for k in keys:
+        uses = [u for u in d.get(k, []) if u["video"] != video_id and u["ts"] >= cut]
+        d[k] = uses + [{"video": video_id, "ts": now}]
+    LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    tmp = LEDGER.with_suffix(".tmp")
+    tmp.write_text(json.dumps(d, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(LEDGER)
+
+
 def fetch(query: str, dst: Path, *, want_sec: float = 5.0, exclude: set[str] | None = None,
-          min_score: int = MIN_SCORE) -> Clip:
+          min_score: int = MIN_SCORE, action: str = "") -> Clip:
     """query → mp4 dọc ở `dst`. Không ném lỗi: hỏng thì `ok=False` để pipeline lùi về ảnh FLUX."""
     env = _env()
     exclude = exclude or set()
@@ -243,7 +287,7 @@ def fetch(query: str, dst: Path, *, want_sec: float = 5.0, exclude: set[str] | N
         try:
             cands = [c for c in fn(query, key, want_sec) if f"{c['provider']}:{c['id']}" not in exclude]
             # điểm liên quan trước, giữ thứ tự cũ (đủ dài + thứ hạng nhà cung cấp) khi bằng điểm
-            cands.sort(key=lambda c: -relevance(query, c.get("text", "")))
+            cands.sort(key=lambda c: -(relevance(query, c.get("text", "")) + action_bonus(action, c.get("text", ""))))
             cands = [c for c in cands if relevance(query, c.get("text", "")) >= min_score]
         except Exception as e:   # 429/403/mạng — thử nguồn kế
             errs.append(f"{prov}: {type(e).__name__}: {e}"[:160])
@@ -303,7 +347,8 @@ def _pixabay_photo(q: str, key: str) -> list[dict]:
             for h in d.get("hits", []) if h.get("largeImageURL") and h.get("imageHeight", 0) >= MIN_H]
 
 
-def fetch_photo(query: str, dst: Path, *, exclude: set[str] | None = None, min_score: int = MIN_SCORE) -> Clip:
+def fetch_photo(query: str, dst: Path, *, exclude: set[str] | None = None, min_score: int = MIN_SCORE,
+                action: str = "") -> Clip:
     """query → ẢNH CHỤP THẬT dọc (jpg) — dự phòng khi không có clip (2026-10-05, research/19): ảnh thật trước, ảnh AI sau."""
     env = _env()
     exclude = exclude or set()
@@ -315,7 +360,7 @@ def fetch_photo(query: str, dst: Path, *, exclude: set[str] | None = None, min_s
             continue
         try:
             cands = [c for c in fn(query, key) if f"{c['provider']}:{c['id']}" not in exclude]
-            cands.sort(key=lambda c: -relevance(query, c.get("text", "")))
+            cands.sort(key=lambda c: -(relevance(query, c.get("text", "")) + action_bonus(action, c.get("text", ""))))
             cands = [c for c in cands if relevance(query, c.get("text", "")) >= min_score]
         except Exception as e:
             errs.append(f"{prov}: {type(e).__name__}: {e}"[:160])

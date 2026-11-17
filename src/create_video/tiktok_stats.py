@@ -32,6 +32,8 @@ from pathlib import Path
 YTDLP = shutil.which("yt-dlp") or str(Path.home() / "miniconda3" / "bin" / "yt-dlp")
 MATCH_MIN = 0.8          # tỉ lệ giống của 80 ký tự đầu caption ↔ mô tả TikTok
 H72 = 72 * 3600
+BM_EVERY = 23 * 3600     # Insights Buffer mỗi bài tối đa 1 lần/23 giờ (research/31)
+BM_MAX_AGE = 8 * 86400   # ... và chỉ 8 ngày đầu sau khi đăng
 
 
 def log(msg: str) -> None:
@@ -118,7 +120,7 @@ def buffer_metrics(post_id: str) -> dict:
     from . import tiktok_post as tp
 
     q = "query($i: PostId!){ post(input:{id:$i}){ metrics { type value } } }"
-    m = {x["type"]: x["value"] for x in (tp.gql(q, {"i": post_id})["post"].get("metrics") or [])}
+    m = {x["type"]: x["value"] for x in (tp.gql(q, {"i": post_id}, kind="stats")["post"].get("metrics") or [])}
     return {"avg_watch": m.get("averageTimeWatched") or None, "reach": int(m["reach"]) if m.get("reach") else None,
             "views_buffer": m.get("views")}
 
@@ -171,10 +173,17 @@ def run(dry: bool = False) -> dict:
                 continue
             row = {"views": e.get("view_count"), "likes": e.get("like_count"), "comments": e.get("comment_count"),
                    "shares": e.get("repost_count"), "saves": e.get("save_count")}
-            if rv.get("buffer_post_id"):
+            # 2026-10-12 (research/31 — 429 Buffer): Insights mỗi bài tối đa 1 lần/23 giờ và chỉ 8 ngày đầu (đủ ô 24h/72h/7
+            # ngày). Trước: mọi bài × 8 lượt/ngày (~208 lượt/ngày với 26 bài) — trần Free 250/24h, 3.000/30 ngày.
+            pid = rv.get("buffer_post_id")
+            posted = rv.get("posted_at") or 0
+            bm_key = f"bm_at:{pid}"
+            if pid and now - posted < BM_MAX_AGE and now - float(db.kv_get(bm_key, 0) or 0) >= BM_EVERY:
                 try:
-                    bm = buffer_metrics(rv["buffer_post_id"])
+                    bm = buffer_metrics(pid)
                     row |= {"avg_watch": bm["avg_watch"], "reach": bm["reach"]}
+                    if not dry:
+                        db.kv_set(bm_key, now)
                 except Exception as err:
                     done["errors"].append(f"Buffer {v['id']}: {err}")
             done["snapshots"] += 1
@@ -184,7 +193,9 @@ def run(dry: bool = False) -> dict:
             db.add_stat(v["id"], now, **row)
             posted = rv.get("posted_at") or e.get("timestamp") or now
             if rv.get("views") is None and now - posted >= H72 and row["views"] is not None:
-                db.set_review(v["id"], views=row["views"], avg_watch=row.get("avg_watch"), captured_at=now)
+                aw = row.get("avg_watch") or next((x["avg_watch"] for x in reversed(db.stats_for(v["id"]))
+                                                   if x.get("avg_watch")), None)   # Insights không lấy mỗi lượt (BM_EVERY)
+                db.set_review(v["id"], views=row["views"], avg_watch=aw, captured_at=now)
                 done["filled72"] += 1
     if not dry:
         db.kv_set("tiktok_stats_last", {"at": now, **{k: v for k, v in done.items() if k != "errors"},

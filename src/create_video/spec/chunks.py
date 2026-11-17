@@ -28,6 +28,40 @@ DEFAULTS = {
 
 _PUNCT_END = re.compile(r"[,.!?:;…]$")
 
+# AUDIT #8 (2026-11-16): cụm cắt theo số âm tiết xé đôi từ ghép ("tưởng ngân │ hàng" — video AI 1116). Hai luật nhẹ, không
+# cần bộ tách từ: (1) không cắt giữa cặp trong configs/tu-ghep.txt; (2) khi phải cắt, cắt TRƯỚC hư từ mở cụm.
+FUNC_START = frozenset("là và của thì mà cho để với những các một không được đã sẽ đang trong trên khi nếu vì nên "
+                       "nhưng hay hoặc như từ tới đến ở bị do bởi theo về sau trước rồi còn cũng".split())
+_GLUE: set[tuple[str, str]] | None = None
+
+
+def _norm(w: str) -> str:
+    return unicodedata.normalize("NFC", re.sub(r"[^\w]", "", w.lower()))
+
+
+def glue_pairs() -> set[tuple[str, str]]:
+    global _GLUE
+    if _GLUE is None:
+        from pathlib import Path
+
+        f = Path(__file__).resolve().parents[3] / "configs" / "tu-ghep.txt"
+        out: set[tuple[str, str]] = set()
+        if f.exists():
+            for line in f.read_text(encoding="utf-8").splitlines():
+                t = [_norm(x) for x in line.split("#")[0].split()]
+                out.update(zip(t, t[1:]))
+        _GLUE = out
+    return _GLUE
+
+
+def _cut_before(words: Sequence[dict], i: int) -> bool:
+    """Nên cắt NGAY TRƯỚC âm tiết i (thay vì sau nó) khi cụm đầy: i dính với i+1 thành từ ghép, hoặc i+1 không phải
+    nhưng i là hư từ mở cụm thì giữ nguyên (cắt trước i là tự nhiên)."""
+    if i + 1 >= len(words) or words[i].get("emph") or words[i + 1].get("emph"):
+        return False
+    a, b = _norm(words[i]["w"]), _norm(words[i + 1]["w"])
+    return (a, b) in glue_pairs() or a in FUNC_START
+
 
 def _chars(words: Sequence[dict], a: int, b: int) -> int:
     return sum(len(w["w"]) for w in words[a:b]) + max(b - a - 1, 0)
@@ -82,6 +116,10 @@ def split_chunks(
                 r += 1
             if (i + 1 - a) + r > c["max_tokens"]:
                 full = True
+        if full and not hard and i > a and _cut_before(words, i):
+            bounds.append((a, i))          # cắt trước i: i đi cùng i+1 sang cụm sau
+            a = i
+            continue
         if last or hard or full:
             if hard:
                 hard_after.add(len(bounds))
@@ -110,7 +148,10 @@ def split_chunks(
                 # chỉ chia lại khi cụm trước đủ 3: 2 + 1 → 1 + 2 chẳng đỡ gì, mà tạo
                 # cụm 1 âm tiết rất ngắn để luật min_sec nhập ngược thành cụm quá rộng
                 # ("kiến trúc MoE." — fixture 01, 2026-10-01).
-                bounds[-2], bounds[-1] = (pa, pb - 1), (pb - 1, b)
+                cut = pb - 1
+                if cut - 1 > pa and (_norm(words[cut - 1]["w"]), _norm(words[cut]["w"])) in glue_pairs():
+                    cut -= 1      # "là tắt | bếp luôn." → "là | tắt bếp luôn." — không xé từ ghép (AUDIT #8)
+                bounds[-2], bounds[-1] = (pa, cut), (cut, b)
 
     # 4: cụm quá ngắn → nhập. Cho phép vượt max_tokens/max_chars một chút: đọc kịp
     # quan trọng hơn vừa khít một dòng (T1 hình học sẽ bắt nếu tràn thật).

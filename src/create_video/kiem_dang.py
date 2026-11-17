@@ -27,6 +27,10 @@ HEAL_WAITS = (HEAL_WAIT_SEC, 120, 180, 120, 180)   # kiểm lại sau mỗi lầ
 HEAL_AGAIN_AT = 3                                  # vẫn hỏng sau 3 lần chờ → tắt/bật Funnel lần 2
 HEAL_LOCK_SEC = 300                                # không tắt/bật lại trong 5 phút sau lần trước (của bất kỳ ai)
 FRESH_SEC = 50 * 60         # --auto: lần trước ỔN và mới hơn 50 phút → bỏ qua (timer 15 phút/lần, ~1 lần kiểm/giờ khi ổn)
+# 2026-10-12 (research/31 — 429 Buffer): mỗi lần kiểm = 4 lượt gọi Buffer. Khi ổn, chỉ kiểm nếu có bài hẹn trong 90 phút tới,
+# hoặc lần trước đã quá 6 giờ → ~3 lần/ngày thay vì 16.
+AHEAD_SEC = 90 * 60
+IDLE_SEC = 6 * 3600
 KV = "kiem_dang"
 DRAFT = """mutation($i: CreatePostInput!){ createPost(input:$i){ __typename
  ... on PostActionSuccess { post { id } } ... on InvalidInputError { message } ... on LimitReachedError { message }
@@ -50,10 +54,10 @@ def buffer_reads_url(channel_id: str) -> tuple[bool, str]:
         inp = {"channelId": channel_id, "text": "kiem tra tu dong - nhap, xoa ngay", "mode": "customScheduled",
                "dueAt": "2030-01-01T00:00:00.000Z", "schedulingType": "automatic", "saveToDraft": True,
                "assets": [{"video": {"url": url}}]}
-        r = tp.gql(DRAFT, {"i": inp})["createPost"]
+        r = tp.gql(DRAFT, {"i": inp}, kind="check")["createPost"]
         if r["__typename"] != "PostActionSuccess":
             return False, f"{r['__typename']}: {r.get('message', '')}"
-        tp.gql("mutation($i: DeletePostInput!){ deletePost(input:$i){ __typename } }", {"i": {"id": r["post"]["id"]}})
+        tp.gql("mutation($i: DeletePostInput!){ deletePost(input:$i){ __typename } }", {"i": {"id": r["post"]["id"]}})  # luôn xoá (kind post) — không để sót nháp
         return True, "Buffer đọc được video qua Funnel"
     except tp.PostError as e:
         return False, str(e)
@@ -90,13 +94,14 @@ def run(heal: bool = True) -> dict:
     # 1) key Buffer + kênh còn nối
     want = {c.id: c.raw["buffer_channel_id"] for c in channels.all_channels() if c.raw.get("buffer_channel_id")}
     try:
-        got = {c["id"]: c for c in tp.channels()}
+        got = {c["id"]: c for c in tp.channels(kind="check")}
         for cid, bid in want.items():
             c = got.get(bid)
             add(f"kênh {cid}", bool(c) and not c.get("isDisconnected"),
                 "đã nối" if c and not c.get("isDisconnected") else "MẤT KẾT NỐI trên Buffer — vào Buffer nối lại TikTok")
     except tp.PostError as e:
-        add("Buffer API", False, f"{e} — key hết hạn? (.env BUFFER_API_KEY)")
+        add("Buffer API", False, str(e) if "429" in str(e) or "Ngân sách" in str(e) or "tạm hoãn" in str(e)
+            else f"{e} — key hết hạn? (.env BUFFER_API_KEY)")
     # 2) đường Buffer → Funnel → video (thật, từ Internet)
     healed = None
     if want:
@@ -135,9 +140,16 @@ def main(argv: list[str]) -> int:
 
     db.init()
     if "--auto" in argv:
-        prev = last() or {}
-        if prev.get("ok") and time.time() - prev.get("ts", 0) < FRESH_SEC:
+        prev, now = last() or {}, time.time()
+        age = now - prev.get("ts", 0)
+        if prev.get("ok") and age < FRESH_SEC:
             return 0
+        due = db.list_schedule(start=now, end=now + AHEAD_SEC, statuses=("scheduled",))
+        if prev.get("ok") and not due and age < IDLE_SEC:
+            return 0
+        u = tp.usage()
+        if u["last_429"] and now - u["last_429"] < tp.BACKOFF_429_SEC:
+            return 0   # đang nghỉ sau 429 — kiểm lúc này chỉ đốt thêm lượt và ghi đè kết quả bằng lỗi hoãn
     r = run(heal="--no-heal" not in argv)
     print(time.strftime("%H:%M:%S"), "OK" if r["ok"] else "HỎNG",
           json.dumps([c for c in r["checks"] if not c["ok"]] or r["checks"], ensure_ascii=False), flush=True)

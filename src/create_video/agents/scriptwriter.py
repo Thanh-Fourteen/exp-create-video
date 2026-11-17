@@ -129,6 +129,11 @@ class Script:
     pin_comment: str = ""
     # 2026-10-06 (research/21 §4): kiểu kết do CODE chọn xoay vòng (angles.END_STYLES) — T3 chấm CTA theo kiểu này.
     end_style: str = ""
+    # 2026-10-18 (V1, research/33): chỉ số trong `lines` của câu có CÁCH LÀM/ĐÁP ÁN đầu tiên — code kiểm ≤ 2.
+    first_value_line: int | None = None
+    # W4 (2026-11-17, UPGRADE-PLAN §2.1): storyboard theo câu — cùng lần gọi scriptwriter (D1), code kiểm sau.
+    # [{"line", "purpose", "visual": {"subject", "action", "shot"}}]. Thiếu → hành vi cũ (suy từ `shots`).
+    beats: list[dict] = field(default_factory=list)
 
     @property
     def lines(self) -> list[str]:
@@ -162,7 +167,9 @@ class Script:
             ],
             sources=d.get("sources", []),
             caption=d.get("caption", "").strip(),
-            hashtags=[str(h).lstrip("#").strip() for h in d.get("hashtags", [])],
+            # .lower() (2026-11-11): model viết 'troNang' → spec schema ^[a-z0-9_]+$ chặn, job hỏng ở bước dựng. Hashtag TikTok
+            # không phân biệt hoa thường nên hạ chữ thường là không mất gì.
+            hashtags=[str(h).lstrip("#").strip().lower() for h in d.get("hashtags", [])],
             keywords=[str(k).strip() for k in d.get("keywords", [])],
             overlays=[
                 {"line": int(o["line"]), "text": str(o["text"]).strip()}
@@ -174,7 +181,16 @@ class Script:
             pillar=str(d.get("pillar") or "").strip(),
             pin_comment=str(d.get("pin_comment") or "").strip(),
             end_style=str(d.get("end_style") or "").strip(),
+            first_value_line=int(d["first_value_line"]) if d.get("first_value_line") is not None else None,
+            beats=[_clean_beat(b) for b in d.get("beats") or [] if isinstance(b, dict) and b.get("line") is not None],
         )
+
+
+def _clean_beat(b: dict) -> dict:
+    v = b.get("visual") or {}
+    return {"line": int(b["line"]), "purpose": str(b.get("purpose") or ""),
+            "visual": {"subject": str(v.get("subject") or "").strip(), "action": str(v.get("action") or "").strip(),
+                       "shot": str(v.get("shot") or "")}}
 
 
 def _clean_stat(st: dict | None) -> dict | None:
@@ -292,6 +308,10 @@ def evidence_kinds() -> tuple[str, ...]:
 WORDS_PER_SEC = 4.0
 
 
+# Một lần gọi scriptwriter: trung vị bước script 342s cho 2 lần gọi, tối đa 563s (40 video gần nhất, state.json, V 2026-11-16).
+SCRIPT_TIMEOUT_SEC = 720
+
+
 def _word_budget(duration_sec: int) -> tuple[int, int]:
     # v2 2026-10-07: trần 1,0 (không 1,1) — giọng đo 3,57–4,37 từ/giây theo kịch bản; 236 từ ra 66s (> 65s)
     n = duration_sec * WORDS_PER_SEC
@@ -305,7 +325,7 @@ def _check_length(script: Script, duration_sec: int) -> list[str]:
     if n < 0.85 * target or n > 1.02 * target:
         lo, hi = _word_budget(duration_sec)
         return [f"lời đọc {n} từ ≈ {n / WORDS_PER_SEC:.0f}s — video cần ~{duration_sec}s = {lo}–{hi} từ; "
-                + ("thêm ý/ví dụ cụ thể, KHÔNG thêm câu đệm" if n < target else "cắt câu ít thông tin nhất")]
+                + ("thêm ý/ví dụ cụ thể LẤY TỪ ĐỀ BÀI (không bịa số/sự kiện mới), KHÔNG thêm câu đệm" if n < target else "cắt câu ít thông tin nhất")]
     return []
 
 
@@ -342,7 +362,7 @@ D7. KHÔNG ĐẢO CHIỀU LỜI KHUYÊN: không nói một cách làm rồi vài
     đó ngay trong câu — KHÔNG câu nhử kiểu "Nhưng đây mới là chỗ…", "Nhưng có một điều…", "chỗ nhiều nhà bỏ sót" (người
     nghe thấy bị nhử hoặc bị trách). "Nhưng" chỉ dùng khi câu sau thật sự ngược câu trước. Vòng tò mò (luật B) đóng bằng
     một câu NÓI THẲNG đáp án.
-D8. DANH SÁCH ĐẾM ĐÚNG: báo trước có mấy mục, gọi "cách một / cách hai…" đúng thứ tự, không có "cách hai" khi chưa có
+D8. DANH SÁCH ĐẾM ĐÚNG: KHÔNG câu báo trước số mục (2026-10-18, luật V3), gọi "cách một / cách hai…" đúng thứ tự, không có "cách hai" khi chưa có
     "cách một".
 D9. KHÔNG RÀO ĐÓN GIỮA CHỪNG: không chèn câu kiểu "tương quan thôi nhé", "mà công bằng nhé, X không nói…", "số đó ở nước
     ngoài" — nguồn yếu tới mức phải rào thì BỎ hẳn ý đó; ý giữ lại thì nói chắc theo đúng mức nguồn nói.
@@ -351,7 +371,7 @@ D10. MỖI CÂU TỰ ĐỨNG ĐƯỢC: câu mang thông tin mới phải có ch�
 
 THÂN THUỘC, DỄ CHỊU, CUỐN — cùng mức ưu tiên với D1–D10 (Tony 2026-10-08: "không những dễ hiểu mà còn thân thuộc với người
 xem, giúp họ dễ chịu, bị cuốn hút khi nghe"; nguồn ở research/25):
-D11. CẢNH QUEN TRƯỚC: trong 3 câu đầu có MỘT cảnh đời thường cụ thể người Việt từng gặp (bữa cơm, đi chợ, tin nhắn Zalo của
+D11. CẢNH QUEN TRƯỚC: ngay trong hook hoặc CHUNG CÂU với cách làm đầu tiên (không thành câu riêng — luật V1) có MỘT cảnh đời thường cụ thể người Việt từng gặp (bữa cơm, đi chợ, tin nhắn Zalo của
     con, cuộc gọi "bên ngân hàng", ông bà lướt điện thoại tối) — người xem phải thấy "chuyện nhà mình". Cảnh giả định thì nói
     "Giả sử…", "Thử nghĩ…" — KHÔNG bịa nhân vật, câu chuyện hay số liệu như chuyện có thật.
 D12. ĐỨNG CÙNG PHÍA NGƯỜI XEM: không chê người xem ("Sai rồi.", "bạn đang làm sai", "bạn sẽ bị lừa"). Nói thói quen chung
@@ -375,9 +395,9 @@ D18. CÁCH LÀM PHẢI LÀM THEO ĐƯỢC: khuyên bật/dùng một tính năng
     tìm ở đâu. Một video tối đa HAI việc phải làm.
 LƯU & CHIA SẺ (2026-10-11, research/28 — 645 video 13 kênh Việt: video bùng được chia sẻ ×2; kênh cùng ngách bùng nổ có
 lưu/view 2,25% so với kênh mình 0,22%; dạng "N mẹo/lệnh/bước" bùng ×1,64):
-S1. Phần giá trị chính là 2–5 BƯỚC hoặc MỤC đánh số, báo trước số mục ("Ba bước thôi:"), mỗi mục một câu làm được ngay.
-S2. Ngay SAU mục giá trị chính (không phải câu cuối) có ĐÚNG MỘT câu rủ lưu kèm lý do, viết như lời người nhà (D13):
-    "Lưu lại, lúc cần mở ra làm theo là xong." Không xin like/follow.
+S1. Phần giá trị chính là 2–5 BƯỚC hoặc MỤC, mỗi mục một câu làm được ngay. KHÔNG báo trước số mục (V3).
+S2. (2026-10-18 — BỎ câu rủ lưu giữa video: 0/10 video viral có, kênh AI vẫn 0 lưu sau 8 bài áp luật; xem V3.) Rủ lưu
+    chỉ được ở CÂU KẾT. Không xin like/follow.
 S3. Shot ở câu CUỐI là thẻ `list` TÓM TẮT các bước (≤ 4 mục, mỗi mục ≤ 30 ký tự, `title` nói lợi ích) — người xem dừng video
     là chụp được, đủ để làm theo mà không cần xem lại.
 S4. Cho thấy CÔNG SỨC THẬT: kết quả cụ thể (con số đo, câu lệnh nguyên văn, ảnh chụp đúng trang công cụ) thay vì mô tả chung
@@ -419,15 +439,40 @@ def _system_prompt(duration_sec: int) -> str:
         img_rule += (f"\n   LUẬT KÊNH: ≥ {r_real:.0%} số shot là `stock` (CẢNH QUAY/ẢNH CHỤP THẬT) — người xem chán ảnh AI. "
                      "\n   `image` (ảnh AI) chỉ cho cảnh KHÔNG quay được ngoài đời (khái niệm, đồ vật tưởng tượng).")
     lo_w, hi_w = _word_budget(duration_sec)
+    # 2026-10-19 (research/34): luật khác nhau theo kênh, đọc cờ `rules:` của channel.yaml.
+    loop2 = ("ngay sau đó mở vòng 2 (một câu hỏi/hậu quả cụ thể hơn), trả lời ở cuối video." if ch.flag("second_loop", True)
+             else "KHÔNG mở vòng tò mò thứ hai — mẹo nào cũng đóng ngay trong mẹo đó.")
+    hook_h = "" if ch.flag("hook_who_num", True) else "(kênh này KHÔNG bắt buộc — 31/55 hook mẹo bùng không có) "
+    tw = ch.flag("twist", [0.40, 0.75])
+    rule_j = ("J. KHÔNG cần chỗ ngoặt \"Nhưng…\" (6/55 video mẹo bùng; kịch bản cũ 10/10). Thay bằng PHẢN ĐỀ sau cách làm: "
+              "\"Chứ <làm sai> thì <hậu quả cụ thể, hơi phóng đại, hài>\" (\"Chứ đổ uỳnh vào xào ngay thì nước ra lênh láng cái "
+              "chảo\") — khoảng 2/3 số mẹo có phản đề. KHÔNG hứa \"mẹo cuối hay nhất\" (0/55 video ngắn)." if tw is False else
+              f"J. CHỖ NGOẶT THẬT THÀ ở {tw[0]:.0%}–{tw[1]:.0%} thời lượng bắt đầu bằng \"Nhưng…\" — giới hạn/điều kiện có thật "
+              "(\"Nhưng hai máy phải cùng một mạng\", \"Nhưng dữ liệu có thể về Trung Quốc\"), hay đứng sát câu kết. Video "
+              "tin/cảnh báo thêm MỘT câu phá niềm tin sớm (\"Đừng nghĩ…\", \"Nhiều người tưởng…\") trong 20% đầu.")
     de_hieu = "" if os.environ.get("CV_SCRIPT_DE_HIEU") == "0" else DE_HIEU
     return f"""{ch.text("script_intro", INTRO_AI)} Video dọc 1080×1920, dài khoảng {duration_sec} giây
 (= TỔNG lời đọc {lo_w}–{hi_w} từ, giọng đọc ~4 từ/giây — đếm cả hook và câu kết),
-giọng đọc nam, kênh KHÔNG lộ mặt người dẫn.
+giọng đọc nam hoặc nữ (xưng "mình", không tự nhận anh/chị), kênh KHÔNG lộ mặt người dẫn.
 
 ĐỀ BÀI thường kèm "SỰ THẬT ĐÃ KIỂM" (F1, F2…) do researcher tìm và code đã đối chiếu nguồn. Khi có:
 CHỈ dùng sự thật trong đó, `sources[].url` lấy đúng url của sự thật đã dùng. Không thêm số ngoài danh sách.
 
 {de_hieu}5 GIÂY ĐẦU QUYẾT ĐỊNH TẤT CẢ (research/11: phần lớn người xem lướt đi trong 5s đầu):
+V1. GIÁ TRỊ TRONG 6 GIÂY (2026-10-18, research/33 — số đo của kênh: người xem ở lại TRUNG BÌNH 6 GIÂY; kịch bản cũ đưa mẹo
+    đầu tiên ở giây 12–41, video bùng cùng ngách ở giây 1,5–4): CÁCH LÀM hoặc ĐÁP ÁN đầu tiên (động từ làm được: lấy, cho,
+    bấm, ngâm, chà, bật… hoặc câu trả lời thẳng cho hook) nằm ở `lines` chỉ số ≤ 2 (0 = hook), và TỔNG số từ TRƯỚC câu đó
+    ≤ {FIRST_VALUE_MAX_WORDS}. Nỗi khổ (H0) và cảnh quen (D11) đi CHUNG câu với hook hoặc với cách làm — KHÔNG thành câu dẫn
+    riêng. Khai chỉ số câu đó ở `first_value_line` (code kiểm).
+    Trước (20 giây): "Rán cá mà dầu bắn vào tay bạn là tại nước. / Rửa cá xong thả luôn vào chảo dầu đang sôi, dầu nổ lách
+    tách. / Thủ phạm là nước đọng trên mình cá. / Nhà mình lo cho cá khô trước đã. / Ba bước thôi… / Bước một: lấy khăn…"
+    Sau (6 giây): "Rán cá mà dầu bắn vào tay bạn là tại cá còn ướt. / Lấy khăn giấy thấm khô cả trong bụng cá, cá ráo là
+    dầu hết nổ lách tách."
+V2. HẬU QUẢ BẰNG GIÁC QUAN, NÓI VỀ VẬT: kết quả/hậu quả của mỗi mục là thứ thấy-ngửi-nếm được ("cá nát bét", "rau đen thui",
+    "cổ áo hôi mùi chua", "giòn sần sật"), chủ ngữ là VẬT hoặc thói quen, không phải "bạn sai". Được hơi phóng đại khi
+    không dính tới sức khoẻ/tính mạng (D13 vẫn cấm doạ về an toàn).
+V3. TỐI ĐA MỘT CÂU META cả video — câu nói VỀ video thay vì nội dung ("Ba bước thôi", "Đếm ngược nhé", "Lưu lại nhé",
+    "Nói gọn là", "Đúng từng chữ"). Nếu có thì chỉ ở câu kết. Mỗi câu meta tốn ~2 giây ngay trong vùng người xem rời đi.
 H1. `hook` (lời đọc, ≤ 12 từ) đưa THÔNG TIN CỤ THỂ ngay — con số, kết quả, mâu thuẫn. Không chào, không
     bối cảnh, không định nghĩa.
 H2. `hook_text` (chữ to trên frame 0, 2–7 từ) KHÁC lời hook nhưng CÙNG MỘT Ý — kiểu tiêu đề báo, đọc
@@ -464,8 +509,8 @@ bằng chứng ở research/probes/cuon-hon-2026-10-02.md:
 
 A. Hook VÀO GIỮA CHUYỆN, kiểu "khoan, cái gì?": câu đầu là sự thật gây bất ngờ, mâu thuẫn, hoặc
    câu hỏi có con số — người xem phải muốn biết câu trả lời. Không giới thiệu, không dẫn dắt.
-B. MỞ MỘT VÒNG TÒ MÒ ở hook, TRẢ LỜI ở khoảng 2/3 video (không để tới câu cuối) — kèm một chỗ
-   ngoặt ("nhưng có một điều…") ở giữa.
+B. HAI VÒNG TÒ MÒ (2026-10-18, research/33 — người xem của kênh rời đi ở giây ~6, không còn ai ở 2/3 video): vòng 1 mở
+   ở hook bằng câu hỏi CỤ THỂ và TRẢ LỜI ở câu ≤ 3; {loop2} Hook KHÔNG kết bằng chỉ trỏ trống ("hai chỗ này", "nút đó", "thứ này") — gọi tên vật thật (code kiểm).
 C. Nói như kể cho bạn: ngôi "mình" – "bạn"/"mọi người", được dùng 1–2 câu hỏi tu từ. NHƯNG chỉ nói "mình thử / mình
    đo / mình vào / mình chạy" khi đề bài có số đo của chính kênh (`research/probes/`) — thông tin từ trang
    help/công bố thì nói "bạn vào…", "Google ghi…" (2026-10-02: tự nhận đã làm mà chưa làm là nói dối). Năng lượng cao, chắc
@@ -490,10 +535,18 @@ HỌC TỪ VIDEO VIRAL — 2026-10-06, xem từng nhịp 45 video viral (19 AI �
 G. GIÁ TRỊ ĐẾN SỚM: thứ đáng giá đầu tiên (mục 1 / bước 1 / con số chính / cách kiểm) bắt đầu ở câu thứ 2 hoặc 3 — trước
    ~15% thời lượng (≈ 8 giây). Bối cảnh, nguồn, "ai công bố" TỐI ĐA MỘT câu trước đó. (Listicle mẹo viral: mục 1 trước giây
    5 ở 6/10; video của kênh: mục đầu tới muộn ở 15–23% thời lượng — vùng người xem bỏ đi.)
-H0. NỖI KHỔ TRƯỚC, GIẢI PHÁP SAU (2026-10-11, research/27 — cùng một kênh AI Việt: mở bằng tên công cụ/kỹ thuật 292–973
-    view; mở bằng nỗi khổ quen "Họp xong là quên sạch." / "Nhờ AI làm PPT?" 2,9K–17,3K, lưu/view ×10): câu đầu và `hook_text`
-    nói TÌNH HUỐNG/NỖI KHỔ người xem đang gặp, KHÔNG mở bằng tên công cụ, tên model, thuật ngữ. Tên công cụ đến ở câu 2–3.
-H. HOOK CÓ NGƯỜI HOẶC CÓ SỐ: câu hook BẮT BUỘC chứa (a) "bạn" hoặc một nhóm người cụ thể ("phụ huynh", "ai đang dùng
+H0. KHUNG MỞ THEO DẠNG VIDEO (2026-10-19, research/34 — 363 transcript video bùng của 34 kênh Việt; thay luật "nỗi khổ
+    trước" bắt buộc của 11/10: nỗi khổ chỉ 9% hook AI bùng, 21% hook thường). Chọn MỘT khung hợp dạng video:
+    • nỗi khổ quen + cách làm CHUNG một câu ("Ngồi dòm nồi thịt bò mãi không nhừ? Ném miếng dứa vào") — mẹo, công cụ
+    • vào thẳng cách làm/kết quả ("Luộc súp lơ thì cho tí dầu ăn vào nước sôi") — mẹo, danh sách
+    • "Nếu bạn gõ/làm X thì Y" ("Nếu bạn gõ /xray vào ChatGPT, nó…") — mẹo lệnh
+    • "Đừng/khỏi X nữa" + cái thay thế ngay trong câu ("Đừng mài dao như vậy nữa") — thay thói quen, thay app
+    • tin sốc kèm số và HỆ QUẢ ("Việt Nam vừa mất gần một phần ba đường ra Internet quốc tế") — tin
+    • tò mò có số mục ("Năm đoạn mã ít người biết cho ChatGPT") — danh sách
+    • tiền cụ thể ("Điều hoà chỉ bốn nghìn một đêm") — tiết kiệm
+    CẤM mở bằng tên công cụ/model LẠ (21% hook thường, 11% bùng) — tên QUEN đi với động từ bất ngờ thì được ("Gemini đang
+    âm thầm…"). CẤM hook mô tả trung tính ("Cách trình bày rau củ đẹp mắt" — 1 video, ×0,01).
+H. {hook_h}HOOK CÓ NGƯỜI HOẶC CÓ SỐ: câu hook chứa (a) "bạn" hoặc một nhóm người cụ thể ("phụ huynh", "ai đang dùng
    iPhone"), hoặc (b) một con số; nói trước kết quả thì vẫn kèm (a) hoặc (b) (AI: "bạn" 8/19, số 9/19, kết quả trước 8/19;
    code kiểm). Khung hook đã
    thấy viral (học KHUNG, không chép chữ): "Nếu bạn [làm X với vật quen thuộc], [điều lạ xảy ra]" · "Đừng [X] nữa / nếu
@@ -503,12 +556,11 @@ H. HOOK CÓ NGƯỜI HOẶC CÓ SỐ: câu hook BẮT BUỘC chứa (a) "bạn" 
    mình đầu câu thành từ khác, và mỗi dấu phẩy là một khoảng lặng trong 3 giây quý nhất; research/21 §8).
 I. MỖI MỤC KẾT BẰNG KẾT QUẢ THẤY ĐƯỢC: video nhiều mục/bước thì mỗi mục khép bằng một câu kết quả ("thế là…", "từ giờ khỏi
    phải… nữa", "… là xong") (9/10 listicle mẹo viral).
-J. CHỖ NGOẶT ở 40–75% thời lượng bắt đầu bằng "Nhưng…" / "Nhưng thực tế…" / "Nguy hiểm hơn là…" (mẹo dạng độc thoại 5/7;
-   quốc tế 3/7). Video tin/cảnh báo thêm MỘT câu phá niềm tin sớm ("Đừng nghĩ…", "Nhiều người tưởng…") trong 20% đầu.
+{rule_j}
 G2. NÓI THẲNG ĐÁP ÁN BẰNG LỜI: con số / mốc / câu trả lời phải được ĐỌC RA. Cấm đẩy sang hình kiểu "mình để nguyên lên
    hình, bạn đọc là xong", "mình chụp trang lên cho bạn so" — người xem nghe trước, ảnh chụp chữ nhỏ trên điện thoại
    không đọc nổi (video thử v3 2026-10-07: hai câu liền nói về trang nguồn mà không nói con số). Hình chỉ MINH HOẠ lời.
-K. LỜI HỨA NGẮN ngay sau hook — CHỈ khi đúng sự thật: "chỉ cần ba bước", "mất đúng ba mươi giây", "miễn phí" (AI 8/19).
+K. (2026-10-18 — BỎ câu hứa riêng sau hook: nó đẩy cách làm qua câu 2. Lời hứa đúng sự thật được nằm CHUNG câu với cách làm.)
 L. LỜI ĐỌC KHÔNG CHỨA CHUỖI KỸ THUẬT KHÓ ĐỌC: tên file, phiên bản dài có gạch/chấm ("Qwen3.8-Flash-Next", "start-r.bat"),
    mã số dài — TTS đọc thành "gạch nối flash gạch nối next" (4/5 video của kênh dính lỗi phát âm). Nói tên NGẮN ("bản Qwen
    mới nhất") và để tên đầy đủ trên HÌNH (stat/overlay/screenshot). Viết tắt quen (VNeID, CCCD, iPhone) giữ nguyên.
@@ -559,6 +611,16 @@ NHẤN TỪ KHOÁ TRÊN PHỤ ĐỀ — phụ đề hiện từng cụm 1-3 từ
     bằng chữ đúng như câu: "tám phẩy hai giây"), tên model ("SDXL-Lightning"). Nhấn
     nhiều quá thì không còn gì nổi bật.
 
+STORYBOARD — `beats` (W4): MỘT beat cho MỖI câu (`line` 0..cuối), đạo diễn hình như người dựng phim:
+   - `purpose`: vai câu đó — hook | context | value | evidence | twist | warning | step | recap | cta.
+   - `visual.subject` + `visual.action` (TIẾNG ANH): người xem THẤY ai/cái gì ĐANG LÀM GÌ — hành động cụ thể đúng lời câu đó
+     ("hand pouring white vinegar into washing machine drawer"), không phải danh từ chung ("vinegar"). Câu tĩnh: action "".
+   - `visual.shot`: close | medium | wide | screen (màn hình/giao diện).
+   Hai beat liền nhau KHÔNG cùng subject + shot (đổi cỡ cảnh hoặc chủ thể). Câu `warning` không dùng ảnh AI (dùng
+   stock/thẻ) — cảnh báo cần hình thật. Shot `stock` lấy query từ subject + action của beat câu đó.
+   BƯỚC BẤM TRÊN GIAO DIỆN (tên nút/mục/menu trong thẻ list, overlay) chỉ được viết khi tên đó có NGUYÊN VĂN trong đề
+   bài — không có thì nói chung ("tìm mục tạm dừng trong app ngân hàng của bạn"), code bỏ bước bịa.
+
 METADATA ĐĂNG BÀI — TikTok index cả caption, hashtag, chữ trên hình lẫn lời nói
 (hơn 3 tỉ lượt tìm/ngày); bỏ trắng phần này là bỏ nửa tín hiệu tìm kiếm:
 
@@ -588,6 +650,7 @@ Output là JSON theo schema đã cho, ý nghĩa từng trường:
             {{"line": 3, "kind": "stat", "prompt": "fallback scene",
               "stat": {stat_ex}}}],
   "overlays": [{{"line": 2, "text": "16-bit"}}],
+  "beats": [{{"line": 0, "purpose": "hook", "visual": {{"subject": "...", "action": "...", "shot": "close"}}}}],
   "sources": [{{"claim": "điều đã nói", "url": "nguồn", "confidence": "verified|reported"}}],
   "keywords": ["từ khoá chính", "..."],
   "caption": "caption ngắn chứa từ khoá chính",
@@ -656,7 +719,7 @@ class _SourceOut(BaseModel):
 
 class _ShotOut(BaseModel):
     line: int
-    kind: Literal["image", "stat", "chart", "code", "screenshot", "chat", "list", "stock"]
+    kind: Literal["image", "stat", "chart", "code", "screenshot", "chat", "list", "stock", "demo"]
     prompt: str
     query: str | None = None
     stat: _StatOut | None = None
@@ -666,6 +729,22 @@ class _ShotOut(BaseModel):
     list: _ListOut | None = None
     url: str | None = None
     highlight: str | None = None
+
+
+BEAT_PURPOSES = ("hook", "context", "value", "evidence", "twist", "warning", "step", "recap", "cta")
+BEAT_SHOTS = ("close", "medium", "wide", "screen")
+
+
+class _BeatVisualOut(BaseModel):
+    subject: str          # tiếng Anh: vật/người CHÍNH trong khung
+    action: str = ""      # tiếng Anh: hành động đang diễn ra ("pouring vinegar"); rỗng nếu tĩnh
+    shot: Literal[BEAT_SHOTS]
+
+
+class _BeatOut(BaseModel):
+    line: int
+    purpose: Literal[BEAT_PURPOSES]
+    visual: _BeatVisualOut
 
 
 class _OverlayOut(BaseModel):
@@ -696,6 +775,8 @@ class ScriptOut(BaseModel):
     hashtags: list[str]
     emphasis: list[str] = []
     pin_comment: str = ""
+    first_value_line: int   # V1: chỉ số câu (0 = hook) có cách làm/đáp án đầu tiên
+    beats: list[_BeatOut] = []   # W4: storyboard một beat mỗi câu
 
 
 def _script_model() -> type[ScriptOut]:
@@ -810,7 +891,7 @@ def _check_emphasis(script: Script) -> list[str]:
     return problems
 
 
-EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot", "chat", "list")
+EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot", "chat", "list", "demo")
 CHAT_MAX_CHARS, LIST_MAX_CHARS, CARD_TITLE_MAX = 60, 34, 32   # khớp spec/schema.json
 
 # Từ tiếng Việt hay gặp khi bị viết mất dấu. Demo P3b.S4 đầu tiên (2026-10-01) ra
@@ -891,7 +972,7 @@ def _check_shots(script: Script) -> list[str]:
             lines = (sh.code or {}).get("lines") or []
             if not (1 <= len(lines) <= 12) or any(len(x) > 40 for x in lines):
                 problems.append(f"{tag}: code 1-12 dòng × ≤ 40 ký tự (đọc được ở 1080px)")
-        elif sh.kind == "screenshot":
+        elif sh.kind in ("screenshot", "demo"):
             if not sh.url or target_for(sh.url) is None:
                 problems.append(
                     f"{tag}: url {sh.url!r} ngoài danh sách cho phép (trang trong đề bài · "
@@ -965,6 +1046,12 @@ MIN_LEN_CV = 0.35   # độ lệch chuẩn / trung bình số từ mỗi câu th
 # chỉ mẫu "đẩy đáp án sang hình" — không bắt "trên màn hình" (mẹo điện thoại dùng hợp lệ)
 META_SCREEN = re.compile(r"(lên hình|trên hình (đây|này|kia)|bạn (tự )?đọc (là|một|hai|trên)|chụp (nguyên )?trang|"
                          r"để nguyên lên|nhìn hình)")
+DESK_MOTIF = re.compile(r"\b(laptop|smartphone|phone|computer|desk|keyboard|monitor|screen)s?\b")
+MAX_DESK_SHOTS = 2   # 2026-10-18 (research/33 §4.4): hạn ngạch motif "bàn làm việc"
+FIRST_VALUE_MAX_WORDS = 22   # V1 (2026-10-18, research/33): ≈ 6s ở ~3,9 từ/giây
+META_LINE = re.compile(r"^\s*(lưu lại|lưu video|nhớ lưu|(hai|ba|bốn|năm) (bước|cách|mẹo|việc) thôi|chỉ (cần|có) (hai|ba|bốn|năm) "
+                       r"(bước|cách|mẹo|việc)|đếm ngược|phí lắm|nói gọn|có người chứng minh|đúng từng chữ)")
+HOOK_VAGUE = re.compile(r"\b(chỗ|thứ|điều|cái|nút|việc|dòng|bước|cách|lỗi|món)\s+(này|đó|kia|ấy)\b")
 HOOK_WHO = re.compile(r"\b(bạn|mọi người|ai|phụ huynh|bố mẹ|cha mẹ|người|dân|sinh viên|chị em|anh em|nhà mình|nhà bạn)\b")
 HOOK_NUM = re.compile(r"\d|\b(một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười|trăm|nghìn|ngàn|triệu|tỉ|tỷ)\b")
 # Vật bản chất là chữ/số — ảnh AI vẽ méo dù ghi "blank" (research/21 §8 C6).
@@ -1067,7 +1154,135 @@ def _check_visual_soft(script: Script) -> list[str]:
     for (a_j, a_w), (b_j, b_w) in ((x, y) for i, x in enumerate(imgs) for y in imgs[i + 1:]):
         if a_w and b_w and len(a_w & b_w) / min(len(a_w), len(b_w)) >= 0.6:
             problems.append(f"shot {a_j} và shot {b_j} (image): prompt gần trùng nhau — mỗi ảnh một vật/cảnh khác hẳn")
+    # 2026-10-21 (research/35 §3.4): thẻ list cuối phải hiện đủ lâu để chụp màn hình (đang 1,8–2,9s).
+    from ..channel import current as _cur_ch
+
+    min_w = _cur_ch().flag("final_card_min_words")
+    if min_w and script.shots and script.shots[-1].kind == "list" and script.shots[-1].line == len(script.lines) - 1 \
+            and len(script.cta.split()) < min_w:
+        problems.append(f"câu kết {len(script.cta.split())} từ — shot cuối là thẻ list, câu kết cần ≥ {min_w} từ để thẻ hiện ≥ 2,5s")
+    # 2026-10-18 (research/33 §1): kênh AI 50% query stock là laptop/điện thoại, ảnh AI "desk" 38/55 — mọi video một cảnh.
+    desk = [j for j, sh in enumerate(script.shots) if sh.kind in ("stock", "image")
+            and DESK_MOTIF.search(f"{sh.query or ''} {sh.prompt if sh.kind == 'image' else ''}".lower())]
+    if len(desk) > MAX_DESK_SHOTS:
+        problems.append(f"{len(desk)} shot (shot {', '.join(map(str, desk))}) là laptop/điện thoại/bàn làm việc — tối đa "
+                        f"{MAX_DESK_SHOTS}; thay bằng cảnh ĐÚNG việc câu đó nói (người làm việc đó, nơi chốn, vật cụ thể) hoặc thẻ")
     return problems
+
+
+def _check_beats(script: Script) -> list[str]:
+    """W4 (UPGRADE-PLAN §2.1) — storyboard kiểm bằng code, loại MỀM (beats là gợi ý dựng, không chặn video).
+    Script cũ / model bỏ trống `beats` → không kiểm (tương thích ngược)."""
+    if not script.beats:
+        return []
+    n = len(script.lines)
+    out = [f"beat line {b['line']} ngoài khoảng 0..{n - 1}" for b in script.beats if not 0 <= b["line"] < n]
+    seq = sorted((b for b in script.beats if 0 <= b["line"] < n), key=lambda b: b["line"])
+    norm = lambda t: " ".join(re.findall(r"[a-z]+", t.lower()))   # noqa: E731
+    for a, b in zip(seq, seq[1:]):
+        va, vb = a["visual"], b["visual"]
+        if b["line"] == a["line"] + 1 and va["subject"] and norm(va["subject"]) == norm(vb["subject"]) \
+                and va["shot"] == vb["shot"]:
+            out.append(f"beat câu {a['line']} và {b['line']}: cùng chủ thể «{va['subject']}» cùng cỡ cảnh {va['shot']} — "
+                       "đổi cỡ cảnh hoặc chủ thể")
+    for b in seq:
+        if b["purpose"] != "warning":
+            continue
+        img = [sh for sh in script.shots if sh.line == b["line"] and sh.kind == "image"]
+        if img:
+            out.append(f"câu {b['line']} là cảnh báo mà shot là ảnh AI — đổi sang `stock` (hình thật) hoặc thẻ")
+    return out
+
+
+# Bước bấm trên giao diện (W4, AUDIT 2026-11-16: thẻ "Bấm Tạm dừng quyền AI" — tên nút không có trong nguồn nào).
+UI_VERB = re.compile(r"(?:^|[,;:.→>›]\s*|\s)(?:bấm|nhấn|chạm|chọn|vào|mở|gạt|bật|tắt|kéo)\s+(?:mục|phần|nút|tab|menu|thẻ)?\s*"
+                     r"[«\"“']?([^,;:.→>›«»\"”']+)", re.I)
+UI_PLACE = re.compile(r"\b(?:nút|mục|tab|menu|trong)\s+[«\"“']?([^,;:.→>›«»\"”'\s][^,;:.→>›«»\"”']*)")
+_GENERIC_UI = {"app", "ứng dụng", "điện thoại", "máy", "trình duyệt", "web", "trang", "đây", "nó", "lên", "xuống", "ra"}
+
+
+def _ui_labels(text: str) -> list[str]:
+    labs = []
+    for m in list(UI_VERB.finditer(text)) + list(UI_PLACE.finditer(text)):
+        lab = m.group(1).strip()
+        if not lab or lab.lower() in _GENERIC_UI or not lab[0].isupper():
+            continue     # nhãn giao diện viết hoa hoặc trong ngoặc; "mở app" là lời chung
+        labs.append(lab)
+    return labs
+
+
+def ui_unverified(script: Script, ref: str) -> list[tuple[int, int, str]]:
+    """(shot j, item i, nhãn) của bước bấm trong thẻ list mà nhãn KHÔNG có nguyên văn trong `ref` (đề bài)."""
+    if not ref.strip():
+        return []
+    low = ref.lower()
+    out = []
+    for j, sh in enumerate(script.shots):
+        for i, it in enumerate(((sh.list or {}).get("items") or []) if sh.kind == "list" else []):
+            for lab in _ui_labels(str(it.get("text", ""))):
+                if lab.lower() not in low:
+                    out.append((j, i, lab))
+                    break
+    return out
+
+
+def _check_demo(script: Script, ref: str) -> list[str]:
+    """W5: pillar công cụ/repo + đề bài có link công khai → ≥ `demo_min_shots` shot demo (kênh khai trong rules)."""
+    from ..channel import current
+
+    ch = current()
+    need = int(ch.flag("demo_min_shots") or 0)
+    if not need or "demo" not in ch.shot_kinds or script.pillar not in (ch.flag("demo_pillars") or ()):
+        return []
+    if not re.search(r"https?://", ref or ""):
+        return []
+    n = sum(sh.kind == "demo" for sh in script.shots)
+    if n >= need:
+        return []
+    return [f"chỉ {n} shot `demo` — video {script.pillar} có link công khai trong đề bài cần ≥ {need} shot demo (cảnh thật "
+            "của công cụ đang làm việc, `url` lấy từ đề bài) ở các câu kể công cụ làm gì"]
+
+
+def _autofix_demo(script: Script, ref: str) -> list[str]:
+    """Thiếu shot demo → đổi shot `screenshot` có url github.com/<owner>/<repo> CÓ TRONG đề bài sang `demo` (demo hỏng thì
+    pipeline tự lùi về đúng screenshot đó — không mất gì). Không bịa url mới."""
+    if not _check_demo(script, ref):
+        return []
+    from ..channel import current
+
+    need = int(current().flag("demo_min_shots") or 0)
+    done = []
+    for j, sh in enumerate(script.shots):
+        if sum(x.kind == "demo" for x in script.shots) >= need:
+            break
+        if sh.kind == "screenshot" and sh.url and re.match(r"https?://(www\.)?github\.com/[^/\s]+/[^/\s]+", sh.url) \
+                and sh.url.split("#")[0].split("?")[0].rstrip("/") in ref:
+            sh.kind = "demo"
+            done.append(f"shot {j}: screenshot repo → demo")
+    return done
+
+
+def _check_ui(script: Script, ref: str) -> list[str]:
+    return [f"shot {j} (list) mục {i}: bước bấm «{lab}» không có trong đề bài — tên nút/mục phải nguyên văn từ nguồn; "
+            "không có thì viết chung ('tìm mục tạm dừng trong app của bạn')" for j, i, lab in ui_unverified(script, ref)]
+
+
+def _autofix_ui(script: Script, ref: str) -> list[str]:
+    """Lần cuối còn bước bịa → BỎ mục đó (không đoán tên khác). Thẻ không còn mục nào → ảnh minh hoạ."""
+    bad: dict[int, set[int]] = {}
+    for j, i, _lab in ui_unverified(script, ref):
+        bad.setdefault(j, set()).add(i)
+    done = []
+    for j, idx in bad.items():
+        sh = script.shots[j]
+        items = [it for i, it in enumerate(sh.list["items"]) if i not in idx]
+        if items:
+            sh.list = {**sh.list, "items": items}
+            done.append(f"shot {j}: bỏ {len(idx)} bước bấm không nguồn")
+        else:
+            sh.kind, sh.list = "image", None
+            done.append(f"shot {j}: thẻ toàn bước bấm không nguồn → ảnh minh hoạ")
+    return done
 
 
 # token có ≥ 2 dấu gạch/chấm nối chữ-số ("Qwen3.8-Flash-Next", "a.b.c") hoặc đuôi tên file (".bat", ".py") — research/21 §4
@@ -1106,21 +1321,27 @@ def _check_speech(script: Script) -> list[str]:
     if script.hook.count(",") > 1 or re.match(r"\s*\w+\s*,", script.hook):
         problems.append(f"hook {script.hook!r} bị ngắt vụn — tối đa một dấu phẩy, không mở bằng một từ đơn rồi ngắt (H)")
     # hook có người hoặc số (research/21 §8 A1 — video thử v2 "Chờ nồi canh nguội hẳn mới cất tủ lạnh là sai rồi" thiếu cả hai)
-    if not (HOOK_WHO.search(script.hook.lower()) or HOOK_NUM.search(script.hook.lower())):
+    from ..channel import current
+
+    ch = current()
+    if ch.flag("hook_who_num", True) and not (HOOK_WHO.search(script.hook.lower()) or HOOK_NUM.search(script.hook.lower())):
         problems.append(f"hook {script.hook!r} không có người xem/nhóm người cũng không có con số — thêm 'bạn' hoặc đối "
                         "tượng cụ thể, hoặc một con số (H)")
+    problems.extend(_check_first_value(script))
     # chỗ ngoặt "Nhưng…" ở 40–75% lời đọc (J) — v4 2026-10-07 không có câu nào dù luật có trong prompt (§8 A4)
-    if len(lines) >= 6:
+    tw = ch.flag("twist", [0.40, 0.75])   # 2026-10-19 (research/34): kênh mẹo tắt; kênh AI 40–90%
+    if tw is not False and len(lines) >= 6:
         tot = sum(len(x.split()) for x in lines)
         pos, ok = 0, False
         for ln in lines:
             # rà soát 2026-10-10: D7/J cho phép ngoặt CÙNG HƯỚNG ("Nguy hiểm hơn là…") — code từng chỉ nhận "Nhưng"
             if re.match(r"\s*(nhưng|nguy hiểm hơn|thực ra|thật ra|còn đáng lo hơn|điều ít ai biết)\b", ln.lower()) \
-                    and 0.40 <= pos / max(tot, 1) <= 0.75:
+                    and tw[0] <= pos / max(tot, 1) <= tw[1]:
                 ok = True
             pos += len(ln.split())
         if not ok:
-            problems.append("không có chỗ ngoặt (\"Nhưng…\", \"Nguy hiểm hơn là…\", \"Thật ra…\") ở khoảng 40–75% lời đọc — thêm ở giữa video (J)")
+            problems.append(f"không có chỗ ngoặt (\"Nhưng…\", \"Nguy hiểm hơn là…\", \"Thật ra…\") ở khoảng {tw[0]:.0%}–{tw[1]:.0%} "
+                            "lời đọc (J)")
     # đẩy đáp án sang hình (G2)
     for i, ln in enumerate(lines):
         if META_SCREEN.search(ln.lower()):
@@ -1131,6 +1352,38 @@ def _check_speech(script: Script) -> list[str]:
         bad = [t for t in TECH_TOKEN.findall(ln) if not re.fullmatch(r"[\d.,]+", t)]
         if bad:
             problems.append(f"câu {i} đọc chuỗi kỹ thuật {', '.join(bad)!s} — nói tên ngắn, để tên đầy đủ trên hình (L)")
+    return problems
+
+
+def _check_first_value(script: Script) -> list[str]:
+    """V1 + V3 + B (2026-10-18, research/33): giá trị trong 6 giây, ≤ 1 câu meta, hook không chỉ trỏ trống.
+
+    Người xem của kênh ở lại trung bình ~6 giây (Buffer Insights, 42 bài) mà kịch bản đưa mẹo đầu tiên ở giây 12–41 —
+    luật G có trong prompt từ 06/10 vẫn trượt 6/6, nên giờ code kiểm."""
+    problems: list[str] = []
+    lines = list(script.lines)
+    fv = script.first_value_line
+    if fv is None:
+        problems.append("thiếu `first_value_line` — chỉ số câu có cách làm/đáp án đầu tiên (V1)")
+    elif not 0 <= fv < len(lines):
+        problems.append(f"`first_value_line` {fv} ngoài khoảng 0-{len(lines) - 1} (V1)")
+    else:
+        before = sum(len(x.split()) for x in lines[:fv])
+        if fv > 2 or before > FIRST_VALUE_MAX_WORDS:
+            problems.append(f"cách làm/đáp án đầu tiên ở câu {fv}, sau {before} từ (~{before / 3.9:.0f}s) — phải ở câu ≤ 2 và "
+                            f"sau ≤ {FIRST_VALUE_MAX_WORDS} từ; gộp nỗi khổ/cảnh quen vào CHUNG câu với hook hoặc cách làm, bỏ "
+                            "câu dẫn, câu hứa, câu báo số mục (V1)")
+        elif META_LINE.match(lines[fv].lower()):
+            problems.append(f"câu {fv} khai là giá trị đầu tiên nhưng là câu meta: {lines[fv]!r} (V1)")
+    meta = [i for i, ln in enumerate(lines) if META_LINE.match(ln.lower())]
+    if len(meta) > 1:
+        problems.append(f"{len(meta)} câu meta (câu {', '.join(map(str, meta))}) — tối đa MỘT, và chỉ ở câu kết (V3)")
+    for i in meta:
+        if i != len(lines) - 1 and re.match(r"\s*(lưu|nhớ lưu)", lines[i].lower()):
+            problems.append(f"câu {i} rủ lưu giữa video: {lines[i]!r} — rủ lưu chỉ ở câu kết (V3)")
+    m = HOOK_VAGUE.search(script.hook.lower())
+    if m:
+        problems.append(f"hook chỉ trỏ trống ({m.group(0)!r}) — gọi tên vật/việc thật, người xem chưa thấy gì để 'này/đó' (B)")
     return problems
 
 
@@ -1232,16 +1485,23 @@ async def _write(
 
     system = _system_prompt(duration_sec)
     last_problems: list[str] = []
+    first_prompt = prompt
+    # Đề bài làm mốc kiểm bước bấm (W4). Vai sửa (revise) chứa JSON kịch bản cũ → tự khớp, nên chỉ kiểm vai viết đầu.
+    ref = prompt if role == "scriptwriter" and "ĐỀ BÀI" in prompt else ""
 
     for attempt in range(max_retry + 1):
         out = await arun_role(
             role, prompt, _script_model(),
-            system_prompt=system, tools=[], max_turns=6, max_budget_usd=2.0,
+            system_prompt=system, tools=[], max_turns=6, max_budget_usd=3.0,
+            timeout_sec=SCRIPT_TIMEOUT_SEC,   # 2026-11-16 (AUDIT B10): trước không có trần — gọi treo = job treo vô hạn   # 2.0 → 3.0 (2026-10-18): lượt đầu thường 1,6–1,9 USD (tạo cache prompt), job AI 1018 chết ở 2,0
             model=model, state=state,
         )
         data = out.model_dump(by_alias=True)
         script = Script.from_dict(data, topic=topic)
         script.end_style = end_style
+        # W4/W5 — GÓP Ý (beats, thiếu demo, bước bấm không nguồn): tự chúng KHÔNG gọi thêm lượt LLM (ngưỡng "lượt LLM
+        # không tăng", UPGRADE-PLAN §4). Có lượt sửa vì lỗi khác thì gửi kèm; kết thúc thì code tự vá phần vá được.
+        advice = _check_ui(script, ref) + _check_demo(script, ref) + _check_beats(script)
         problems = _check(script) + _check_length(script, duration_sec)
         soft = set(_check_speech(script)) | set(_check_visual_soft(script)) | set(_check_length(script, duration_sec))
         if problems and attempt == max_retry and set(problems) <= soft:
@@ -1260,6 +1520,12 @@ async def _write(
             print("  ⚠ văn nói chưa đạt sau khi thử lại: " + " | ".join(p[:90] for p in problems), flush=True)
             problems = []
         if not problems:
+            fixed = _autofix_ui(script, ref) + _autofix_demo(script, ref)
+            if fixed:
+                print("  🔧 tự vá (góp ý W4/W5): " + " | ".join(fixed), flush=True)
+            left = _check_beats(script) + _check_demo(script, ref)
+            if left:
+                print("  ⓘ góp ý chưa sửa (không gọi thêm LLM): " + " | ".join(x[:90] for x in left), flush=True)
             if artifact is not None:
                 artifact.write_text(script.to_json() + "\n", encoding="utf-8")
             return script
@@ -1269,9 +1535,13 @@ async def _write(
             # trước 2026-10-01 chỉ gửi danh sách lỗi, model không thấy bài cũ và
             # thực chất viết lại mù. Nói đúng lỗi, không nói "viết lại cho hay
             # hơn" — sửa mù thì vòng sau hỏng chỗ khác (research/10 §5).
+            # 2026-11-16 (AUDIT #3): kèm lại NGUYÊN đề bài gốc (brief đã kiểm, góc kể, ghi chú QC). Bản trước chỉ gửi chủ đề +
+            # lỗi + JSON → lượt sửa không thấy sự thật đã kiểm, lỗi "thiếu chữ" thành lời mời bịa thêm ý.
             prompt = (
-                f"Chủ đề: {topic}\n\nKịch bản dưới đây vi phạm ràng buộc kỹ thuật:\n"
+                f"ĐỀ BÀI GỐC (nguồn sự thật DUY NHẤT — không thêm số liệu/sự kiện ngoài đây):\n{first_prompt}\n\n"
+                "────────\nKịch bản dưới đây vi phạm ràng buộc kỹ thuật:\n"
                 + "\n".join(f"- {p}" for p in problems)
+                + ("\n\nNhân tiện sửa luôn (góp ý, không bắt buộc):\n" + "\n".join(f"- {a}" for a in advice) if advice else "")
                 + "\n\nSửa ĐÚNG những chỗ đó, giữ nguyên phần còn lại.\n\n"
                 + json.dumps(data, ensure_ascii=False, indent=2)
             )

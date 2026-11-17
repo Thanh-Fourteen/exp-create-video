@@ -189,7 +189,11 @@ def extract_system() -> str:
                   "release_date | date | org_name | license | health | food_safety | other.\n"
                   "4. `health` = khẳng định về tác động lên SỨC KHOẺ (gây bệnh, tốt cho tim…). `food_safety` = "
                   "khẳng định về an toàn thực phẩm (bảo quản bao lâu, nhiệt độ, vi khuẩn, hoá chất, độc tố). "
-                  "Câu có con số về thực phẩm/sức khoẻ vẫn là health/food_safety, không phải number.")
+                  "Câu có con số về thực phẩm/sức khoẻ vẫn là health/food_safety, không phải number.\n"
+                  "   Phân biệt: chỉ là health/food_safety khi làm sai có thể gây HẠI cho người (ngộ độc, bệnh, độc tố, "
+                  "hư hỏng ăn vào nguy hiểm, cháy nổ, hoá chất). Mẹo nấu nướng/nhà cửa chỉ ảnh hưởng ngon/dở, mềm/dai, "
+                  "thơm/tanh, sạch/bẩn bề mặt, tiết kiệm (vd. thái ngang thớ cho mềm, chanh muối khử mùi thớt) = `other`. "
+                  "Không chắc thì chọn health/food_safety.")
     return s
 
 

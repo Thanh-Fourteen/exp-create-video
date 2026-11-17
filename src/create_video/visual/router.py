@@ -20,7 +20,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Sequence
 
-EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot", "chat", "list")   # chat/list: kênh mẹo 2026-10-04
+EVIDENCE_KINDS = ("stat", "chart", "code", "screenshot", "chat", "list",   # chat/list: kênh mẹo 2026-10-04
+                  "demo")   # 2026-10-21 (research/35 §3.2): cảnh demo thật — visual/demo.py, hỏng thì lùi về screenshot
 ANCHORED_KINDS = EVIDENCE_KINDS + ("stock",)   # stock (2026-10-05): cảnh quay thật, neo đúng câu như thẻ
 
 
@@ -49,7 +50,15 @@ def breaks(shots, kept: Sequence[int]) -> set[int]:
             if s.kind in ANCHORED_KINDS and s.line is not None and s.line in pos and pos[s.line] > 0}
 
 
-def plan(shots, groups: Sequence[Sequence[int]], kept: Sequence[int]) -> list[Visual]:
+FRAMING = {"close": "close-up shot", "medium": "medium shot", "wide": "wide establishing shot"}
+_HAS_FRAMING = ("close-up", "closeup", "close up", "macro", "medium shot", "wide shot", "overhead", "top-down", "wide ")
+
+
+def _beat_for(beats, line):
+    return next((b for b in beats if b.get("line") == line), None) if beats and line is not None else None
+
+
+def plan(shots, groups: Sequence[Sequence[int]], kept: Sequence[int], beats: Sequence[dict] = ()) -> list[Visual]:
     """Mỗi nhóm câu → một `Visual`.
 
     `groups` chứa chỉ số trong danh sách câu đã bỏ câu rỗng; `kept[k]` đưa về chỉ
@@ -73,7 +82,11 @@ def plan(shots, groups: Sequence[Sequence[int]], kept: Sequence[int]) -> list[Vi
         cands = [s for k in g for s in by_line.get(kept[k], [])]
         ev = next((s for s in cands if s.kind in ANCHORED_KINDS), None)
         if ev is not None and kept[g[0]] == ev.line:
-            out.append(Visual(ev.kind, prompt=ev.prompt, data=_payload(ev), url=ev.url or "",
+            data = _payload(ev)
+            bt = _beat_for(beats, ev.line)
+            if ev.kind == "stock" and bt and bt["visual"].get("action"):
+                data["action"] = bt["visual"]["action"]      # W4: xếp hạng clip theo hành động của câu
+            out.append(Visual(ev.kind, prompt=ev.prompt, data=data, url=ev.url or "",
                               highlight=ev.highlight or "", line=ev.line))
             continue
         img = next((s for s in cands if s.kind == "image" and s.prompt), None)
@@ -89,6 +102,12 @@ def plan(shots, groups: Sequence[Sequence[int]], kept: Sequence[int]) -> list[Vi
         n_used = sum(1 for v in out if v.kind == "image" and v.prompt.split(" | ")[0] == prompt)
         if prompt and n_used:
             prompt = f"{prompt} | {REFRAME[(n_used - 1) % len(REFRAME)]}"
+        else:
+            # W4: cỡ cảnh của beat câu mở nhóm → ảnh AI không đồng loạt cỡ trung (prompt chưa tự khai cỡ cảnh)
+            bt = _beat_for(beats, kept[g[0]])
+            fr = FRAMING.get((bt or {}).get("visual", {}).get("shot", ""))
+            if prompt and fr and not any(x in prompt.lower() for x in _HAS_FRAMING):
+                prompt = f"{prompt}, {fr}"
         out.append(Visual("image", prompt=prompt, line=kept[g[0]]))
     return out
 

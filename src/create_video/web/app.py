@@ -208,7 +208,7 @@ def page_create(request: Request, topic: str = "", pillar: str = "", idea: str =
 # bước + thời gian đã chạy, không % giả (NN/g long waits, V); xong thì danh sách tự tải lại.
 _REFRESH: dict[str, object] = {}     # kênh → Popen (giữ để poll(), tránh process zombie)
 SUGGEST_N = 6
-DURATIONS = (45, 55, 75, 90, 120)   # D5 research/15; 60→55 2026-10-06 (research/21: trung vị viral 52–53s) — mặc định theo channel.yaml
+DURATIONS = (35, 45, 55, 75, 90, 120)   # 35: 2026-10-18 kênh mẹo (research/33 R2); D5 research/15; 60→55 2026-10-06 (research/21: trung vị viral 52–53s) — mặc định theo channel.yaml
 
 
 def _refresh_state(cid: str) -> dict | None:
@@ -596,6 +596,9 @@ def _lich_view(request: Request, w: int) -> dict:
         v = vids.get(s["video_id"])
         if v is None or v["channel"] not in cids:
             continue
+        # 2026-10-16: lịch bị huỷ vì bấm Đăng tay — hiện bài ở giờ đăng thật, đừng chiếm ô hẹn cũ
+        if s["status"] == "cancelled" and (v.get("review") or {}).get("posted_at"):
+            continue
         in_sched.add(v["id"])
         put(s["due_at"], {"kind": "sched", "s": s, "v": v, "tk": tk.get(v["id"]),
                           "warn": lich.warnings(v["channel"], s["due_at"], exclude=v["id"]) if s["status"] == "scheduled" else []})
@@ -617,7 +620,14 @@ def _lich_view(request: Request, w: int) -> dict:
     kd = kiem_dang.last() or {}
     kd_bad = [c for c in kd.get("checks", []) if not c.get("ok")]
     kd_stale = not kd or now - kd.get("ts", 0) > 3 * 3600
-    return {"kd": kd, "kd_bad": kd_bad, "kd_stale": kd_stale, "days": days, "w": w, "cids": cids, "backlog": backlog, "cfg": {c: lich.cfg(c) for c in cids},
+    # 2026-10-12 (research/31): lỗi chỉ là 429 (vượt lượt gọi Buffer) ≠ đường đăng hỏng — key vẫn còn, đang tạm nghỉ kiểm.
+    from .. import tiktok_post as tp
+
+    kd_rate = bool(kd_bad) and all("429" in c.get("msg", "") or "RATE_LIMIT" in c.get("msg", "") for c in kd_bad)
+    u = tp.usage()
+    kd_retry = (u["last_429"] or 0) + tp.BACKOFF_429_SEC
+    return {"kd": kd, "kd_bad": kd_bad, "kd_stale": kd_stale, "kd_rate": kd_rate,
+            "kd_retry": kd_retry if kd_retry > now else None, "bufu": u, "days": days, "w": w, "cids": cids, "backlog": backlog, "cfg": {c: lich.cfg(c) for c in cids},
             "chs": {c: channels.get(c) for c in cids}, "hold": hold if hold > now else None,
             "wrange": f"{days[0]['date']} – {days[-1]['date']}", "fmt": lich.fmt}
 
@@ -884,6 +894,41 @@ def video_asset(vid: str, asset: str):
         raise HTTPException(404)
     return FileResponse(d / asset, headers={"Cache-Control": "max-age=86400"},
                         **({"filename": f"bia-{vid}.jpg"} if asset == "cover.jpg" else {}))
+
+
+# 2026-10-21 (research/35 §3.1): nghe mù tốc độ giọng kênh AI — cổng trước khi bật đọc nhanh (voice/tempo_test.py).
+@app.get("/nghe-thu", response_class=HTMLResponse)
+def page_nghe_thu(request: Request):
+    from ..voice import tempo_test as tt
+
+    k = tt._key()
+    by = {p["id"]: p for p in k["pairs"]}
+    answers = db.kv_get(tt.KV, {}) or {}
+    return _page(request, "nghe_thu", pairs=[by[i] for i in k["order"] if i in by], answers=answers,
+                 done=sum(1 for v in answers.values() if v in ("A", "B")), res=tt.result(answers) if by else None,
+                 speeds=tt.SPEEDS)
+
+
+@app.post("/nghe-thu/{pid}")
+def nghe_thu_pick(request: Request, pid: int, pick: str = Form(...)):
+    from ..voice import tempo_test as tt
+
+    if pick not in ("A", "B") or pid not in {p["id"] for p in tt._key()["pairs"]}:
+        raise HTTPException(400)
+    answers = db.kv_get(tt.KV, {}) or {}
+    answers[str(pid)] = pick
+    db.kv_set(tt.KV, answers)
+    return _back(request, f"/nghe-thu#p{pid}")
+
+
+@app.get("/nghe-thu/{name}.m4a")
+def nghe_thu_audio(name: str):
+    from ..voice import tempo_test as tt
+
+    p = tt.DIR / f"{name}.m4a"
+    if not re.fullmatch(r"\d{2}-[AB]", name) or not p.exists():
+        raise HTTPException(404)
+    return FileResponse(p, media_type="audio/mp4")
 
 
 @app.get("/voice/{slug}.m4a")

@@ -164,3 +164,35 @@ Tài liệu gốc: `research/11-audit-tiktok-ai.md` (research nội dung + audit
 - **T4 kênh mẹo:** claim `health`/`food_safety` chỉ đạt khi nguồn tier1 (cơ quan nhà nước/y tế) — không thì chặn.
 - **Độ dài:** bỏ trần 60s (T1 max 180s); mặc định AI 75s · mẹo 60s. Shot 3–7s.
 - **Chống treo:** chụp trang mỗi URL một process, trần 60s.
+
+---
+
+## 9. Cập nhật 2026-11-17 — nâng cấp studio W1–W7
+
+Chi tiết: `AUDIT.md` (10 vấn đề) · `ARCHITECTURE.md` · `UPGRADE-PLAN.md` (quyết định D1–D10, đợt W1–W7) ·
+`research/36–38` · benchmark `eval/results/2026-11-16-w1-w2.md`, `eval/results/2026-11-17-w3-w7.md`.
+
+- **Cổng sự thật chặt lại:** T4 thiếu nguồn tier1 (sức khoẻ/thực phẩm kênh mẹo) giờ là lỗi CHẶN; tầng T1/T4 không chạy được
+  = chặn (trước: coi như đạt). Video còn lỗi T4 không bao giờ tự lên lịch (`lich.fact_blocked`).
+- **Spec 1.4** (mọi trường mới tuỳ chọn, spec 1.3 vẫn dựng): `segments[].start_frac` (đổi khung đúng đầu câu / từ nhấn) ·
+  `shot.label` (chip "Demo thật · github.com/x/y" / "Trang thật · …") · `shot.cues` (thẻ số nảy + pop đúng lúc đọc số).
+- **Kịch bản:** thêm `beats[]` (một beat/câu: mục đích, chủ thể + hành động, cỡ cảnh) trong CÙNG lần gọi scriptwriter —
+  không thêm agent. Code bỏ bước bấm giao diện không có nguyên văn trong đề bài. Video công cụ/repo cần ≥ 2 shot demo.
+- **Hình:** screenshot phóng chữ ≥ 40px trên khung, ẩn quảng cáo · mascot chỉ ở hook/hỏi/cảnh báo/chuyển ý/kết, không đè
+  thẻ (`mascot.policy: always` = kiểu cũ) · seed ảnh AI theo id video · stock xếp theo hành động của câu.
+- **Phụ đề:** không xé từ ghép (`configs/tu-ghep.txt`).
+- **Giọng:** chế độ đọc cả đoạn giờ ASR nghe lại CẢ BÀI (trước: 3 giây hook) — thân giống < 0,80 hoặc lặp chữ → đọc thêm
+  2 bản, chọn bản tốt nhất.
+- **QC:** lỗi mọi tầng chuẩn hoá một schema có mốc thời gian (`qc/issues.py` → `issues` trong `qc/round-n.json`); câu đang bị
+  T4 bắt viết lại thì T2 không vẽ lại ảnh của câu cũ.
+- **Phân tích:** `python -m create_video.analytics` → `exp/analytics/<ngày>-features.csv` (đặc trưng đo bằng code + view 24h
+  cùng tuổi) + ρ theo kênh khi n ≥ 10. Chỉ ghi log, không làm cổng.
+- **T1 chặn nhầm ảnh:** lỗi "vùng an toàn (pixel)" mà khung vi phạm nằm trong shot ẢNH (phím laptop, giấy trắng — không
+  phải chữ) → vòng QC vẽ lại đúng shot đó rồi chấm lại ngưỡng cũ 0,4%; mọi lỗi T1 khác vẫn dừng như trước.
+- **Không đổi:** model, số vai Claude, GPU tuần tự, worker 1 job, lịch Buffer, systemd.
+- **Benchmark 2026-11-17** (`eval/results/2026-11-17-w3-w7.md`, 3 video mới): lượt LLM = mốc (AI 8, mẹo 13), $ thấp hơn
+  (AI ~$3,5 · mẹo ~$4,5 — ước "~$3/video" cũ là thấp), VRAM đỉnh 4228 MiB = mốc. Chưa đạt: demo thật 14% thời lượng (mục
+  tiêu 20%, repo hiếm có GIF/MP4), mẹo 48 phút (chờ Kaggle + 2 vòng QC).
+
+Bản đồ code thêm: `analytics.py` (bảng đặc trưng + v24) · `qc/issues.py` (schema lỗi) · `visual/demo.py: demoability,
+label_text`.

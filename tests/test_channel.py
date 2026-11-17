@@ -25,7 +25,8 @@ def test_hai_kenh_va_pillar_mot_nguon():
     assert channel.current().id == "ai"
     assert "tin_nong" in channel.get("ai").pillars
     meo = channel.get("meo")
-    assert set(meo.pillars) == {"giao_tiep", "tien_bac", "phap_luat", "dien_thoai", "bep_an_toan", "theo_mua"}
+    assert set(meo.pillars) == {"giao_tiep", "tien_bac", "phap_luat", "dien_thoai", "bep_an_toan", "theo_mua",
+                                "bao_quan", "giat_don", "do_dien"}   # 2026-10-12 research/30
     assert abs(sum(p["mix"] for p in meo.pillars.values()) - 1.0) < 1e-6
     assert meo.rubric_path.exists()
 
@@ -185,7 +186,10 @@ def test_goi_y_an_chu_de_da_lam_va_khong_quan_tam(client, monkeypatch):
     t1 = suggestions("meo", 6)[0]
     html = c.post("/suggest/dismiss", data={"c": "meo", "title": t1["title"], "idea": t1["idea_id"] or ""}).text
     assert t1["title"] not in html and 'id="suggest"' in html
-    # đổi lô: lô 1 khác lô 0
+    # đổi lô: lô 1 khác lô 0. Kho phải > 2 lô thì mới so được — test trước đây dựa vào số ý tưởng seed trong ideas.yaml
+    # của pillar đang bật; khi tạm dừng 3 pillar (2026-10-12) seed chỉ còn ≤ 1 lô → hai lô trùng (test đỏ từ đó, AUDIT B12).
+    for i in range(14):
+        db.add_idea("meo", f"Mẹo giặt đồ thử số {i}: phơi áo len không bai", "giat_don", source="may")
     p0 = {t["title"] for t in suggestions("meo", 6, 0)}
     p1 = {t["title"] for t in suggestions("meo", 6, 1)}
     assert p1 and p1 != p0

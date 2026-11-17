@@ -284,7 +284,10 @@ def run(spec_path: Path, vlm: Qwen3VL | None = None) -> list[ShotVerdict]:
             h = dhash(img_path)
             near = prev_hash is not None and hamming(h, prev_hash) <= DHASH_NEAR_DUP
             line = _captions_for_shot(shot, captions)
-            alt = shot["asset"].get("alt") or line
+            # 2026-10-18 (research/33): cảnh thật chấm theo TỪ KHOÁ đã tìm, không theo prompt ảnh AI dự phòng (`alt`: "cá nằm
+            # trên thớt gỗ, ánh cửa sổ, không người") — cảnh quay thật không bao giờ khớp từng chi tiết đó → 271/314 shot
+            # stock bị chê ở r0 rồi thay ảnh AI; xem lại tay 16 shot bị chê: 12 khớp từ khoá.
+            alt = shot["asset"].get("stock_query") or shot["asset"].get("alt") or line
             v = vlm.judge_shot(img_path, alt=alt, line=line, near_dup=near)
             if not shot["asset"].get("alt"):
                 v.detail = "(spec thiếu alt — chấm theo câu thoại) " + v.detail
