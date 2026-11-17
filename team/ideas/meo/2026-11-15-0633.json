@@ -1,0 +1,73 @@
+{
+ "at": "2026-11-15-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "me46575",
+   "title": "3 mẹo kho thịt ngày lạnh: rang đường trước, chế nước sôi, để lửa liu riu",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m9f6ce9",
+   "title": "Mộc nhĩ ngâm qua đêm sinh độc tố: chỉ ngâm nước lạnh 15–20 phút rồi rửa sạch",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "md4bb65",
+   "title": "Dầu ăn bắn lên áo: rắc bột ngô 15 phút, xoa nước rửa bát rồi mới cho vào giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m63cc95",
+   "title": "2 chỗ nhà tắm bám cặn vôi ai cũng bỏ qua: vách kính và vòi sen, đắp giấm 15 phút",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m67df0e",
+   "title": "Bàn là Panasonic phun hơi ố vàng: đổ hết nước sau khi là, lau đế bằng giấm",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m603c7d",
+   "title": "Giày ướt mưa: nhét giấy báo đổi 20 phút một lần, sấy chế độ mát cách 15cm",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mbaa9d9",
+   "title": "Rét đậm đừng đốt than sưởi trong phòng kín: Bộ Y tế cảnh báo ngộ độc khí CO",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "ma2c7e3",
+   "title": "Đệm sưởi điện 50–150W: đắp cả đêm chỉ khoảng 1.000đ tiền điện, nên bấm mức thấp",
+   "pillar": "tien_bac"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Luộc ốc đừng chế nước: lót sả lá chanh dưới đáy nồi, ốc mở miệng là tắt bếp",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Hành tỏi cất tủ lạnh nhanh mọc mầm: để túi lưới chỗ khô, tách riêng hành tây",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt LG ít ai lau: lồng giặt, khay nước xả, gioăng cửa",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Nấu 3 món một lúc: đặt 3 hẹn giờ có tên trong app Đồng hồ điện thoại",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 271.61,
+   "input_tokens": 12,
+   "output_tokens": 13012,
+   "cost_usd": 1.058469
+  }
+ ]
+}

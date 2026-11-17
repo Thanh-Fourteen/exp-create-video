@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-28-0949",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m11a757",
+   "title": "Luộc ốc đừng cho nhiều nước: lót sả gừng, nước xâm xấp, mở vung đảo 2–3 phút",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "md7249b",
+   "title": "Su hào non hay già nhìn cuống lá, không nhìn vỏ: 2 dấu hiệu khi đi chợ đầu đông",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m12b56c",
+   "title": "Hành tỏi để túi nylon là mốc và mọc mầm: đựng rổ thưa, kê cao, xa bếp",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m4d5e38",
+   "title": "Cá mua cả con để tủ đông: cắt khúc chia túi, dán ngày, 3 tháng là nên ăn hết",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mb18f57",
+   "title": "Nồi chiên không dầu đồ không giòn: 3 lỗi — xếp đầy giỏ, không làm nóng, khe quạt bám dầu",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m8f0cef",
+   "title": "Gối và ga giường mùa hanh khô: phơi nắng 2 tiếng, hút bụi mặt gối trước khi bọc áo mới",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "me6ceef",
+   "title": "Hoá đơn điện vượt 200 số: mỗi số sau đó đắt hơn gần một nửa — nhìn bậc thang mà bấm",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mee183c",
+   "title": "Cục sạc, tivi, lò vi sóng cắm chờ cả ngày: tốn bao nhiêu số điện một tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mf07369",
+   "title": "Đặt sẵn 3 hẹn giờ trong điện thoại cho việc nhà: 7 phút trứng, 10 phút ngâm bát, 20 phút giặt",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Dầu mỡ bắn lên áo: rắc bột ngô hút 15 phút rồi mới giặt, đừng vò nước nóng",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt lồng ngang ít ai lau: ngăn nước giặt, gioăng cửa, lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt mưa: nhét giấy báo đổi 2 lần, đừng hơ sát máy sấy hay phơi nắng gắt",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 159.83,
+   "input_tokens": 6,
+   "output_tokens": 7921,
+   "cost_usd": 1.482878
+  }
+ ]
+}

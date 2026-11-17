@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-26-1344",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "md340b4",
+   "title": "Lấy số tài khoản, số điện thoại trong ảnh khỏi gõ lại: tính năng mới trong Zalo",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m58f84c",
+   "title": "Gộp, tách, nén, ký file PDF ngay trên máy khỏi tải lên web lạ: app miễn phí Stirling PDF",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m98c0c2",
+   "title": "Gửi ảnh gốc cho cả nhà khỏi bị Zalo nén mờ: app miễn phí LocalSend",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m9d8955",
+   "title": "TV Android đầy quảng cáo ở màn hình chính: dọn sạch, sai thì bấm một nút hoàn tác",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mcbf863",
+   "title": "Quay phòng bằng iPhone ra mô hình 3D xem trên web: AI ghép ảnh với độ sâu ra sao",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m033ce4",
+   "title": "6 lệnh ChatGPT biến slide của thầy thành 30 câu trắc nghiệm ôn thi giữa kỳ",
+   "pillar": "meo"
+  },
+  {
+   "id": "m49627f",
+   "title": "7 lệnh ChatGPT viết báo cáo cuối tháng từ bảng Excel doanh số",
+   "pillar": "meo"
+  },
+  {
+   "id": "m3ab4eb",
+   "title": "ChatGPT free có GPT-6 chat không giới hạn, Gemini free còn một model: chọn bên nào",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m2bdbfb",
+   "title": "Mất mạng vẫn có trợ lý viết tiếng Việt: card 6GB chạy nhanh bao nhiêu chữ mỗi giây",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Gmail và Google Photos có thể thành dữ liệu quảng cáo: tắt ở đâu trong 2 phút",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Khách hỏi ChatGPT thay vì Google: kiểm xem shop của bạn có được AI nhắc tên",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "App 'cày phim AI' trả tiền mỗi lượt xem: ba dấu hiệu lừa đảo công an vừa cảnh báo",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 195.86,
+   "input_tokens": 4,
+   "output_tokens": 12168,
+   "cost_usd": 0.99074
+  }
+ ]
+}

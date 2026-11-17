@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-01-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mbb0425",
+   "title": "Bắp cải mùa đông: chọn bắp tròn chắc tay, lá xanh đậm — đừng lấy bắp dẹt lá trắng nhạt",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m638158",
+   "title": "Canh xương trong vắt: chần xương 3 phút rồi đổ nước đầu, đun lửa nhỏ không đậy vung",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mb26395",
+   "title": "Hành tỏi đừng cất tủ lạnh: lạnh ẩm làm mềm, mốc đen, mọc mầm — để rổ lưới thoáng gió",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m587e63",
+   "title": "Cổ áo sơ mi ngả vàng: xát muối hạt với bàn chải mềm 3 phút trước khi cho vào máy giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m339da5",
+   "title": "Tủ quần áo đổi sang đồ đông: gấp đứng theo hàng, đồ dày xuống dưới, kèm túi hút ẩm",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m76b31c",
+   "title": "Máy giặt LG: 3 chỗ ít ai lau — hộc nước giặt, lưới lọc van cấp nước, chu trình Tub Clean",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m4f0eb4",
+   "title": "Lò vi sóng: 3 thứ đừng cho vào — trứng nguyên vỏ, giấy bạc, hộp nhựa không ghi an toàn",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m12c6d0",
+   "title": "Ổ chia điện cắm hai thiết bị sưởi: ổ nóng, mùi khét, aptomat nhảy là dấu hiệu quá tải",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mce7469",
+   "title": "Số điện thứ 401 giá 3.460đ, số đầu tiên chỉ 1.984đ: vì sao hoá đơn tháng lạnh vọt lên",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mf52e98",
+   "title": "Ghi tiền đi chợ vào Ghi chú điện thoại 7 ngày: biết thật mỗi bữa nhà mình tốn bao nhiêu",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Bánh mì cất tủ lạnh nhanh cứng hơn để ngoài: bọc kín cho lên ngăn đá, nướng lại 3 phút",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt sau mưa: nhồi giấy báo, đổi lớp mỗi 20 phút — đừng hơ máy sấy nóng",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 263.82,
+   "input_tokens": 6,
+   "output_tokens": 14380,
+   "cost_usd": 1.142412
+  }
+ ]
+}

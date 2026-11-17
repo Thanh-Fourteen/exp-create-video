@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-23-0634",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m1393a5",
+   "title": "Luộc ốc đừng đổ ngập nước: xăm xắp đáy nồi, không mở vung khi chưa sôi",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m5cb3ce",
+   "title": "Măng tươi phải luộc mở vung và bỏ nước 2–3 lần mới hết chất gây ngộ độc",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m1e18c7",
+   "title": "Hành tím, tỏi cất túi nilon là hỏng: để giỏ lưới chỗ thoáng, đừng cho tủ lạnh",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m7d58fe",
+   "title": "Hộp sữa tươi đã mở: uống hết trong 48 giờ, để ngăn trong chứ đừng để cánh cửa",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m487f15",
+   "title": "Miếng rửa bát là chỗ bẩn nhất bếp: vắt khô, treo đứng, thay 2 tuần một lần",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m2fb8d9",
+   "title": "Vỏ chanh vừa vắt đừng vứt: quay 5 phút trong lò vi sóng, vết bẩn tự bong",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mf6f764",
+   "title": "Lót giấy nến dưới đáy nồi chiên không dầu lúc chưa bỏ thức ăn: dễ bắt lửa",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m4b94d1",
+   "title": "Áo len lấy từ đáy tủ ra có mùi hầm: giũ rồi phơi gió 2 tiếng, đừng xịt nước hoa",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mfeea78",
+   "title": "Giá điện bậc 6 gần gấp đôi bậc 1: dùng thêm 100 số mùa lạnh, tiền vọt bao nhiêu",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mc04e48",
+   "title": "Điện thoại đặt nhiều hẹn giờ cùng lúc: ninh xương 40 phút, luộc trứng 7 phút",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Ba chỗ trong máy giặt LG ít ai lau: khay nước xả, gioăng cửa, lưới lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt mưa: nhét giấy báo đổi 20 phút một lần, đừng hơ máy sấy nóng",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 179.33,
+   "input_tokens": 6,
+   "output_tokens": 11383,
+   "cost_usd": 1.064013
+  }
+ ]
+}

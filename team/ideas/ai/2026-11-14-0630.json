@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-14-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mcba057",
+   "title": "Họp online tiếng Anh nghe không kịp: phụ đề song ngữ và biên bản miễn phí Cicada",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m4900e0",
+   "title": "Họp xong quên hết việc được giao: app ghi biên bản Meetily chạy ngay trên máy bạn",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m3f6f1b",
+   "title": "Xem YouTube trên tivi Android không quảng cáo, khỏi root máy: app miễn phí SmartTube",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mba3fea",
+   "title": "Vì sao robot học được động tác người chỉ từ video: 'thế giới trong đầu' của AI",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "mb15414",
+   "title": "6 lệnh Gemini biến file Word 10 trang thành bộ slide thuyết trình có dàn ý",
+   "pillar": "meo"
+  },
+  {
+   "id": "m548280",
+   "title": "Hỏi câu dài rối mà Google vẫn hiểu: AI Mode bản Gemini 4 Hydrogen, dùng miễn phí",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mc7565f",
+   "title": "Claude ra Sheets và Whiteboards: gõ một câu là có bảng tính đủ công thức",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mdbf6f1",
+   "title": "Đề xuất mạng lưới AI cảnh báo lừa đảo ở Việt Nam: ngân hàng và nhà mạng nối dữ liệu",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m1cf135",
+   "title": "Hỏi chatbot chỗ mua hàng rẻ: nghiên cứu mới thấy bot dẫn vào web bán giả",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mfec487",
+   "title": "1 giờ ghi âm cuộc họp ra văn bản tiếng Việt trên card 6GB mất bao lâu: tự đo",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m8db908",
+   "title": "Xoá người lạ và dây điện khỏi ảnh du lịch: Magic Editor trong Google Photos miễn phí",
+   "pillar": "cong_cu"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "6 lệnh ChatGPT viết bản tự đánh giá cuối năm từ danh sách việc đã làm",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 150.49,
+   "input_tokens": 4,
+   "output_tokens": 10417,
+   "cost_usd": 0.900374
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-26-0903",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "meca62e",
+   "title": "Luộc ốc đừng chế nước: lót sả gừng dưới đáy nồi, ốc giòn và hết nhớt",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m3f7cab",
+   "title": "Xào mực ra nước và dai như cao su: chần 10 giây rồi xào lửa to, nêm cuối",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m3c14a8",
+   "title": "Hành tím để trong túi nilon là mọc mầm: đổi sang giỏ lưới treo chỗ thoáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m3a2806",
+   "title": "Trước khi cho thịt vào ngăn đá: chia miếng phẳng, bọc kín, dán ngày mua",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m1bee83",
+   "title": "Công dụng của vỏ cam sắp bỏ: để vào tủ lạnh khử mùi, đun nước lau sàn gỗ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m855c74",
+   "title": "Giặt áo phao đừng bật vắt: chọn giặt nhẹ nước lạnh, phơi ngang kẻo vón lông",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m9c635b",
+   "title": "Lưới lọc máy hút mùi nửa năm chưa rửa: ngâm nước nóng pha nước rửa bát 15 phút",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m70eb0a",
+   "title": "Giày ướt sau mưa: nhét giấy báo vo tròn, đổi 20 phút một lần, đừng hong máy sấy",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m7d86b1",
+   "title": "Cất quạt điện cuối mùa: lau cánh, để khô hẳn rồi bọc kín, đừng cất khi còn ẩm",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m73f88d",
+   "title": "Máy sấy quần áo tốn mấy số điện một lần sấy, so với phơi trước quạt",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m1fd506",
+   "title": "Đặt nhiều đồng hồ đếm ngược cùng lúc trên iPhone: luộc trứng, hấp bánh, hầm xương",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Máy giặt LG: 3 chỗ ít ai lau — khay nước xả, gioăng cửa, bộ lọc xơ vải",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 184.99,
+   "input_tokens": 6,
+   "output_tokens": 9443,
+   "cost_usd": 0.9658264999999999
+  }
+ ]
+}

@@ -1,0 +1,56 @@
+{
+ "at": "2026-10-19-2258",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m414f56",
+   "title": "Nhắn Zalo và chơi game điện thoại ngay trên màn hình máy tính: app miễn phí scrcpy",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m2f32ef",
+   "title": "CapCut đòi trả phí mới xoá watermark? Cắt ghép video miễn phí ngay trên web bằng OpenCut",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "ma298f7",
+   "title": "Gõ 'ảnh bánh sinh nhật' là ra đúng tấm đó: AI trong Immich hiểu lời mình thế nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m3ee0b8",
+   "title": "ChatGPT đọc hết tab Chrome đang mở: so giá hộ, điền form hộ, gói miễn phí cũng có",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "me380e0",
+   "title": "Dịch tài liệu dài và hỏi bài: DeepSeek V4.1 Flash hay ChatGPT bản miễn phí?",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "mf8411b",
+   "title": "Chạy quảng cáo Facebook: điều khoản Meta vừa sửa từng cho phép quét sạch website của bạn",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mc65b70",
+   "title": "6 lệnh ChatGPT biến đề cương 10 trang thành 30 câu trắc nghiệm có đáp án để ôn thi",
+   "pillar": "meo"
+  },
+  {
+   "id": "m7c8cfb",
+   "title": "5 lệnh Gemini sửa CV khớp đúng tin tuyển dụng trước khi bấm Gửi",
+   "pillar": "meo"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 122.44,
+   "input_tokens": 4,
+   "output_tokens": 7012,
+   "cost_usd": 0.751649
+  }
+ ]
+}

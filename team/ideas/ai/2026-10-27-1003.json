@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-27-1003",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m36bd1a",
+   "title": "TV Android đầy quảng cáo ngoài màn hình chính: dọn sạch bằng app miễn phí Free My TV",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m54afdf",
+   "title": "Điện thoại Xiaomi, Oppo hiện quảng cáo trong app hệ thống: tắt bằng Android Ad Cleaner",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m8b0877",
+   "title": "Quét phòng bằng iPhone ra mô hình 3D chỉnh được: AI dựng hình từ LiDAR và ảnh thế nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m9f2a8e",
+   "title": "Khỏi gõ lại prompt dài mỗi lần: Skills trong Gemini giờ miễn phí, lưu sẵn cách làm",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m2c7b09",
+   "title": "AI tự click chuột điền form thay bạn: GPT-6.1 Terra ai ở Việt Nam dùng được hôm nay",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m332ebd",
+   "title": "Điện thoại Oppo lên ColorOS 17: AI tự xoá người lạ, gom ảnh trùng ngay trong máy",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m7c3367",
+   "title": "Deepfake mặt và giọng gọi video: ngân hàng Việt kiểm mấy lớp, bạn chặn bằng cách nào",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mb2da5b",
+   "title": "Model AI tự gửi file ra server Bắc Kinh: ba quyền đừng cho app AI trên máy bạn",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "me14540",
+   "title": "6 lệnh ChatGPT viết bản tự đánh giá cuối năm từ việc đã làm",
+   "pillar": "meo"
+  },
+  {
+   "id": "m2f4bde",
+   "title": "5 lệnh Gemini lên thực đơn tuần và danh sách đi chợ cho ngân sách 700k",
+   "pillar": "meo"
+  },
+  {
+   "id": "m8523bc",
+   "title": "Chạy AI offline trên card 6GB bằng app Unsloth: một câu trả lời mất mấy giây",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Gỡ băng ghi âm họp và lồng tiếng video khỏi trả phí: VoiceStudio chạy ngay trên máy",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 143.37,
+   "input_tokens": 4,
+   "output_tokens": 9057,
+   "cost_usd": 0.878478
+  }
+ ]
+}

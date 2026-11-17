@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-21-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m24c874",
+   "title": "ChatGPT cho khoá từng cuộc trò chuyện: bật thế nào để người khác không đọc được",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m3a55c6",
+   "title": "Máy nóng, quạt gào mà không rõ vì sao: nhờ AI soi tiến trình lạ ngốn CPU",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mdb2070",
+   "title": "Ảnh cả nhà có người nhắm mắt: Lightroom mở mắt 1 chạm hay bảo Gemini sửa?",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "mddc8ba",
+   "title": "Đừng bấm Chia sẻ link chat AI: Meta vừa tắt tính năng vì chat lộ lên web",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m50650d",
+   "title": "Đăng nhạc AI lên Spotify kiếm tiền? 50 triệu bài vừa bị gạt khỏi gợi ý",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m937ed7",
+   "title": "6 lệnh ChatGPT chốt sổ bán hàng cuối ngày từ ảnh biên lai",
+   "pillar": "meo"
+  },
+  {
+   "id": "m70c5ee",
+   "title": "5 lệnh Gemini biến ghi âm cuộc họp thành biên bản gửi được ngay",
+   "pillar": "meo"
+  },
+  {
+   "id": "m9d0ef4",
+   "title": "Biến 200 trang giáo trình thành podcast tiếng Việt nghe trên đường đi làm",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m51bb1a",
+   "title": "Ghi chú không lo hết dung lượng: Joplin đồng bộ máy và điện thoại, miễn phí",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mc5039f",
+   "title": "Nghe playlist không quảng cáo trên máy tính: app miễn phí Spotube",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mf4f42b",
+   "title": "TV đầy quảng cáo trước khi vào YouTube: nhờ AI dọn sạch app rác buổi chiều",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m90e6c1",
+   "title": "Đứt cáp biển vẫn hỏi được AI: tự đo chatbot chạy offline trên card 6GB",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 159.08,
+   "input_tokens": 4,
+   "output_tokens": 9401,
+   "cost_usd": 1.89638
+  }
+ ]
+}

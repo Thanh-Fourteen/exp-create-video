@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-20-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m02d04b",
+   "title": "TV thông minh đầy quảng cáo ngoài màn hình chính: dọn sạch qua Wi-Fi, không cần root",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "me57321",
+   "title": "Ghi chú và quản lý việc khỏi tốn tiền Notion: AppFlowy chạy cả máy tính lẫn điện thoại",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m9a0475",
+   "title": "Mở chục tab ChatGPT mỗi ngày: biến trang web thành app riêng nặng 10MB bằng Pake",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mc06639",
+   "title": "Vì sao model AI khổng lồ nhét được vào card 6GB: chuyện nén 4-bit trong app Unsloth",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "md2c7ab",
+   "title": "Chép lời 10 phút video tiếng Việt trên card 2060 6GB mất bao lâu: số đo thật",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "mdf46b2",
+   "title": "Hoá đơn tài khoản AI bị cà thêm tiền sau vụ hack OpenCode: ba việc làm ngay tối nay",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m244f19",
+   "title": "Bán hàng qua Facebook: điều khoản Meta vừa sửa cho phép quét website của bạn hay không",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m70a78f",
+   "title": "Nvidia phát model mở chạy ngay trên PC: trợ lý AI offline khỏi tốn gói tháng",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m871603",
+   "title": "Tra thủ tục hành chính khỏi ra phường: Trợ lý Công dân số miễn phí ngay trong Zalo",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m5290b8",
+   "title": "5 thao tác Zalo lấy số tài khoản, địa chỉ, tiền hoá đơn từ ảnh chụp khỏi gõ tay",
+   "pillar": "meo"
+  },
+  {
+   "id": "m783688",
+   "title": "6 lệnh Gemini biến bài giảng dài thành 20 câu tự kiểm tra trước kỳ thi",
+   "pillar": "meo"
+  },
+  {
+   "id": "m435732",
+   "title": "Model DeepSeek mới giá bằng 1/20: app AI Việt bạn đang dùng sắp bớt tính phí",
+   "pillar": "tin_nong"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 222.08,
+   "input_tokens": 6,
+   "output_tokens": 13635,
+   "cost_usd": 2.0933435
+  }
+ ]
+}

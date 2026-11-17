@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-04-0634",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m784aba",
+   "title": "Đổ nước xả thẳng vào lồng giặt cùng quần áo: dễ loang màu, cứng vải",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mb15536",
+   "title": "Hành tỏi mùa hanh khô: đừng cất túi nhựa hay tủ lạnh, treo nơi khô ráo mới bền",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m513bfb",
+   "title": "Chăn điện bật cả đêm 6 tiếng tốn bao nhiêu tiền, có cần hẹn giờ tắt",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m8c959e",
+   "title": "Giày ướt sau mưa đừng phơi nắng ngay: nhồi giấy báo trước mới hết mùi nhanh",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mf26227",
+   "title": "3 mẹo luộc rau không bị vàng: muối, đá lạnh và vài giọt dầu ăn",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m66f879",
+   "title": "Đổ nước rửa bát trực tiếp lên đĩa bẩn: tốn gấp đôi mà vẫn khó sạch dầu mỡ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mac25f3",
+   "title": "Đèn sưởi nhà tắm bật cả lúc tắm: chỉ cần 10-15 phút, tắt sớm vẫn ấm",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m58ff4d",
+   "title": "Cắm chung quạt sưởi với ấm siêu tốc một ổ điện: vì sao hay nhảy aptomat",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mcab666",
+   "title": "Gương nhà tắm mờ hơi nước sau khi tắm: thoa chút xà bông mỏng là hết",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m3ab770",
+   "title": "Sữa tươi mở nắp để tủ lạnh: hạn trên vỏ hộp không còn đúng sau vài ngày",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mcb2665",
+   "title": "Đóng rèm cửa buổi tối, mở rèm ban ngày: nhà ấm hơn mà không cần bật thêm sưởi",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mfb649d",
+   "title": "Dùng đèn flash điện thoại soi hạn sử dụng mờ trên vỏ hộp trước khi nấu",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 161.98,
+   "input_tokens": 6,
+   "output_tokens": 10134,
+   "cost_usd": 0.8662067999999999
+  }
+ ]
+}

@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-09-1030",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mcea091",
+   "title": "Siri nói tiếng Việt trên iPhone bản iOS mới: máy nào dùng được, ra lệnh gì",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m4fb5e9",
+   "title": "Nhà văn đoạt giải Goncourt nhờ ChatGPT gợi câu: viết nhờ AI tới đâu thì được",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mec72dc",
+   "title": "Hỏi bài miễn phí không giới hạn: bản web Kimi hay ChatGPT free khá hơn",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m8f3e5f",
+   "title": "Quảng cáo Facebook mời đầu tư có mặt người nổi tiếng: ba dấu hiệu deepfake",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "ma86651",
+   "title": "Dùng nhạc AI trong video TikTok: hai vụ kiện Suno và nguy cơ bị gỡ tiếng",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "md5f844",
+   "title": "Họp Zoom tiếng Anh không kịp hiểu: phụ đề và biên bản tự động bằng app Cicada",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "maf56c6",
+   "title": "Lồng tiếng video khỏi trả phí ElevenLabs: app miễn phí chạy trên máy VoiceStudio",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m302dbd",
+   "title": "Video này quay thật hay AI dựng: cách máy soi từng cảnh để đoán",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "me3e9af",
+   "title": "6 lệnh Gemini biến file Word báo cáo thành slide tổng kết năm",
+   "pillar": "meo"
+  },
+  {
+   "id": "m2721c5",
+   "title": "Ảnh cũ của ông bà mờ nhoè: card 2060 6GB nâng nét một ảnh mất mấy giây",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Sửa máy tính cho bố mẹ ở xa khỏi trả phí TeamViewer: app miễn phí RustDesk",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "6 lệnh ChatGPT luyện trả lời phỏng vấn xin việc bằng tiếng Việt",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 163.34,
+   "input_tokens": 4,
+   "output_tokens": 10453,
+   "cost_usd": 0.931798
+  }
+ ]
+}

@@ -1,0 +1,77 @@
+{
+  "video_id": "ideas-meo-2026-11-08-1033",
+  "stage": "idea_gen",
+  "round": 0,
+  "stages": {
+    "idea_gen": {
+      "status": "running",
+      "input_hash": "",
+      "outputs": [],
+      "started_at": "2026-11-08T10:33:04+0700",
+      "finished_at": "",
+      "wall_sec": 0.0
+    }
+  },
+  "llm_calls": [
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-11-08T10:33:06+0700",
+      "role": "idea_gen",
+      "attempt": 1,
+      "error": "Exception: Claude Code returned an error result: success",
+      "wall_sec": 1.66,
+      "subtype": "success",
+      "num_turns": 1,
+      "duration_ms": 709,
+      "duration_api_ms": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cost_usd": 0,
+      "models": [],
+      "session_id": "667d1208-925e-40b5-950b-3607ab2a1273"
+    },
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-11-08T10:33:38+0700",
+      "role": "idea_gen",
+      "attempt": 2,
+      "error": "Exception: Claude Code returned an error result: success",
+      "wall_sec": 33.4,
+      "subtype": "success",
+      "num_turns": 1,
+      "duration_ms": 664,
+      "duration_api_ms": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cost_usd": 0,
+      "models": [],
+      "session_id": "efd64e27-2c9b-4406-bbd2-d314fbb6f507"
+    },
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-11-08T10:35:12+0700",
+      "role": "idea_gen",
+      "wall_sec": 127.66,
+      "subtype": "success",
+      "num_turns": 1,
+      "duration_ms": 3203,
+      "duration_api_ms": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cost_usd": 0,
+      "models": [],
+      "session_id": "91a91451-6fac-430d-ba90-83fc3575ea56",
+      "error": "Exception: Claude Code returned an error result: success"
+    }
+  ],
+  "errors": []
+}

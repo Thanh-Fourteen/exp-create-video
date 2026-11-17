@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-24-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mac8a67",
+   "title": "Luộc ốc đừng đổ nhiều nước kẻo đứt ruột: ngâm ớt tươi, lót sả và lá chanh",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m0a594b",
+   "title": "Cất hành tím, tỏi trong túi nilon là nhanh mốc: để rổ thoáng, tách xa khoai tây",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m99054d",
+   "title": "Bánh mì cất tủ lạnh cứng nhanh hơn để ngoài: bọc kín để ngăn đá mới giữ được lâu",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m7d5fda",
+   "title": "Lò vi sóng bám mỡ và mùi cá: quay bát nước vài lát chanh 2 phút rồi lau một lượt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m8c943a",
+   "title": "Trời lạnh mỡ đông trong ống: sau bữa nhiều dầu dội nước nóng 50–60°C pha nước rửa bát",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m768f40",
+   "title": "Sấy vài cái áo một lần là phí điện: đủ 2/3 lồng, vắt kỹ rồi rũ rời trước khi sấy",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "me943dc",
+   "title": "Giày ướt sau mưa: nhét giấy báo đổi 20 phút một lần, treo trước quạt — đừng hơ lửa",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m02a346",
+   "title": "Áo khoác lấy từ thùng ra mùi hôi ẩm: phơi một nắng, đặt hộp baking soda vào góc tủ",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "ma76709",
+   "title": "Bàn là 1.200W ủi một giờ hết gần 3.600đ: dồn một mẻ, ủi khi áo còn hơi ẩm",
+   "pillar": "tien_bac"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Xào mực hết ra nước: chần 20 giây nước sôi có gừng, rồi xào lửa to 2 phút",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Ba chỗ trong máy giặt LG cửa trước ít ai lau: khay nước xả, gioăng cửa, lưới lọc",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Nấu ba món cùng lúc: đặt 3 hẹn giờ có tên riêng trong app Đồng hồ trên Android",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 276.37,
+   "input_tokens": 14,
+   "output_tokens": 11832,
+   "cost_usd": 1.4380795000000002
+  }
+ ]
+}

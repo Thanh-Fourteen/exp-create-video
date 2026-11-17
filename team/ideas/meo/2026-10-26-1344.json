@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-26-1344",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "ma31217",
+   "title": "Luộc ốc chỉ cho một bát nước: thêm sả, gừng, lá chanh là hết tanh",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m4f0343",
+   "title": "Mực xào ra nước và dai vì ướp muối từ đầu: chần nước gừng rồi xào lửa to",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m7db573",
+   "title": "Tỏi cất tủ lạnh lại nhanh mọc mầm: treo túi lưới chỗ khô, đừng rửa trước",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m22ab25",
+   "title": "Dầu hào, tương ớt mở nắp phải cất tủ lạnh — nước mắm thì không cần",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mf7e43c",
+   "title": "Áo dính dầu mỡ đừng vò nước: xoa nước rửa bát lên vết rồi mới giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m81198a",
+   "title": "Vỏ quýt đừng bỏ: đun nước lau bếp, bỏ hộp khử mùi, hút ẩm góc tủ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mce8bba",
+   "title": "Bỏ thêm một khăn bông khô vào máy sấy: giảm gần nửa thời gian sấy",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mc1ab5d",
+   "title": "Áo len lấy ra đầu đông: phơi gió 2 tiếng, gấp chứ đừng treo, kê gói hút ẩm",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m970b6e",
+   "title": "Giày ướt mưa: nhồi giấy báo đổi hai lần, đừng hong bằng máy sấy nóng",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mf7b355",
+   "title": "Đổi bóng sợi đốt 100W nhà tắm sang LED 9W: mỗi tháng bớt hơn 15 nghìn tiền điện",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m727dd0",
+   "title": "Điện thoại hẹn được nhiều đồng hồ một lúc: ninh xương, hấp bánh không cháy nồi",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Máy giặt LG: ba chỗ ít ai lau là gioăng cửa, khay nước xả và lưới lọc xơ",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 181.75,
+   "input_tokens": 6,
+   "output_tokens": 10136,
+   "cost_usd": 1.5026445
+  }
+ ]
+}

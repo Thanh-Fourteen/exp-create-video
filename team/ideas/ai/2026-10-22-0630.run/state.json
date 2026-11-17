@@ -1,0 +1,39 @@
+{
+  "video_id": "ideas-ai-2026-10-22-0630",
+  "stage": "idea_gen",
+  "round": 0,
+  "stages": {
+    "idea_gen": {
+      "status": "done",
+      "input_hash": "",
+      "outputs": [],
+      "started_at": "2026-10-22T06:30:48+0700",
+      "finished_at": "2026-10-22T06:33:10+0700",
+      "wall_sec": 141.73
+    }
+  },
+  "llm_calls": [
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-10-22T06:33:10+0700",
+      "role": "idea_gen",
+      "wall_sec": 140.92,
+      "subtype": "success",
+      "num_turns": 4,
+      "duration_ms": 134586,
+      "duration_api_ms": 142783,
+      "input_tokens": 4,
+      "output_tokens": 7942,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 155842,
+      "cost_usd": 1.8148560000000002,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ],
+      "session_id": "752fc9d8-594d-4a47-b93d-fb2860a5ea7d"
+    }
+  ],
+  "errors": []
+}

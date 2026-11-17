@@ -1,0 +1,74 @@
+{
+ "at": "2026-11-13-0634",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "me746c2",
+   "title": "Bàn là nóng rồi ủi từng áo một là tốn điện: gom cả chồng, mỏng trước dày sau",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m905ed9",
+   "title": "Chảo chống dính hỏng nhanh vì 3 việc: đun chảo không, cọ miếng nhám, xả nước lạnh ngay",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m9489c2",
+   "title": "Mùa bưởi, cam: 2 mẹo bóc lấy nguyên tép, không nát, không the đắng tay",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m44ef32",
+   "title": "Hành tỏi để túi nilon kín là nhanh mọc mầm: đổi sang rổ thưa, chỗ thoáng khô",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m0a796c",
+   "title": "Lạc mốc rang lại không hết độc: aflatoxin chỉ phân huỷ trên 280 độ C",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m778b76",
+   "title": "Đổ nước luộc thịt xuống bồn rửa bát: trời lạnh mỡ đóng cục làm tắc cống",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "md788b6",
+   "title": "Công dụng của bã cà phê: phơi khô bỏ góc tủ quần áo, hết mùi hôi kín",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mee6339",
+   "title": "Ruột gối nửa năm chưa giặt: nắng hanh tháng 11 là lúc phơi khô kịp trong ngày",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "md40bdb",
+   "title": "Điều khiển tivi, điều hoà không ăn: mở camera điện thoại soi đầu remote là biết",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Máy giặt LG: 3 chỗ ít ai lau — khay nước xả, gioăng cửa, lưới lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt mưa phùn: nhét giấy báo vo tròn 1 tiếng, tuyệt đối đừng hơ sát máy sấy",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Tivi, lò vi sóng, cục sạc cắm chờ cả tháng tốn bao nhiêu tiền điện",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 247.96,
+   "input_tokens": 12,
+   "output_tokens": 11920,
+   "cost_usd": 0.96718
+  }
+ ]
+}

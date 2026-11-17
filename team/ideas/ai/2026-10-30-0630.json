@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-30-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m4c2319",
+   "title": "Gemini tự làm file Word, Excel, PDF ngay trong chat: khỏi copy qua Docs",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mbd22e7",
+   "title": "Thử quần áo trước khi chốt đơn: app Style Sketch dựng tủ đồ từ ảnh Instagram",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mbb4e6e",
+   "title": "Trào lưu ảnh AI 'thập niên 80': vì sao ngân hàng khuyên đừng tải ảnh chân dung",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m82feb1",
+   "title": "Chrome lục Gmail để tự điền form: ba chỗ cần kiểm trước khi bấm Cho phép",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mb0b343",
+   "title": "Bão mất điện mất mạng vẫn tra được cách sơ cứu: AI chạy offline ngay trong máy",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m2623e1",
+   "title": "TV nhà toàn quảng cáo ở màn hình chính: đổi giao diện sạch miễn phí Free My TV",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mf8bafe",
+   "title": "Xiaomi, Oppo nhảy quảng cáo và tin rác: tắt sạch không cần root, cắm cáp bấm vài nút",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mbdac4d",
+   "title": "Hết dung lượng iCloud, Google One: biến máy tính cũ thành ổ cloud gia đình với CasaOS",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m459f96",
+   "title": "5 lệnh ChatGPT so giá và lọc hàng sale 11.11 để không mua hớ",
+   "pillar": "meo"
+  },
+  {
+   "id": "mdc6eba",
+   "title": "Vì sao ảnh AI hay sai tay và dáng người: thư viện 1.439 tư thế tham chiếu giúp gì",
+   "pillar": "kien_thuc_repo"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "6 lệnh ChatGPT dựng lịch ôn thi cuối kỳ 3 tuần từ đề cương môn học",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Mở khoá tensor core card RTX cũ: tôi đo lại tốc độ sinh ảnh trên 2060 6GB",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 205.91,
+   "input_tokens": 4,
+   "output_tokens": 12717,
+   "cost_usd": 1.735258
+  }
+ ]
+}

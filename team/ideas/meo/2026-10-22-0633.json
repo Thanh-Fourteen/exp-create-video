@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-22-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "me19fed",
+   "title": "Máy giặt: ba chỗ ít ai lau — khay nước xả, lưới lọc xơ, gờ cao su cửa",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m353e33",
+   "title": "Hành tỏi mua về đừng rửa, đừng buộc túi nilon: để rổ thưa nơi khô, xa bếp",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "maf0a3d",
+   "title": "Luộc ốc đổ nước xâm xấp, lửa lớn 3 phút, không mở vung: ốc dễ khều, không đứt ruột",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m855487",
+   "title": "Vỏ quýt đừng bỏ: đun 3 phút trong lò vi sóng là bay mùi khét, lau trong lò cũng dễ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "meb4611",
+   "title": "Giày ướt mưa: vo giấy báo nhét vào, đổi 1–2 tiếng một lần, đừng hơ sát máy sấy",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mfc148f",
+   "title": "Nồi chiên không dầu: mở nồi giữa chừng là nồi gia nhiệt lại, món lâu chín và tốn điện",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "me6fdec",
+   "title": "Rau lá héo sau hai ngày: lót khăn giấy dưới hộp, phủ thêm một lớp, tươi 5–7 ngày",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mf29b3e",
+   "title": "Khăn tắm nhớt và hôi: bỏ nước xả, giặt nước nóng với giấm rồi mới tới baking soda",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m288793",
+   "title": "Đèn sưởi nhà tắm 3 bóng 800W: bật 10–15 phút, mỗi lần tắm chỉ vài trăm đồng tiền điện",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m8cbc5b",
+   "title": "Hết mùa quạt: tháo lồng rửa, lau cánh, cuộn dây rồi trùm túi — sang hè bật là chạy êm",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m9d25f6",
+   "title": "Ba hẹn giờ đặt sẵn trong Đồng hồ điện thoại: trứng 7 phút, rau 2 phút, trà 3 phút",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Mực xào ra nước và dai: chần nhanh nước sôi có gừng, rồi xào lửa to 2 phút",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 223.63,
+   "input_tokens": 10,
+   "output_tokens": 10913,
+   "cost_usd": 1.278251
+  }
+ ]
+}

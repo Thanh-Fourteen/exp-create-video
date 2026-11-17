@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-03-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m7d6973",
+   "title": "Tài khoản Claude miễn phí giờ làm được slide, tạo ảnh: những gì mới nhất",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "me47925",
+   "title": "Claude Pro hay Ultra (đổi tên từ Max 20x, bỏ giới hạn 5 giờ): đáng tiền hơn gói nào",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m67b1c3",
+   "title": "ChatGPT Plus dùng chung hạn mức với Codex từ tháng 12: cần biết gì trước",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m5544a3",
+   "title": "Bài viết, ảnh của bạn bị AI lấy luyện model không xin phép: cách chặn mới có hiệu lực",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m3ecdbf",
+   "title": "Ký tên, làm mờ thông tin, ghép PDF miễn phí ngay trên web: app Stirling PDF",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m2d3339",
+   "title": "Biến ChatGPT, Gemini thành app riêng trên máy tính khỏi mở tab trình duyệt: Pake",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m5a0f4d",
+   "title": "Điện thoại Xiaomi, Oppo, Vivo tự bật quảng cáo: app miễn phí tắt sạch không cần root",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "md89fd2",
+   "title": "AI tự mở app, tự bấm điện thoại thay bạn: Mika nhìn màn hình và gõ lệnh ra sao",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "mf53238",
+   "title": "6 lệnh ChatGPT viết caption bán hàng livestream mùa sale 11.11 không bị nhạt",
+   "pillar": "meo"
+  },
+  {
+   "id": "md9b0eb",
+   "title": "5 lệnh Gemini chụp ảnh hoá đơn, bảng chi tiêu rồi xuất thẳng ra file Excel",
+   "pillar": "meo"
+  },
+  {
+   "id": "mb84332",
+   "title": "Cài app chạy AI chat ngay trên máy, không cần mạng: tốc độ thật trên card 6GB",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Học sinh cấp 3 thi AI quốc tế miễn phí, giải nhất 100 triệu đồng: đăng ký ở đâu",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 189.02,
+   "input_tokens": 4,
+   "output_tokens": 15311,
+   "cost_usd": 1.250425
+  }
+ ]
+}

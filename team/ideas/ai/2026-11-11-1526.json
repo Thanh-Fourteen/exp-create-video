@@ -1,0 +1,64 @@
+{
+ "at": "2026-11-11-1526",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mb38f7b",
+   "title": "Đồ án nhóm khỏi thất lạc trong chat Zalo: bảng chia việc miễn phí Plane",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m31e343",
+   "title": "Video triệu view kia quay thật hay AI làm? Web tách từng cảnh và chỉ cách làm lại",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "md5fd27",
+   "title": "AI tự mở app trên điện thoại đặt đồ hộ bạn: nó đọc màn hình bằng cách nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m5f366f",
+   "title": "6 lệnh Gemini biến ghi âm bài giảng thành dàn ý và 20 câu ôn thi cuối kỳ",
+   "pillar": "meo"
+  },
+  {
+   "id": "m6085f9",
+   "title": "Shop online hiện trong ChatGPT: nhận hồ sơ doanh nghiệp miễn phí từ 10/11",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m55fa2d",
+   "title": "iPhone không lên nguồn: đưa nhật ký lỗi cho AI chẩn đoán trong 20 phút",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m9995f8",
+   "title": "Microsoft trả tiền thuê card đồ hoạ lúc rảnh? Mới là bằng sáng chế, chưa có tiền",
+   "pillar": "canh_bao"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Họp online tiếng Anh nghe không kịp: app miễn phí hiện phụ đề và viết biên bản Cicada",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "6 lệnh ChatGPT soi hợp đồng thuê nhà: tìm điều khoản bất lợi trước khi ký",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Xoá người lạ khỏi ảnh du lịch: Photoshop bản mới hay app Gemini miễn phí",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 151.2,
+   "input_tokens": 4,
+   "output_tokens": 9389,
+   "cost_usd": 0.6557925
+  }
+ ]
+}

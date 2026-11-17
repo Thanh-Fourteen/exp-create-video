@@ -1,0 +1,96 @@
+{
+ "at": "2026-10-12-1342",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m484f21",
+   "title": "Rán cá không bắn dầu, không dính chảo: chà lát gừng vào đáy chảo trước khi đổ dầu",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m8e76e4",
+   "title": "Nấu cơm không nhão không khê: đong đúng tỷ lệ 1 gạo – 1,2 nước rồi ủ thêm 10 phút",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m5d872b",
+   "title": "Ngâm rau trong nước vo gạo 10–15 phút trước khi rửa lại bằng nước sạch",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m8b2fa7",
+   "title": "Bảo quản hành, tỏi không mọc mầm: cho vào túi lưới, để nơi khô thoáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "me3ca66",
+   "title": "4 khu trong tủ lạnh để đúng đồ: ngăn đông, kệ trên, ngăn dưới, hộc rau",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m9ca928",
+   "title": "Tủ lạnh có mùi: đặt bã cà phê khô hoặc vài lát chanh, thay mới sau 1–2 tuần",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m1d5b16",
+   "title": "Vệ sinh lồng máy giặt theo mốc 1–2 tháng/lần, bỏ qua là quần áo giặt xong vẫn bẩn",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "md52333",
+   "title": "Giặt chăn bông mùa lạnh: cho 2–3 quả bóng tennis vào máy giặt để chăn không vón cục",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m92a0dd",
+   "title": "Phơi đồ trong nhà mùa mưa không hôi: bật quạt thổi thẳng, đồ cách nhau 5–7cm",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m2e716c",
+   "title": "Điều hoà tiết kiệm điện: bật 26 độ trở lên kèm chế độ Eco, theo khuyến nghị EVNHANOI",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "md123d9",
+   "title": "Đầu mùa lạnh: vệ sinh bình nóng lạnh trước khi dùng thường xuyên, tránh rò điện khi tắm",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m03d746",
+   "title": "Nồi cơm điện đỡ tốn điện: ngâm gạo trước 30 phút, không mở nắp giữa chừng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m275627",
+   "title": "Đầu đông hanh khô miền Bắc: phơi chăn bông ít nhất 24 giờ nơi thoáng gió sau khi giặt",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m9e378d",
+   "title": "Chuyển mùa: cất chăn ga mỏng mùa hè vào túi hút ẩm trước khi xếp tủ, tránh mốc",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m5b6ff4",
+   "title": "Tủ lạnh để cách tường ít nhất 10cm: để sát tường tốn điện hơn, hoá đơn tăng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mc415f4",
+   "title": "Chụp ảnh ghi ngày mua lên nhãn thực phẩm tủ lạnh bằng điện thoại, tránh quên đồ thừa",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 195.27,
+   "input_tokens": 8,
+   "output_tokens": 11705,
+   "cost_usd": 1.4531399999999999
+  }
+ ]
+}

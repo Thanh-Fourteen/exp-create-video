@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-13-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "med8d2a",
+   "title": "Rán cá không bắn dầu: thấm khô cá, chà gừng lên chảo, lăn lớp bột mỏng",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m2f8ae2",
+   "title": "3 mẹo luộc rau xanh giòn: nước sôi mạnh, một thìa muối, mở nắp nồi",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m7c73f7",
+   "title": "Hành tỏi mọc mầm và mốc: bỏ túi nilon, treo túi lưới chỗ khuất sáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m8220b3",
+   "title": "Sắp tủ lạnh đúng ngăn: thịt ngăn dưới, rau ngăn riêng, cửa tủ chỉ để chai",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "me295c8",
+   "title": "Công dụng của nước vo gạo: ngâm thớt 10 phút rồi chà muối là hết mùi tanh",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m5c9e12",
+   "title": "Thoát sàn nhà tắm hôi: baking soda rồi giấm, đậy 30 phút, xả nước nóng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m59da25",
+   "title": "3 chỗ trong máy giặt ít ai lau: gioăng cửa, ngăn nước giặt, lọc xơ vải",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m48c301",
+   "title": "Ấm siêu tốc đóng cặn trắng: đun nước với giấm hoặc chanh 5 phút là bong",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "md7c3a8",
+   "title": "Cất chăn mỏng lấy chăn bông: phơi thêm nửa buổi nắng, dùng túi vải có lỗ",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m117680",
+   "title": "Mưa dài ngày phơi trong nhà: cuốn khăn khô vắt lại rồi hướng quạt vào",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m0a82a2",
+   "title": "Bình nóng lạnh: bật 15 phút rồi tắt lúc tắm, đừng để cắm cả ngày",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m8a09e4",
+   "title": "3 hẹn giờ nên đặt sẵn trong điện thoại cho việc nhà: 2, 15 và 30 phút",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 225.64,
+   "input_tokens": 14,
+   "output_tokens": 8790,
+   "cost_usd": 1.3551330000000001
+  }
+ ]
+}

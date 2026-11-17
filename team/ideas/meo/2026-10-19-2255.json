@@ -1,0 +1,56 @@
+{
+ "at": "2026-10-19-2255",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m6b6266",
+   "title": "Xào thịt bò đừng ướp mắm muối từ đầu: thịt ra nước và dai, ướp đường với gừng",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m32128a",
+   "title": "Bánh mì để ngăn mát nhanh cứng hơn để ngoài: muốn giữ lâu phải cho ngăn đá",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m370b4d",
+   "title": "3 cách giữ hành lá tươi cả tháng: lau khô, bọc khăn giấy, cắm gốc vào ly nước",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m28df8b",
+   "title": "Khăn tắm càng dùng nước xả càng cứng và không hút nước: đổ 100ml giấm vào ngăn xả",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m476c09",
+   "title": "Giày ướt mưa: nhồi giấy báo ít mực, 30 phút thay một lần — đừng hơ máy sấy",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m58b3ca",
+   "title": "Quạt sưởi 2.000W bật 3 tiếng mỗi tối: hoá đơn điện thêm hơn 500 nghìn một tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mde08bd",
+   "title": "Nấu 3 món một lúc: iPhone đặt được nhiều hẹn giờ cùng lúc, mỗi món một tên",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 chỗ trong máy giặt LG ít ai lau: gioăng cửa, hộc bột giặt, lọc xơ vải",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 205.21,
+   "input_tokens": 10,
+   "output_tokens": 8742,
+   "cost_usd": 1.0877655
+  }
+ ]
+}

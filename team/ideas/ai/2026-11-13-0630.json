@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-13-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m67afc5",
+   "title": "Google AI Mode trả lời câu hỏi dài nhiều phần: hỏi thử miễn phí ngay trên Search",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mc4ac69",
+   "title": "Doanh nghiệp nhỏ được hỗ trợ tới 3 tỷ đồng để dùng AI: ai nộp, nộp ở đâu",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m74be12",
+   "title": "Hỏi chatbot chỗ mua hàng, bị dẫn vào web giả: 3 bước kiểm link trước khi trả tiền",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m78774f",
+   "title": "Bản ghi chat với AI bị hacker đọc: 4 thứ đừng bao giờ dán vào ChatGPT",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m6a1353",
+   "title": "Ảnh chụp vội thành ảnh như thợ chụp: app Phota miễn phí vừa lên App Store",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m03aa9f",
+   "title": "Mỏi tay gõ báo cáo? Nói là ra chữ, chạy offline trên máy: app miễn phí Handy",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m925080",
+   "title": "5 lệnh Gemini đọc ảnh hoá đơn điện nước, siêu thị thành bảng chi tiêu tháng",
+   "pillar": "meo"
+  },
+  {
+   "id": "mc3cc1e",
+   "title": "Chat AI ở máy nhà càng nói càng chậm: KV-cache ăn VRAM thế nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m700ad3",
+   "title": "Card 6GB tự tạo 20 ảnh bài đăng bán hàng: mỗi ảnh mấy giây, VRAM đỉnh bao nhiêu",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "mbadb01",
+   "title": "Ảnh cả nhà hết chỗ iCloud: biến laptop cũ thành đám mây riêng bằng CasaOS",
+   "pillar": "repo_hay"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Họp online tiếng Anh không hiểu kịp: phụ đề tiếng Việt và biên bản tự động với Cicada",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "6 lệnh ChatGPT biến file Word 3 trang thành bộ slide thuyết trình",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 201.94,
+   "input_tokens": 6,
+   "output_tokens": 10560,
+   "cost_usd": 0.7065509999999999
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-27-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m816e92",
+   "title": "Màn hình TV toàn quảng cáo phim lạ: app miễn phí dọn sạch, một nút hoàn tác",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m0d34a3",
+   "title": "Lồng tiếng video và gỡ băng ghi âm cuộc họp ngay trên máy: VoiceStudio miễn phí",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m092953",
+   "title": "Điện thoại Oppo, Xiaomi nhảy quảng cáo và tin nóng: tắt sạch, không cần root",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m278044",
+   "title": "Notion bắt trả phí cho nhóm? AppFlowy: ghi chú, bảng việc, AI, dữ liệu để máy mình",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m146041",
+   "title": "5 lệnh ChatGPT soi hợp đồng thuê trọ, tìm điều khoản bất lợi trước khi ký",
+   "pillar": "meo"
+  },
+  {
+   "id": "m8636e9",
+   "title": "6 lệnh ChatGPT biến ảnh chụp trang sách thành 20 câu trắc nghiệm có đáp án",
+   "pillar": "meo"
+  },
+  {
+   "id": "m3259be",
+   "title": "26/10: AI nhìn màn hình, tự click chuột điền form — giá chỉ bằng một nửa đời cũ",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "md5fba3",
+   "title": "Xoá người lạ khỏi ảnh du lịch bằng một câu tiếng Việt: Photo AI Agent ColorOS 17",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mf33b3d",
+   "title": "Khách hỏi thẳng ChatGPT thay vì tra Google: shop Việt làm gì để được AI nhắc tên",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m244a3a",
+   "title": "Hỏi ChatGPT kiểu này có thể mất tài khoản: vụ khoá oan vừa xảy ra và cách tránh",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m6bd073",
+   "title": "Card RTX 2060 6GB chạy được model nào: tự đo bằng app Unsloth ngay trên máy kênh",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Quét phòng bằng iPhone ra mô hình 3D xem trên web: AI ghép ảnh với độ sâu kiểu gì",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 116.45,
+   "input_tokens": 4,
+   "output_tokens": 8059,
+   "cost_usd": 1.6101779999999999
+  }
+ ]
+}

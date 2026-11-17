@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-02-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "md0d80b",
+   "title": "Ninh xương nước trong: chần 3 phút bỏ nước đầu, hớt bọt, hé vung chứ đừng đậy kín",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mb0ae33",
+   "title": "Đậu phụ rán cứ nát và bắn dầu: ngâm nước muối loãng 20 phút trước khi cho vào chảo",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m2cfac6",
+   "title": "Hành tím, tỏi đừng cất túi nilon hay hộp kín: treo rổ lưới chỗ thoáng, 5–15 độ",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m1fc734",
+   "title": "Lạc, đỗ để lâu bị mốc: rang kỹ vẫn không hết độc tố, Cục An toàn thực phẩm khuyên bỏ cả mẻ",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m6f12f3",
+   "title": "Công dụng của vỏ bưởi sau khi ăn: khử mùi tủ giày, lau dầu mỡ bếp, đặt tủ quần áo",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "md4da67",
+   "title": "Vết dầu mỡ bữa cơm trên áo: xoa nước rửa bát lên vết, chờ 10 phút rồi mới giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m6d1337",
+   "title": "Hộp nhựa đồ mang về cho thẳng vào lò vi sóng: 3 thứ tuyệt đối đừng quay",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mff7651",
+   "title": "Sưởi than trong phòng kín đầu đông: dấu hiệu ngộ độc khí CO và việc phải làm ngay",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mf4db0d",
+   "title": "Tivi, cục sạc, wifi cắm cả ngày: điện chờ cộng lại hết bao nhiêu tiền mỗi tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m4eaad0",
+   "title": "Đặt nhiều hẹn giờ cùng lúc trên điện thoại: một cho nồi canh, một nhắc tắt bàn là",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: khay nước xả, gioăng cửa, lưới lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt mưa phùn: nhồi giấy báo đổi sau 20 phút, hong quạt — đừng hơ lửa hay sấy nóng",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 223.76,
+   "input_tokens": 8,
+   "output_tokens": 11602,
+   "cost_usd": 1.0167724999999999
+  }
+ ]
+}

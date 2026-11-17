@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-10-1033",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "md10cff",
+   "title": "Ninh xương đục ngầu vì đậy vung và nêm hạt nêm: ngâm 30 phút, chần, hớt bọt",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m576f85",
+   "title": "Thịt lợn bơm nước: ấn ngón tay vết lõm lâu đầy, mặt cắt tươm nước thì đừng mua",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m080055",
+   "title": "Lạc mốc rang lại vẫn độc: nhân có vệt vàng hay xanh đen là bỏ cả mẻ",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m060390",
+   "title": "Hành tím, tỏi khô cất tủ lạnh nhanh mọc mầm: túi giấy, nơi thoáng, đừng hộp kín",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mefb6d1",
+   "title": "Công dụng của vỏ cam sắp bỏ: đun 5 phút khử mùi khét bếp, lau vòi nước sáng bóng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m7c5d59",
+   "title": "Trời lạnh bồn rửa bát rút nước chậm vì mỡ đông: nước nóng rồi baking soda với muối",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mc67e05",
+   "title": "Hâm đồ ăn bằng lò vi sóng: 3 thứ đừng cho vào — hộp nhựa mỏng, viền kim loại, trứng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m7cd71a",
+   "title": "Giày ướt mưa đừng sấy nóng: nhét giấy báo đổi 2–3 tiếng, hướng quạt thổi vào trong",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m6556e2",
+   "title": "Cất áo hè đầu đông: khô hẳn mới gấp, xếp dọc như sách, thêm túi hút ẩm vào tủ",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m399547",
+   "title": "Sấy quần áo mỗi ngày: máy thông hơi 2,5 số điện một lần, bơm nhiệt 1,2 — chênh ~100k/tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m3678aa",
+   "title": "Ghi chi tiêu đi chợ bằng ứng dụng Ghi chú có sẵn: 7 ngày là biết tiền rau thịt đi đâu",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Máy giặt cửa ngang: 3 chỗ ít ai lau — gioăng cửa, khay nước xả, hộp lọc chân máy",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 231.61,
+   "input_tokens": 8,
+   "output_tokens": 11912,
+   "cost_usd": 1.12488
+  }
+ ]
+}

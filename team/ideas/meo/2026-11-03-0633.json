@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-03-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m2e945e",
+   "title": "Chảo chống dính bong tróc vẫn dùng tiếp: 3 dấu hiệu phải thay ngay",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m397b27",
+   "title": "Rán đậu phụ không vỡ: ngâm nước muối nóng 30 phút trước khi rán",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mba2c97",
+   "title": "Rã đông tôm đông lạnh đừng ngâm nước ấm: pha muối loãng 10 phút tôm chắc",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m79caa8",
+   "title": "Hành tỏi khô mùa hanh: đựng túi nilon kín là mọc mầm nhanh hơn",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m395179",
+   "title": "Cà rốt mua cả túi: bọc khăn ẩm để ngăn mát, giữ tươi tới 2 tuần",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m2b09eb",
+   "title": "Su hào mới mua để trần trong tủ lạnh héo nhanh: gói giấy ẩm giòn 4 ngày",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m40000e",
+   "title": "Giày ướt mưa đừng sấy máy sấy tóc: nhồi giấy báo, thay mỗi 2-3 giờ mới đúng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mc902fe",
+   "title": "Máy giặt 2-3 tháng chưa vệ sinh lồng giặt: quần áo đang giặt lại bằng cặn bẩn",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mb1864d",
+   "title": "Giẻ rửa bát bẩn hơn bệt bồn cầu: luộc giấm muối 3-5 phút mỗi vài ngày",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m641ccf",
+   "title": "Máy sấy quần áo mùa mưa: sấy đầy lồng là quần áo ẩm lâu hơn, dễ co rút",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m8f6815",
+   "title": "Chăn điện cất đầu đông: cuộn tròn cho gọn là đứt dây mayso bên trong",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mf9c020",
+   "title": "Thảm chùi chân mùa mưa ẩm cả tuần không giặt: ổ vi khuẩn ngay trước cửa nhà",
+   "pillar": "theo_mua"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 397.23,
+   "input_tokens": 12,
+   "output_tokens": 24490,
+   "cost_usd": 1.3744870999999999
+  }
+ ]
+}

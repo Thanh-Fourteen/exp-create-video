@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-15-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "me4fb8f",
+   "title": "Gạo bị mọt: 3 cách cất đúng — hộp kín, muôi khô, để ngăn mát 2 ngày trước khi đổ vào thùng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mff9321",
+   "title": "Xếp lại tủ lạnh 10 phút: thịt cá kệ dưới, rau để hộc, cánh cửa chỉ để gia vị",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mbe8891",
+   "title": "Tủ lạnh để nút số mấy cho đỡ tốn điện: EVN khuyên mức trung bình, không phải mức cao nhất",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "md7fd52",
+   "title": "Công dụng của nước vo gạo: ngâm thớt 10 phút hết mùi tanh, lau mặt bếp bớt dầu mỡ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m00d4c4",
+   "title": "Phơi đồ ngày mưa không hôi: giãn móc 5cm, treo ngược ống quần, quạt thổi thẳng vào giàn",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mafa6f8",
+   "title": "Đầu đông lấy chăn bông ra: giặt riêng ruột, xả thêm một lần, phơi nắng nhẹ rồi mới đắp",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m42248a",
+   "title": "Giày ướt sau mưa: nhồi giấy báo và để chỗ thoáng, đừng hơ máy sấy hay phơi nắng gắt",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mf6dfa5",
+   "title": "Tự tính thiết bị nào ngốn điện nhất nhà: lấy số W nhân số giờ, nhân giá bậc thang",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m9c65d8",
+   "title": "Chụp ảnh công tơ mỗi Chủ nhật: mẹo điện thoại để biết tuần nào nhà dùng nhiều điện",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Rán cá không bắn dầu: thấm khô cá, chà gừng vào chảo nóng rồi thả vài hạt muối",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 mẹo luộc rau xanh giòn: nước sôi bùng, một thìa muối, không đậy vung",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: gioăng cửa, ngăn bột giặt, lọc bơm xả",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 167.32,
+   "input_tokens": 12,
+   "output_tokens": 7526,
+   "cost_usd": 1.1929230000000002
+  }
+ ]
+}

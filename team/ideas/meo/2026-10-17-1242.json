@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-17-1242",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m0a6844",
+   "title": "Rán cá không bắn dầu: thấm khô cá, chà gừng lên chảo nóng, thả vài hạt muối",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m197adb",
+   "title": "Gạo mua bao 10kg: đổ sang thùng kín, bỏ vài tép tỏi — cả mùa không mọt",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mf9521f",
+   "title": "Hành tỏi cất tủ lạnh là nhanh mốc: treo túi lưới chỗ khô thoáng, tách riêng khoai tây",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m6eadda",
+   "title": "Công dụng của nước vo gạo: rửa bát dầu mỡ, ngâm măng, lau đồ gỗ — đừng đổ đi",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m1ef708",
+   "title": "Điều hoà hết mùa nóng: rửa lưới lọc, chạy quạt gió 30 phút rồi mới cất, đỡ mùi mốc",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mddcc92",
+   "title": "Hai chỗ sau tủ lạnh nên hút bụi 6 tháng một lần: dàn nóng và gioăng cửa",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "ma2d852",
+   "title": "Chăn bông lấy ra đầu đông: 5 bước giặt nhẹ, giũ phẳng, phơi nắng rồi cất túi vải",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m782b80",
+   "title": "Năm đồ điện cắm chờ cả ngày trong nhà: rút phích tiết kiệm được bao nhiêu mỗi tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m7581cb",
+   "title": "Đặt 3 hẹn giờ có tên trên điện thoại cho việc nhà: bình nóng lạnh, ngâm áo, nồi hầm",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 mẹo luộc rau giữ xanh giòn: nước sôi già, chút muối, vớt ra ngâm nước lạnh",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: khay nước giặt, gioăng cao su cửa, lưới lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt sau mưa: nhồi giấy báo đổi 2 lần, để chỗ thoáng — đừng hơ lửa hay sấy nóng",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 106.31,
+   "input_tokens": 6,
+   "output_tokens": 4563,
+   "cost_usd": 0.6497965
+  }
+ ]
+}

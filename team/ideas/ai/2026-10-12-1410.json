@@ -1,0 +1,66 @@
+{
+ "at": "2026-10-12-1410",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m975493",
+   "title": "Từ 15/11: AI tự xử lý chuyển khoản trên 10 triệu, bạn cần biết gì",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m4baa81",
+   "title": "AI của Anthropic báo tin giả về vụ án mạng cho cảnh sát Mỹ: đừng tin AI tra pháp lý",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mdafad6",
+   "title": "Anthropic cấm người dùng 'ngược đãi' Claude: chửi AI cũng có thể bị khóa",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mb1d5da",
+   "title": "CEO Microsoft: nên coi mọi AI model đã bị 'chiếm quyền', cần nút dừng khẩn cấp",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mb8ebf9",
+   "title": "AI khiến dân văn phòng Trung Quốc mỗi người làm việc bằng 3: tín hiệu cho người Việt",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m05fbe4",
+   "title": "Jeff Bezos: AI sẽ đưa về thời mỗi nhà chỉ cần một người đi làm",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m719622",
+   "title": "Mua app quản lý tiền trả phí? Aurelio: AI cố vấn tài chính ngay trên máy mình",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mfcb72f",
+   "title": "15 video motion design từ 1 câu prompt: cách Claude tự viết code ra phim ngắn",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "ma0622d",
+   "title": "Đổi mặt nhân vật trong video nhờ AI đọc độ sâu ảnh: ý tưởng từ Genjustsu",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m6921a1",
+   "title": "Cắm iPhone vào máy tính để chạy AI nhanh hơn: ý tưởng lạ từ Backburner",
+   "pillar": "kien_thuc_repo"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 168.92,
+   "input_tokens": 4,
+   "output_tokens": 13299,
+   "cost_usd": 0.5770813
+  }
+ ]
+}

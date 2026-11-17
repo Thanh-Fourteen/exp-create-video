@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-16-0634",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "meb823f",
+   "title": "Chọn cá ở chợ: mang đỏ sậm, mắt lồi trong, ấn vào thịt vết lõm nổi lên ngay",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m9dd74f",
+   "title": "Đậu phụ rán vỡ nát và bắn dầu: ngâm nước muối 10 phút, thấm khô rồi mới thả",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m38e229",
+   "title": "Cà chua cho vào tủ lạnh là mất vị: để ngoài nhiệt độ phòng, cuống úp xuống",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m5161f6",
+   "title": "Vòi hoa sen chảy yếu không phải do nước: buộc túi giấm trắng ngâm đầu sen 1 tiếng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mb2886b",
+   "title": "Máy giặt LG: nút Tub Clean chạy mỗi tháng, khay nước xả lau mỗi tuần",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m6b1553",
+   "title": "Hút mùi chạy ồn mà bếp vẫn đầy mùi: lưới lọc bết dầu, ngâm nước nóng baking soda 30 phút",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "ma590a3",
+   "title": "Giày ướt sau mưa: nhét giấy báo đổi 1–2 tiếng, túi muối hạt, tuyệt đối không sấy nóng",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m68aada",
+   "title": "Áo khoác dính người, nổ tanh tách ngày hanh khô: xả cuối với một cốc giấm trắng",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m7e7264",
+   "title": "Mua đồ gia dụng: tem nhãn năng lượng ghi kWh một năm, 5 sao đỡ 20–40% điện",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "md5514c",
+   "title": "Đồng hồ trên điện thoại đặt được nhiều hẹn giờ cùng lúc: ninh xương, hấp, ngâm gạo",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Hành tím, tỏi cất túi nilon là mốc: túi lưới, treo thoáng, đừng cho tủ lạnh",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Áo vừa dính dầu mỡ: rắc bột ngô hoặc phấn rôm 30 phút, rồi xoa nước rửa bát",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 253.12,
+   "input_tokens": 12,
+   "output_tokens": 11416,
+   "cost_usd": 1.0139405000000001
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-09-1033",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m5d1fb2",
+   "title": "Nước dùng xương đục và hoi: chần 3 phút bỏ nước đầu, giữ sôi lăn tăn và hớt bọt",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mc72741",
+   "title": "Bắp cải đầu đông: 3 dấu hiệu chọn bắp ngọt và cách cất nửa bắp còn lại",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m13cd19",
+   "title": "Hành tỏi cất túi nilon là mọc mầm: để rổ thưa chỗ thoáng, tách xa rổ khoai",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m0b978d",
+   "title": "Bánh mì cất ngăn mát nhanh cứng hơn để ngoài: giữ một tuần thì bọc kín vào ngăn đá",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mc380a4",
+   "title": "Dầu mỡ bắn lên áo khi nấu: rắc bột ngô hút dầu trước, đừng vò nước ngay",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m349e7c",
+   "title": "Mùi chiên rán bám khắp nhà: đun nồi nước với vỏ cam quýt và quế 5 phút",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m6ebe6d",
+   "title": "Hâm đồ trong lò vi sóng: 3 lỗi hay mắc — đậy kín nắp hộp, đồ kim loại, hộp nhựa thường",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m0e6d66",
+   "title": "Đổi tủ quần áo sang mùa đông: phơi nắng 2 tiếng trước khi treo, áo còn ẩm đừng cất",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "md57858",
+   "title": "Giày ướt mưa: vo giấy báo nhét kín, tháo lót phơi riêng, dựng đế hướng lên",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mf6c351",
+   "title": "Hoá đơn điện tháng 11 theo 5 bậc mới: xem 3 dòng để biết nhà mình vượt bậc nào",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mb97063",
+   "title": "Ba hẹn giờ đặt sẵn trong ứng dụng Đồng hồ: luộc trứng, hấp bánh, quần áo ủ trong máy",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Máy giặt Samsung cửa trước: 3 chỗ ít ai lau — khay nước giặt, gioăng cửa, lọc xơ",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 218.59,
+   "input_tokens": 8,
+   "output_tokens": 11021,
+   "cost_usd": 0.7279774999999999
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-27-1003",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m6a9e99",
+   "title": "Luộc rau xanh mướt: nước sôi mạnh mới thả, mở vung, vớt ra thả ngay nước lạnh",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mcb0ed9",
+   "title": "Thớt vừa thái cá: chà chanh với muối hạt 3 phút, đừng ngâm thớt gỗ trong bồn nước",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m88b467",
+   "title": "Hành tỏi đừng rửa trước khi cất, đừng để cạnh khoai tây: một tuần là mọc mầm",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m07390a",
+   "title": "Hộp cơm mang đi làm: thức ăn không để ngoài quá 2 tiếng, canh đựng riêng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m60784e",
+   "title": "Vỏ cam đừng vứt: phơi khô đặt góc tủ lạnh 3 ngày là hết mùi, còn lau sáng vòi nước",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m6c893f",
+   "title": "Khăn tắm cứng và hôi vì nước xả: giặt lại với một cốc giấm trắng, nước ấm 40–60 độ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m10d09f",
+   "title": "Máy giặt lồng ngang: 3 chỗ ít ai lau nên giặt xong quần áo vẫn hôi",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "me19972",
+   "title": "Mùa mưa phùn bật máy sấy quần áo: 3 việc làm trước khi bấm nút cho đỡ tốn điện",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mc376b8",
+   "title": "Giày ướt mưa: vo giấy báo nhét vào, đổi giấy mỗi 2 tiếng, 5 tiếng là khô",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m4be92a",
+   "title": "Ruột gối bọc túi nilon đen phơi nắng 2–3 tiếng mới diệt được mạt bụi",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m529c8b",
+   "title": "Hoá đơn điện vượt 200 số: mỗi số tiếp theo đắt thêm hơn 600 đồng",
+   "pillar": "tien_bac"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Nấu 3 món một lúc: đặt nhiều hẹn giờ có tên từng nồi trên điện thoại",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 297.73,
+   "input_tokens": 14,
+   "output_tokens": 13527,
+   "cost_usd": 2.22999
+  }
+ ]
+}

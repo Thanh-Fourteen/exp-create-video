@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-05-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mca9a4b",
+   "title": "Siri tiếng Việt chính thức có trên iPhone: bản beta iOS 27.3 dùng thử sao",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "ma54b7b",
+   "title": "ChatGPT Images 2.6 hay Nano Banana 2.1: ảnh/GIF nào đẹp, miễn phí hơn",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m43631c",
+   "title": "Gemini lưu và học từ chat cá nhân dù bạn đã trả tiền: tắt ở đâu",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mf6a9ce",
+   "title": "AI agent tự đặt xe hộ bạn? Uber nói cả quý chỉ 4 người dùng thật",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m8bd20d",
+   "title": "Siri Recaps: iPhone tự tóm tắt tin nhắn, thông báo bị bỏ lỡ, dùng thế nào",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "mb39312",
+   "title": "4 bước bật Zalo AI dịch tin nhắn tiếng Trung, Hàn ngay trong khung chat",
+   "pillar": "meo"
+  },
+  {
+   "id": "m7ba86e",
+   "title": "5 lệnh bật ChatGPT Tasks tự nhắc việc lặp lại mỗi ngày, mỗi tuần",
+   "pillar": "meo"
+  },
+  {
+   "id": "m27b765",
+   "title": "Tự bấm 'Bỏ qua quảng cáo', skip intro trên Android bằng app miễn phí GKD",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mab7bdc",
+   "title": "Google Photos miễn phí tự host: PhotoPrism AI nhận mặt, tìm ảnh bằng mô tả",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m8dd221",
+   "title": "AI tự bấm điện thoại thay bạn hoạt động thế nào: giải mã cách làm của Mika",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m592e9b",
+   "title": "Thử chạy Qwen3.8 27B trên card 6GB: được bao nhiêu chữ mỗi giây",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Tắt quảng cáo hệ thống điện thoại Xiaomi, Oppo, Vivo không cần root: app miễn phí",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 297.28,
+   "input_tokens": 6,
+   "output_tokens": 23692,
+   "cost_usd": 1.5786933
+  }
+ ]
+}

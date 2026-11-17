@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-30-0634",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mb40326",
+   "title": "Luộc ốc không tanh: lót sả lá chanh, chỉ nửa bát nước, vớt ra ngâm nước lạnh",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m3b417f",
+   "title": "Luộc gà: tắt bếp ngâm tiếp 30 phút trong nồi, rồi nhúng nước đá 3–5 phút",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m7277e8",
+   "title": "Hành tím với tỏi khô cất tủ lạnh là mọc mầm: bỏ túi lưới, treo chỗ thoáng khô",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mff498b",
+   "title": "Dầu mỡ bắn lên áo khi rán: 3 cách xử lý ngay trước khi cho vào máy giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "md8cf39",
+   "title": "Công dụng của vỏ cam quýt: đun 5 phút khử mùi bếp, hâm 5 phút khử mùi lò vi sóng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m8e58a5",
+   "title": "Lưới lọc mỡ máy hút mùi: ngâm nước nóng pha nước rửa bát 20 phút, 1 tháng một lần",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m0a738e",
+   "title": "Máy sấy quần áo bật mỗi ngày mùa mưa: hơn 200 nghìn tiền điện một tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m494f22",
+   "title": "Giày ướt mưa: nhồi giấy báo và thay sau 20 phút, đừng hong trước quạt sưởi",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m91db17",
+   "title": "Nhà vừa rút nước sau lũ: 3 việc phải làm trước khi bật lại cầu dao",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mbb2c70",
+   "title": "Nấu 3 món một lúc: đặt 3 hẹn giờ có tên trong ứng dụng Đồng hồ trên iPhone",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Bánh mì để ngăn mát nhanh cứng hơn để ngoài: muốn giữ lâu phải cắt lát, cấp đông",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Máy giặt cửa ngang Panasonic: 3 chỗ ít ai lau nên đồ giặt xong vẫn hôi",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 303.0,
+   "input_tokens": 14,
+   "output_tokens": 14980,
+   "cost_usd": 1.5828255
+  }
+ ]
+}

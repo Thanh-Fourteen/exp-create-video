@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-01-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mdde52f",
+   "title": "Xiaomi, OPPO nhồi quảng cáo khắp máy: tắt sạch bằng app trên máy tính, không cần root",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m8b9555",
+   "title": "Smart TV đầy banner quảng cáo ở màn hình chính: bản thay thế miễn phí, một nút hoàn tác",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mf8c4fa",
+   "title": "Tải video và nhạc về điện thoại xem lúc không có mạng: app miễn phí, chỉ một file cài",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m89ed56",
+   "title": "Nói một câu, AI tự mở app bấm hộ trên điện thoại: mẹo màn hình ảo chạy nền sau",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m8e0fe8",
+   "title": "6 lệnh Gemini biến ảnh chụp hoá đơn, bảng lương thành bảng Excel cộng sẵn tổng",
+   "pillar": "meo"
+  },
+  {
+   "id": "m4b0065",
+   "title": "6 lệnh ChatGPT viết 3 kiểu caption bán hàng Facebook cho cùng một sản phẩm",
+   "pillar": "meo"
+  },
+  {
+   "id": "m737f31",
+   "title": "Học sinh THPT thi chứng chỉ AI chuẩn quốc tế miễn phí: thi gì, đăng ký ở đâu",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mc8e599",
+   "title": "ChatGPT siết nội dung bạo lực với tuổi teen: ba bước bố mẹ liên kết tài khoản của con",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m36ee10",
+   "title": "Không muốn AI lấy bài blog của bạn đi học: thêm một dòng vào robots.txt",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m635ee0",
+   "title": "Bản mở rộng AI chính chủ bị gài cửa hậu 11 tiếng: ba cách kiểm trước khi bấm cập nhật",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mec496e",
+   "title": "Đừng dán CMND, hợp đồng vào chatbot: nghiên cứu VCRIS cho thấy mã hoá vẫn để lộ dữ liệu",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m8c92d8",
+   "title": "Ghi biên bản họp tiếng Việt ngay trên máy, không gửi lên mạng: 10 phút ghi âm mất bao lâu",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 147.63,
+   "input_tokens": 4,
+   "output_tokens": 8582,
+   "cost_usd": 1.8122639999999999
+  }
+ ]
+}

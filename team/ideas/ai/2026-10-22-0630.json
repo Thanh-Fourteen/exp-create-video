@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-22-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mb5390f",
+   "title": "Khoá riêng từng cuộc chat ChatGPT bằng PIN 4 số hay Face ID, bản miễn phí cũng có",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "me59959",
+   "title": "Quảng cáo đã chen vào ChatGPT bản miễn phí ở 89 nước: chỗ nào là quảng cáo, gói nào sạch",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m29f185",
+   "title": "Gemini nói chuyện ngay trên CarPlay: hỏi đường, đọc tin nhắn mà không rời tay khỏi vô lăng",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m5e4b1a",
+   "title": "Bấm chia sẻ chat AI là có thể lộ lên Google: Meta vừa phải tắt tính năng share của Muse",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m2b5499",
+   "title": "Người làm deepfake chỉ ba chi tiết lộ mặt giả khi gọi video đòi chuyển tiền",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m4a3a1f",
+   "title": "Làm CV xin việc đẹp ngay trên web, không watermark, không đòi nâng cấp: Reactive Resume",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m0a06ad",
+   "title": "Nghe nhạc YouTube khi tắt màn hình, không quảng cáo, khỏi trả phí Premium: app NewPipe",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "md59cba",
+   "title": "Mỗi lần mở app phải ngồi xem quảng cáo 5 giây: app GKD tự bấm bỏ qua giúp bạn",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m9cd405",
+   "title": "TV Android nhà bố mẹ đầy app rác: AI dọn qua Wi-Fi bằng ý tưởng gì, có cần đụng vào TV?",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "me12854",
+   "title": "6 lệnh ChatGPT biến đống tin nhắn ngân hàng thành bảng chi tiêu tháng và chỗ tiêu lố",
+   "pillar": "meo"
+  },
+  {
+   "id": "mc49134",
+   "title": "7 lệnh ChatGPT biến đề cương môn học thành lịch ôn thi 2 tuần, chia theo buổi",
+   "pillar": "meo"
+  },
+  {
+   "id": "mb8cd84",
+   "title": "Chạy ChatGPT offline trên card 6GB: đo thật bao nhiêu chữ mỗi giây, có dùng nổi không",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 140.92,
+   "input_tokens": 4,
+   "output_tokens": 7942,
+   "cost_usd": 1.8148560000000002
+  }
+ ]
+}

@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-16-0832",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mbe809d",
+   "title": "Vo gạo xong đừng đổ: ngâm cá mực 10 phút hết tanh, ngâm bát dầu mỡ đỡ nước rửa",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m605331",
+   "title": "Thùng gạo có mọt: bỏ vài nhánh tỏi bóc vỏ vào, đậy kín, để chỗ khô thoáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mcd4faa",
+   "title": "Xếp lại tủ lạnh 3 tầng: thịt cá ngăn dưới cùng, rau vào hộc, cánh cửa chỉ để chai lọ",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m7f8880",
+   "title": "Tủ lạnh vào mùa lạnh: hạ từ nấc 5 xuống nấc 3, ngăn mát 2–4°C, ngăn đá −18°C",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mf6b389",
+   "title": "Quần áo phơi trong nhà bị hôi: vắt thêm một lần, treo cách nhau một gang, bật quạt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mccbec8",
+   "title": "Mặt bếp bám dầu lâu ngày: rắc baking soda, đắp khăn nước ấm 10 phút rồi lau",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m0d5927",
+   "title": "Lôi chăn bông ra đắp đầu đông: phơi 2–3 tiếng chỗ có gió, rắc baking soda khử mùi hòm",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m2ce2db",
+   "title": "Cất quần áo mùa hè vào tủ: giặt khô hẳn, gấp dựng đứng, thêm gói hút ẩm",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m047711",
+   "title": "Ghi số công tơ điện 3 tối liền: tìm ra thiết bị nào trong nhà đang ngốn điện nhất",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m41e46d",
+   "title": "Nấu nhiều nồi một lúc: đặt 3 hẹn giờ có tên riêng trên điện thoại cho khỏi lẫn",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Rán cá không bắn dầu: thấm cá thật khô, chà lát gừng lên chảo nóng rồi mới đổ dầu",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: gioăng cửa, ngăn đựng nước giặt, lưới lọc xơ vải",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 144.54,
+   "input_tokens": 10,
+   "output_tokens": 6988,
+   "cost_usd": 1.0048255000000001
+  }
+ ]
+}

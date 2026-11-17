@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-26-0859",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m74510a",
+   "title": "Khách hỏi ChatGPT thay vì Google: thử xem shop của bạn có được AI nhắc tên",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m278cec",
+   "title": "AI tự tìm lỗ hổng bảo mật: ba việc làm ngay với app và mật khẩu trên điện thoại",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mb63084",
+   "title": "Tra cứu thủ tục đổi CCCD, hộ chiếu ngay trong Zalo: trợ lý Công dân số miễn phí",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m979dbb",
+   "title": "Sửa máy tính cho bố mẹ ở xa khỏi mua TeamViewer: app miễn phí RustDesk",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mcb2779",
+   "title": "Gộp, ký, nén PDF mà không gửi file lên web lạ: Stirling PDF chạy trên máy mình",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m5e15d1",
+   "title": "Trang chủ TV ngập quảng cáo phim: dọn về màn hình sạch bằng Free My TV, có nút hoàn tác",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "md2a002",
+   "title": "Chụp ảnh giấy tờ ra chữ chuẩn nhờ model chỉ 1 triệu tham số: vì sao nhỏ mà nhanh",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m2aad76",
+   "title": "Hết 15GB Google Photos: tự chạy Immich ở nhà, 2.000 ảnh nhận diện mặt mất bao lâu",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m88c351",
+   "title": "6 lệnh ChatGPT biến ảnh chụp slide bài giảng thành đề cương ôn thi cuối kỳ",
+   "pillar": "meo"
+  },
+  {
+   "id": "mb3d7d7",
+   "title": "7 lệnh Gemini viết báo cáo tổng kết năm từ bảng Excel chấm công",
+   "pillar": "meo"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Gmail và Google Photos có thể thành dữ liệu quảng cáo: tắt kết nối này trong Google",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "App 'cày phim AI' trả tiền mỗi lượt xem: ba dấu hiệu lừa đảo Công an Hà Nội nêu",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 203.17,
+   "input_tokens": 6,
+   "output_tokens": 11918,
+   "cost_usd": 1.771342
+  }
+ ]
+}

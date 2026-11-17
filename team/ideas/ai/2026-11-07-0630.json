@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-07-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mca2b4b",
+   "title": "AI làm phần mềm trong 20 phút thay vài tuần: kỹ năng nào cần học ngay",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m1fc788",
+   "title": "Facebook biết quảng cáo deepfake lừa đảo, vẫn cho chạy: dấu hiệu nhận biết",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m06d5b0",
+   "title": "Hàng trăm server công cụ hack AI bị lộ công khai: vì sao bạn cũng nên lo",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m9f2ba0",
+   "title": "Để Claude tự đọc chi tiêu qua Plaid hay tự ghi Excel: cách nào hợp người Việt",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m2f6e2e",
+   "title": "Nhờ điện thoại tự bấm hộ việc lặt vặt: app Android miễn phí Mika",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mf341ce",
+   "title": "Xem video TikTok biết ngay đoạn nào AI làm: ý tưởng từ rea-video",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m0fd9e5",
+   "title": "Gõ văn bản bằng giọng nói, khỏi cần mạng: app miễn phí Handy",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mdf7978",
+   "title": "Ghi âm, tóm tắt họp miễn phí thay Otter.ai: app Meetily tự chạy trên máy",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mccae8b",
+   "title": "Phụ đề gọi video & đọc chữ trong ảnh cho ba mẹ: 5 tính năng AI có sẵn trong Zalo",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m8831ba",
+   "title": "6 lệnh ChatGPT lập kế hoạch chi tiêu Tết 2027 theo đúng thu nhập",
+   "pillar": "meo"
+  },
+  {
+   "id": "ma4392e",
+   "title": "5 lệnh Gemini chụp hóa đơn điện nước, biết ngay tháng này tăng bao nhiêu %",
+   "pillar": "meo"
+  },
+  {
+   "id": "m5905e3",
+   "title": "5 lệnh Gemini dịch menu quán ăn nước ngoài ngay qua camera điện thoại",
+   "pillar": "meo"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 365.03,
+   "input_tokens": 6,
+   "output_tokens": 29097,
+   "cost_usd": 1.5639205
+  }
+ ]
+}

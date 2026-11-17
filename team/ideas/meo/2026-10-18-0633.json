@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-18-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m15d80c",
+   "title": "Luộc ốc giòn không tanh: ngâm nước vo gạo, luộc ít nước, thêm sả và lá chanh",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m162294",
+   "title": "Gạo để lâu không mọt: vài tép tỏi hoặc ly rượu trắng vùi trong thùng gạo đậy kín",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mebe49f",
+   "title": "Hành tỏi mọc mầm, chảy nước: bỏ túi nilon, để rổ lưới chỗ thoáng, xa bồn rửa",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mfa8458",
+   "title": "3 vết bẩn quần áo phải xử lý trước khi cho vào máy giặt: dầu mỡ, nước mắm, bùn",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m88991b",
+   "title": "Khăn tắm cứng và hôi: giặt riêng với giấm trắng, bỏ nước xả, phơi chỗ nắng gió",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mc8aa15",
+   "title": "Điều hoà 2 chiều chuyển sang sưởi: rửa lưới lọc trước, để 20–22°C, bật quạt đảo",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m13deae",
+   "title": "Lấy chăn bông ra dùng đầu đông: phơi nắng 2–3 tiếng, đập bụi, đừng cất túi nilon",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m24f727",
+   "title": "Giày ướt mưa: nhét giấy báo vo tròn, 1–2 tiếng thay một lần, baking soda qua đêm",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m1c613f",
+   "title": "Trời lạnh hoá đơn điện vẫn tăng: 3 đồ sưởi trong nhà tốn bao nhiêu tiền mỗi giờ",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mb7412f",
+   "title": "3 hẹn giờ trên điện thoại cho việc bếp: luộc trứng, ninh xương, tắt bình nóng lạnh",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 mẹo luộc rau xanh giòn: nước sôi già, cho chút muối, vớt ra thả ngay nước lạnh",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: gioăng cao su, ngăn bột giặt, lưới lọc xơ vải",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 128.73,
+   "input_tokens": 8,
+   "output_tokens": 6839,
+   "cost_usd": 0.859111
+  }
+ ]
+}

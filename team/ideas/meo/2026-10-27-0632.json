@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-27-0632",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m84ff34",
+   "title": "Luộc gà hay nứt da: thả từ nước lạnh, không đậy vung, ngâm nước đá 3 phút",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m2791dc",
+   "title": "Thớt gỗ dùng 10 ngày đã nhớt: rắc muối hạt, chà nửa quả chanh, phơi dựng đứng",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mb9ed1f",
+   "title": "Hành tỏi cất tủ lạnh nhanh nhũn: treo rổ thoáng, đừng để cạnh khoai tây",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "ma9adaf",
+   "title": "Lạc mốc rang lại vẫn độc: aflatoxin chịu nhiệt cao, phải bỏ cả mẻ",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m774a80",
+   "title": "Áo len mùa đầu đông: ngâm nước lạnh, bóp nhẹ không vắt xoắn, phơi ngang mắc áo",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "me8e42d",
+   "title": "Khăn mặt mới dùng 3 tuần đã hôi: ngâm nước nóng pha giấm 30 phút rồi phơi nắng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m7a8443",
+   "title": "Máy giặt Samsung nháy chữ Eco Drum Clean: chạy chế độ đó sau mỗi 40 lần giặt",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "me55ce2",
+   "title": "Lò vi sóng: 3 thứ tuyệt đối đừng cho vào, và cách hâm đồ ăn không bị khô",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m9dfddc",
+   "title": "Tắm nước nóng trời lạnh: bật quạt hút 10 phút sau khi tắm, gương đỡ mờ, đỡ nấm mốc",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mff6bf1",
+   "title": "Vượt 300 số điện một tháng: mỗi số sau đó đắt gần gấp đôi bậc 1, xem ở đâu trên hoá đơn",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m89390d",
+   "title": "Điện thoại Android đặt 3 hẹn giờ cùng lúc và đặt tên từng cái: canh nồi khỏi cháy",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Giày ướt mưa: nhồi giấy báo đổi 2 lần, đừng hơ máy sấy nóng hay phơi nắng gắt",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 199.22,
+   "input_tokens": 6,
+   "output_tokens": 10184,
+   "cost_usd": 0.813406
+  }
+ ]
+}

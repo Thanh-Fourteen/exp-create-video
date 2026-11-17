@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-28-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "meb1ae4",
+   "title": "3 mẹo luộc ốc hết nhớt, dễ lể: ngâm nước ấm pha ớt, luộc với sả lá chanh, ít nước lửa to",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m3cb24d",
+   "title": "Nước dùng xương đục vì đun sôi sùng sục: chần bỏ nước đầu, hớt bọt, giữ lửa liu riu",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mc292cb",
+   "title": "Nem rán giòn lâu nhờ rán hai lửa: lần một lửa nhỏ vớt ra, lần hai lửa to 1 phút",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mdf9246",
+   "title": "Khoai tây mọc mầm, vỏ xanh: gọt sâu cũng không hết độc, Bộ Y tế khuyên bỏ cả củ",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m1cdd23",
+   "title": "Hành tím, tỏi cất tủ lạnh nhanh mốc và mọc mầm: treo rổ thoáng chỗ tối, khô ráo",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m08525c",
+   "title": "Áo len treo móc bị giãn vai: gấp cuộn trong tủ, giặt nước dưới 30 độ, lộn mặt trong",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mbd23a6",
+   "title": "Gương nhà tắm mờ hơi nước mỗi lần tắm nóng: xoa chút xà phòng khô rồi lau sạch",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mb65a1b",
+   "title": "Nồi chiên không dầu bốc khói khét: cặn dầu đóng ở mâm nhiệt, lau sau mỗi lần dùng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "me7a04b",
+   "title": "Nhà dùng 400 số điện: 100 số cuối đắt hơn 100 số đầu gần 70% theo bậc thang EVN",
+   "pillar": "tien_bac"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 chỗ trong máy giặt Samsung cửa trước ít ai lau: gioăng cửa, khay nước giặt, lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt sau mưa: nhồi giấy báo đổi 2 lần, đừng hong máy sấy nóng hay để gần bếp",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Nấu 3 món một lúc: đặt nhiều hẹn giờ có đặt tên trên điện thoại, khỏi cháy nồi kho",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 227.93,
+   "input_tokens": 6,
+   "output_tokens": 11812,
+   "cost_usd": 0.819853
+  }
+ ]
+}

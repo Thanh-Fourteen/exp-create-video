@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-15-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m87549f",
+   "title": "Từ 15/11 chuyển khoản trên 10 triệu do AI xử lý bị xếp rủi ro cao: bạn phải xác thực gì",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m4f18b5",
+   "title": "Hỏi Google một câu dài rối: AI Mode Gemini 4 Hydrogen trả lời miễn phí ngay trong ô tìm kiếm",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m64abb4",
+   "title": "Làm slide thuyết trình: Claude bản miễn phí vừa mở Docs và Slides, so với Canva free",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m5bd115",
+   "title": "Cho AI tự quẹt thẻ mua hàng hộ bạn: ba thứ phải khoá trước khi bật ví ChatGPT",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m4f040d",
+   "title": "Số lạ gọi báo nợ, link lạ trong tin nhắn: tra ở đâu trước khi bấm, khỏi mất tài khoản",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m49be48",
+   "title": "6 lệnh Gemini lên ngân sách Tết 2027: chia lương thưởng, quà biếu, vé xe về quê",
+   "pillar": "meo"
+  },
+  {
+   "id": "m4c8f1b",
+   "title": "Xem phim nghe nhạc trên xe khách lúc mất mạng: app miễn phí tải sẵn về máy Seal",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m9b0845",
+   "title": "Chat với AI khỏi cài app hay lập tài khoản: mở một file HTML trên máy là chạy",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m6fd004",
+   "title": "Vì sao AI dựng được vật thể 3D in được: nó viết công thức hình, không nặn từng điểm",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m9796a3",
+   "title": "Ảnh chụp giáo trình thành file Word gõ sửa được, miễn phí, ngay trong Google Drive",
+   "pillar": "cong_cu"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "5 lệnh ChatGPT soi hợp đồng thuê nhà: tìm điều khoản bất lợi trước khi đặt cọc",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Gỡ băng 1 giờ ghi âm họp trên laptop card 6GB: mất bao lâu, sai bao nhiêu chữ",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 176.0,
+   "input_tokens": 4,
+   "output_tokens": 10791,
+   "cost_usd": 0.708404
+  }
+ ]
+}

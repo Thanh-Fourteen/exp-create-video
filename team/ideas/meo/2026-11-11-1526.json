@@ -1,0 +1,65 @@
+{
+ "at": "2026-11-11-1526",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m55e1e9",
+   "title": "Nước xương đục vì 3 việc tưởng đúng: đậy vung, sôi to, nêm hạt nêm",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m798285",
+   "title": "Đi chợ mùa lạnh: su hào chọn củ 7–9cm nặng tay, súp lơ bông khít, bỏ loại gọt sẵn",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mb1339e",
+   "title": "Gừng, sả còn dở: ngăn mát chỉ 2–3 tuần, cắt khúc túi zip ngăn đá được vài tháng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "ma6674b",
+   "title": "Công dụng của vỏ quýt mùa này: hút mùi tủ lạnh 2–3 ngày, lau sáng vòi nước",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mcf2e19",
+   "title": "Lò vi sóng bám dầu khô: quay bát nước cốt chanh 5 phút rồi lau, không cần cọ",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mef24a5",
+   "title": "Giày ướt mưa: nhét giấy trắng đổi 20 phút một lần, đừng hong sát quạt sưởi",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "ma7ad77",
+   "title": "Một mẻ sấy quần áo tốn bao nhiêu tiền điện: thả thêm khăn bông khô, bớt gần nửa thời gian",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m3badca",
+   "title": "Điện thoại đặt được nhiều hẹn giờ cùng lúc: canh nồi hầm và mẻ giặt khỏi quên",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Hành tím, tỏi cất túi nilon là mốc: để rổ lưới chỗ thoáng, đừng nhét tủ lạnh",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Máy giặt LG cửa ngang: 3 chỗ ít ai lau — khay nước giặt, ron cao su, lưới lọc xơ",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 226.32,
+   "input_tokens": 12,
+   "output_tokens": 9881,
+   "cost_usd": 0.951225
+  }
+ ]
+}

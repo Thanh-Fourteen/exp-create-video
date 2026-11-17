@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-06-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mfd30cc",
+   "title": "AI tự mở app, tự gõ giúp việc lặp trên điện thoại Android: cài thử Mika",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "meca5b1",
+   "title": "Video này quay thật hay AI dựng? Công cụ mở soi từng khung hình cho biết",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "mabb421",
+   "title": "Thay 5 app xem tin, thời tiết, YouTube bằng một dashboard miễn phí: Glance",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m139642",
+   "title": "Khỏi trả phí thuê bao AI hằng tháng: tự host trợ lý riêng bằng QwenPaw",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m24b4d7",
+   "title": "12.000 ảnh dáng mẫu offline cho AI vẽ: card 2060 mất mấy giây mỗi ảnh",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m0b6420",
+   "title": "5 lệnh Gemini biến ảnh chụp bảng trắng họp thành văn bản gọn gàng",
+   "pillar": "meo"
+  },
+  {
+   "id": "md75e1a",
+   "title": "6 lệnh ChatGPT luyện phỏng vấn xin việc tiếng Việt, tự chấm điểm câu trả lời",
+   "pillar": "meo"
+  },
+  {
+   "id": "ma4f90f",
+   "title": "5 lệnh Canva viết caption bán hàng Shopee, TikTok Shop theo mẫu có sẵn",
+   "pillar": "meo"
+  },
+  {
+   "id": "ma466da",
+   "title": "Đăng nhạc AI lên SoundCloud ngay trong ElevenLabs, khỏi xuất file thủ công",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mb68239",
+   "title": "AI đọc số dư ngân hàng kiểu Claude chưa có ở VN: tự làm bằng Gemini + Sheet",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "md1168e",
+   "title": "Tài khoản Gemini trả tiền vẫn bị lấy chat để huấn luyện AI, tắt ngay trong Cài đặt",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m7f19ac",
+   "title": "Mùa Black Friday: web bán hàng giả dựng bằng AI trong vài phút, 3 dấu hiệu nhận biết",
+   "pillar": "canh_bao"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 295.79,
+   "input_tokens": 4,
+   "output_tokens": 24220,
+   "cost_usd": 1.516461
+  }
+ ]
+}

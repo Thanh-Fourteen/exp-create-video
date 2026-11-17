@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-28-0949",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m770594",
+   "title": "Ngân hàng cảnh báo: đừng đưa mật khẩu app bank cho trợ lý AI điền hộ",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m3b21e6",
+   "title": "Hỏi AI về liều thuốc: vụ kiện ở Mỹ và ba câu phải hỏi lại bác sĩ",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m0b4b4e",
+   "title": "Làm slide Keynote và viết văn bản Pages bằng chatbot AI có sẵn trong máy Mac",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mfcbf7a",
+   "title": "Tóm tắt trang web mà không gửi dữ liệu lên mạng: AI chạy ngay trong trình duyệt",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m5fa323",
+   "title": "Điền đơn online 10 ô chỉ một cú bấm: Firefox lấy dữ liệu từ tab đang mở",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m579637",
+   "title": "Mở khoá tensor core trên card RTX 2060: tôi đo tốc độ sinh ảnh trước và sau",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "ma81c21",
+   "title": "Điện thoại Xiaomi, Oppo tự hiện quảng cáo ở đâu ra và tắt được mà không cần root",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "mbf2af3",
+   "title": "Ghi chú đồng bộ hai máy khỏi trả phí Notion: app miễn phí Joplin, dữ liệu của bạn",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m506ce7",
+   "title": "Nghe playlist nhạc không quảng cáo mà khỏi trả phí mỗi tháng: app Spotube",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m2228fb",
+   "title": "5 lệnh Gemini viết bài bán hàng sale 11.11 cho Facebook và TikTok Shop",
+   "pillar": "meo"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Màn hình TV Android đầy quảng cáo: dọn sạch bằng app miễn phí, một nút hoàn tác",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "6 lệnh ChatGPT soi hợp đồng thuê nhà trước khi ký: tìm điều khoản bất lợi",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 169.24,
+   "input_tokens": 4,
+   "output_tokens": 10938,
+   "cost_usd": 0.9030485
+  }
+ ]
+}

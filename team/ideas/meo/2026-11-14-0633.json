@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-14-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "me6abb1",
+   "title": "Đi chợ đầu đông: bắp cải tròn nặng tay, su hào củ nhỏ lá non mới ngọt",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "md1bae1",
+   "title": "Ốc luộc còn sạn: ngâm với chanh và vài quả ớt 1–2 tiếng, ốc há miệng nhả hết bùn",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m6a377d",
+   "title": "Hành tỏi cất trong túi nilon là mốc: cho vào túi lưới treo thoáng, gừng bọc giấy bạc",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m1ba46d",
+   "title": "Chuối, cà chua, khoai lang càng cất tủ lạnh càng nhanh hỏng: để chỗ thoáng mát",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mdcd4c6",
+   "title": "Cổ áo sơ mi ố vàng: 3 cách với muối, baking soda và nước cốt chanh, nước ấm 40 độ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m337b8b",
+   "title": "Vòi sen chảy yếu vì cặn vôi: buộc túi giấm trùm đầu sen qua đêm, sáng xả mạnh",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m5348fe",
+   "title": "Máy giặt LG: giữ nút Tub Clean 3 giây để rửa lồng giặt, mỗi tháng một lần",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m6ff48b",
+   "title": "Đế bàn là bám đen làm hoen áo: đắp bột baking soda với nước, chà lúc đã nguội",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m097740",
+   "title": "Đêm gió mùa đừng đốt than sưởi trong phòng kín: khí CO gây ngộ độc khi đang ngủ",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m35bc79",
+   "title": "Biểu giá điện mới từ 1/11: quá 200 số, mỗi số nhảy từ 2.289 lên 2.894 đồng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mb03a4b",
+   "title": "Hẹn giờ nhiều mốc trên điện thoại khi nấu: đặt tên theo món, khỏi cháy nồi",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Giày ướt mưa: nhồi giấy báo đổi mỗi 20 phút, đừng sấy giày da bằng máy sấy tóc",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 259.32,
+   "input_tokens": 10,
+   "output_tokens": 13261,
+   "cost_usd": 1.3314320000000004
+  }
+ ]
+}

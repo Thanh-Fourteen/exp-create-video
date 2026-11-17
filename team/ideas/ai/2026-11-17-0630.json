@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-17-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m51ea81",
+   "title": "Google Maps tự lên lịch trình du lịch: hỏi một câu ra lịch từng điểm, kèm giờ mở cửa",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m6def16",
+   "title": "Học cao học hay đi dạy: đăng ký dùng miễn phí model mạnh nhất của ChatGPT",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mf134ce",
+   "title": "Từ 15/11 AI ngân hàng được chuyển tiền thay bạn: hai mốc 10 và 20 triệu cần nhớ",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m4ea63a",
+   "title": "Thầy dạy AI khoe 'đội quân agent' chạy suốt đêm: sự thật là một tiện ích Chrome",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m25a24a",
+   "title": "OpenAI cho AI tự quẹt thẻ mua hàng: ba điều nhớ trước khi giao thẻ cho trợ lý",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m4bfc60",
+   "title": "Họp online khỏi cắm cúi gõ biên bản: app miễn phí Yogurt ghi và tóm tắt ngay trên máy",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "me4946d",
+   "title": "Điện thoại Android cũ bỏ xó thành màn hình phụ cho máy tính: app miễn phí PhoneBox",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m690bc2",
+   "title": "Chat AI khi mất mạng, dữ liệu không rời máy: app Unsloth chạy model ngay trên laptop",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m607361",
+   "title": "Card yếu vẫn chơi game mượt: AI vẽ xen thêm khung hình hoạt động thế nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "mee3057",
+   "title": "6 lệnh ChatGPT biến ảnh chụp hoá đơn thành bảng chi tiêu tháng mở bằng Excel",
+   "pillar": "meo"
+  },
+  {
+   "id": "mf31a23",
+   "title": "5 lệnh ChatGPT Voice luyện phỏng vấn xin việc tiếng Việt trước ngày đi phỏng vấn",
+   "pillar": "meo"
+  },
+  {
+   "id": "m2895cf",
+   "title": "Tự làm phụ đề tiếng Việt cho video 10 phút trên card 6GB: mất bao lâu, sai mấy chữ",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 162.88,
+   "input_tokens": 4,
+   "output_tokens": 11524,
+   "cost_usd": 0.7367205
+  }
+ ]
+}

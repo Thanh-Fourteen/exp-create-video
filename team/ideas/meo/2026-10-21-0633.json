@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-21-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m0be309",
+   "title": "Mực xào ra nước và dai: chần 1 phút nước gừng, ngâm nước lạnh rồi xào lửa to",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m706964",
+   "title": "Thịt lợn tươi: nạc hồng, mỡ trắng trong, ấn vào bật lại — chảy nước thì bỏ qua",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m069261",
+   "title": "Tỏi với hành tím để tủ lạnh lại mọc mầm nhanh hơn: cất rổ thưa, chỗ thoáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m065b49",
+   "title": "Rau rửa sạch rồi mới cho vào tủ lạnh là nhanh úng: bọc khăn giấy, túi hở miệng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m73f9d6",
+   "title": "Dầu mỡ bắn lên áo khi rán: rắc phấn rôm, chờ 15 phút, chà bàn chải rồi mới giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m066f67",
+   "title": "Thớt gỗ vừa thái cá: 3 việc làm ngay để không còn mùi tanh và nứt thớt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mab59ce",
+   "title": "Hộp nhựa hâm lò vi sóng: chỉ loại số 5 PP, bỏ nắp ra, hâm 2–3 phút",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m13e6ad",
+   "title": "Áo len lấy từ tủ ra mùi hôi ẩm: 3 cách khử trong 4 giờ, chưa cần giặt",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m808889",
+   "title": "Giày ướt sũng sau mưa: nhồi giấy báo, 2–3 giờ đổi lớp — đừng hơ máy sấy",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m681aa9",
+   "title": "Tiền nước tăng mà không dùng thêm: thả phẩm màu vào két bồn cầu, 30 phút là biết",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m16e2a3",
+   "title": "Nấu 3 món một lúc: đặt nhiều đồng hồ hẹn giờ cùng lúc trong app Đồng hồ Android",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Máy giặt LG cửa trước: khay nước giặt lau mỗi tuần, gioăng cửa mỗi tháng, lọc xả",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 277.85,
+   "input_tokens": 12,
+   "output_tokens": 13137,
+   "cost_usd": 1.6376920000000001
+  }
+ ]
+}

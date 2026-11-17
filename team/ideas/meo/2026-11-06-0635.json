@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-06-0635",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m7567ab",
+   "title": "Máy giặt: 3 chỗ ít ai lau khiến quần áo ám mùi ẩm mốc",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mdce9e7",
+   "title": "Hành tỏi mùa ẩm để túi nhựa kín hơi: 3 mẹo cất không mốc, không mọc mầm",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m881403",
+   "title": "Vỏ cam vỏ quýt sắp vứt: khử mùi tủ lạnh và làm sạch mùi lò vi sóng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "md2fbf8",
+   "title": "Mùa lạnh cắm chung quạt sưởi, bình nóng lạnh vào một ổ: nguy cơ quá tải",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m3320ae",
+   "title": "Giày ướt mưa Trung Bộ: nhét giấy báo, hong quạt — đừng sấy tóc trực tiếp",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m248001",
+   "title": "Chăn điện, đệm điện mùa lạnh: tuyệt đối không gập khi đang cắm điện",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m7c2d10",
+   "title": "Máy lọc nước RO: đặt lịch điện thoại nhắc thay lõi 1-2-3 và màng RO đúng hạn",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "m37a6e3",
+   "title": "Nước mắm mở nắp tưởng để cả năm: thực ra ngon nhất chỉ trong 1 tháng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mca0d00",
+   "title": "Rán đậu phụ hay vỡ, dính chảo: chần qua nước muối sôi 2 phút trước khi rán",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m428c11",
+   "title": "Máy sấy quần áo: mỗi lần sấy tốn 1-3kWh điện, vắt kỹ trước để đỡ tốn",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "md86117",
+   "title": "Chỉ đen trên lưng tôm không phải chất độc: sự thật ít ai biết khi sơ chế",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m79e367",
+   "title": "Sữa tươi hộp giấy mở nắp: tưởng còn uống vài ngày, thực ra chỉ 24-48 giờ",
+   "pillar": "bao_quan"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 416.92,
+   "input_tokens": 12,
+   "output_tokens": 27914,
+   "cost_usd": 1.4024534999999998
+  }
+ ]
+}

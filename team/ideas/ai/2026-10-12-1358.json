@@ -1,0 +1,66 @@
+{
+ "at": "2026-10-12-1358",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mbcdcfa",
+   "title": "Trả tiền CapCut Pro mỗi tháng? OpenCut: chỉnh video miễn phí, không logo",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m36e180",
+   "title": "Trả tiền ElevenLabs để nhân giọng? VoiceStudio: làm ngay trên máy, miễn phí",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m0c93aa",
+   "title": "Ngại nhập thu chi vào Excel? Aurelio: AI cố vấn tài chính chạy ngay trên máy mình",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m8cdfae",
+   "title": "Tìm hoài không ra ảnh cũ trên Mac? DigUp: gõ tả là ra, không cần nhớ tên file",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m3dab03",
+   "title": "Trả tiền ChatGPT Plus mỗi tháng? Ollama: cài một lần, chat AI miễn phí trên máy mình",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m0d4eeb",
+   "title": "Học AI từ số 0 không tốn tiền? ai-engineering-from-scratch: 528 bài học miễn phí",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "me032e3",
+   "title": "Công khai lời giải bài toán nghiên cứu khó: ý tưởng nào giúp AI tự làm toán học",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m463688",
+   "title": "Không đọc được thực đơn ở nước ngoài? Chụp ảnh để Gemini dịch, gợi ý món ăn ngay",
+   "pillar": "meo"
+  },
+  {
+   "id": "me11463",
+   "title": "Tải app AI mã nguồn mở 'miễn phí' để bán hàng: ba điều về license cần đọc trước",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "me8a0ac",
+   "title": "Cuối năm tính thuế thu nhập cá nhân: chụp ảnh bảng lương, để ChatGPT tính giúp nhanh",
+   "pillar": "meo"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 331.68,
+   "input_tokens": 6,
+   "output_tokens": 24387,
+   "cost_usd": 0.7445291
+  }
+ ]
+}

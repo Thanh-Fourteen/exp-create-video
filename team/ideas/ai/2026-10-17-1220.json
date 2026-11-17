@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-17-1220",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mc43522",
+   "title": "ChatGPT đọc được mọi tab Chrome đang mở: tiện, nhưng nó xin cả lịch sử duyệt web",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m609e74",
+   "title": "Meta phát hành model mở chạy ngay trên máy Mac: hỏi AI mà dữ liệu không rời máy",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m762033",
+   "title": "Điều khoản mới của Meta: website của fanpage có thể bị lấy nội dung để luyện AI",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "ma25d4c",
+   "title": "Character.AI phá sản dù có 12 triệu người dùng: tải dữ liệu chat về trước khi app đóng",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m957620",
+   "title": "AI agent xoá sạch bản dựng một show TV: cho AI quyền vào file thì phải có 2 bản sao",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "ma64c69",
+   "title": "Tin AI lây qua tủ lạnh và TV: vì sao lời cảnh báo này bị cộng đồng bóc ngay",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m5cc9ea",
+   "title": "Khoá API lộ trong code công khai: cách kẻ xấu mượn AI agent của bạn tiêu tiền",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m28f95e",
+   "title": "Laptop RTX Spark hay laptop card rời cũ: chạy AI ở nhà, máy nào đáng tiền hơn",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m5509d7",
+   "title": "Ảnh này do AI tạo? Dán vào SynthID của Google kiểm trong mười giây",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "mba16d4",
+   "title": "Trả phí cho trợ lý AI biết nhớ việc? Talorys: chat, ghi chú, nhắc hẹn trên cloud của bạn",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m501d01",
+   "title": "Biết tên model và app AI mới trước cả Google Trends: bản tin new-term-radar mỗi ngày",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mc4f928",
+   "title": "Mạng neural thật ra chỉ là phép nhân: handwired biến code JavaScript thường thành AI",
+   "pillar": "kien_thuc_repo"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 138.64,
+   "input_tokens": 4,
+   "output_tokens": 8533,
+   "cost_usd": 0.791177
+  }
+ ]
+}

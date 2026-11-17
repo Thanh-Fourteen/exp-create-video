@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-29-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m2dd059",
+   "title": "Ốc luộc còn sạn: ngâm nước vo gạo 2 tiếng, lót sả gừng, nước chỉ xâm xấp đáy nồi",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m4f27c0",
+   "title": "Luộc rau đậy vung là rau vàng: mở vung, nước sôi bùng rồi thả, thêm một thìa muối",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m4ab8b4",
+   "title": "Hành tỏi để trong túi nilon là mốc và mọc mầm: đổ ra rổ thưa, kê thoáng, đừng rửa",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "md49dfe",
+   "title": "Khoai tây mọc mầm: chân mầm 420–730mg độc tố, Cục An toàn thực phẩm khuyên bỏ cả củ",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m327156",
+   "title": "Vết dầu ăn bắn lên áo: rắc bột ngô hút 30 phút rồi mới giặt, đừng vò xà phòng ngay",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m6150ec",
+   "title": "Máy giặt Samsung: chạy Vệ sinh lồng giặt mỗi tháng, không bỏ quần áo vào cùng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mb66dae",
+   "title": "Lò vi sóng: đừng hâm trứng nguyên quả, giấy bạc và hộp nhựa thường",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mdf4ba2",
+   "title": "Áo len đầu đông: ngâm nước lạnh 20 phút, không vắt xoắn, phơi nằm trên mặt phẳng",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m8b6ec8",
+   "title": "Tiền điện bậc thang: số điện thứ 401 giá 3.460đ, gấp 1,7 lần 50 số đầu",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m15bd87",
+   "title": "Nấu ba nồi một lúc: iPhone đặt nhiều đồng hồ hẹn giờ, mỗi nồi đặt một tên",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Công dụng của vỏ cam quýt: phơi khô bỏ góc tủ khử mùi, đun nước lau sàn gỗ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt sau mưa: nhồi giấy báo đổi hai lần, để chỗ thoáng — đừng hơ sát máy sấy",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 247.86,
+   "input_tokens": 10,
+   "output_tokens": 11803,
+   "cost_usd": 1.3697335
+  }
+ ]
+}

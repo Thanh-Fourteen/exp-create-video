@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-12-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "ma23e9d",
+   "title": "Họp online tiếng Anh có phụ đề Việt và biên bản tự động: app miễn phí Cicada",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m7f6063",
+   "title": "Ảnh chục năm trong ổ cứng tự tìm theo mặt người và địa điểm: app miễn phí PhotoPrism",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mba4ab4",
+   "title": "Mở app nào cũng phải xem quảng cáo 5 giây: app Android miễn phí GKD tự bấm bỏ qua",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m92a6f5",
+   "title": "AI tự bấm màn hình điện thoại thay bạn: Pinky nhìn ảnh chụp và hiểu nút nào là nút nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m90a2b3",
+   "title": "Chatbot chạy offline trên card 6GB: Jan ra bao nhiêu chữ mỗi giây, có đủ mượt không",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "md587b9",
+   "title": "5 lệnh Gemini đọc ảnh hoá đơn điện và chỉ ra thiết bị ngốn tiền nhất tháng",
+   "pillar": "meo"
+  },
+  {
+   "id": "m220ecc",
+   "title": "6 lệnh ChatGPT biến AI thành nhà tuyển dụng để luyện phỏng vấn trước ngày đi",
+   "pillar": "meo"
+  },
+  {
+   "id": "ma8cf11",
+   "title": "Microsoft tính trả tiền thuê card đồ hoạ lúc bạn không chơi game: nên nhận không?",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m2c7252",
+   "title": "Claude hết hạn mức giữa buổi làm: Anthropic vừa tặng thêm lượt reset cho bản trả phí",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m035f28",
+   "title": "Chủ shop online: khai hồ sơ cửa hàng trong ChatGPT miễn phí để khách hỏi là ra mình",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "maf0674",
+   "title": "Nhờ AI tự đặt vé máy bay: United và eBay vừa chặn, rủi ro mất tiền và khoá tài khoản",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "me82b4a",
+   "title": "Video 'công an' gọi đòi chuyển tiền: ba dấu hiệu nhận ra deepfake trong 10 giây",
+   "pillar": "canh_bao"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 170.8,
+   "input_tokens": 4,
+   "output_tokens": 10514,
+   "cost_usd": 0.6913475
+  }
+ ]
+}

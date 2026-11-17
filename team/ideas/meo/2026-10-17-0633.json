@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-17-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m120a6e",
+   "title": "Rán cá không bắn dầu: thấm khô cá, chảo nóng rồi rắc nửa thìa bột bắp vào dầu",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "ma77481",
+   "title": "Cất gạo không mọt: đổ sang hộp kín, thả vài tép tỏi khô, để xa bếp và tường ẩm",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m8c5272",
+   "title": "Rau mua về đừng rửa: bọc khăn giấy, túi đục lỗ, hộc rau giữ tươi 5 ngày",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m4dd2ea",
+   "title": "Cổ áo trắng ố vàng: baking soda trộn nước ấm thành sệt, chà bàn chải mềm 20 phút",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m10d7b8",
+   "title": "Tủ quần áo mùi ẩm: để hộp baking soda mở nắp vào góc tủ, mỗi tháng đổi một lần",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mb1d0ec",
+   "title": "Tủ lạnh tốn điện: kê cách tường 10cm, đừng nhồi kín, để nấc lạnh 3–4",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m4519ec",
+   "title": "Chăn bông lấy ra có mùi hôi: phơi nắng 2–3 tiếng, rắc baking soda rồi hút bụi",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m334954",
+   "title": "Giày ướt mưa: nhồi giấy báo, đổi sau 1 tiếng — đừng hơ lửa hay sấy thẳng",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m508e05",
+   "title": "Đèn sưởi nhà tắm 1000W bật 15 phút mỗi tối: hết khoảng 7,5 số điện một tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m241196",
+   "title": "Chụp ảnh hạn dùng rồi đặt nhắc trước 2 ngày: không phải đổ sữa, sốt trong tủ",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 mẹo luộc rau xanh giòn: nước sôi già, chút muối, vớt ra dội nước lạnh ngay",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: gioăng cửa, hộp đựng nước giặt, lưới lọc xơ",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 162.95,
+   "input_tokens": 6,
+   "output_tokens": 8560,
+   "cost_usd": 0.9486840000000001
+  }
+ ]
+}

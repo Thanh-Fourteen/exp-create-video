@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-12-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m8d56b8",
+   "title": "Tôm đuôi xòe, thân thẳng cứng: dấu hiệu tôm bị bơm tạp chất, rẻ cũng đừng mua",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mda0ca7",
+   "title": "Hai cách bóc bưởi giữ nguyên múi: rạch 6 đường dọc hoặc lột bằng thìa",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m59dee1",
+   "title": "Rửa hành tỏi trước khi cất là hỏng: 3 nguyên tắc để cả tháng không mọc mầm",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m1df5ea",
+   "title": "Bánh mì cho ngăn mát nhanh cứng gấp 3 để ngoài: bọc kín rồi cho ngăn đá",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mb559f9",
+   "title": "Áo vừa bắn dầu mỡ khi rán: rắc bột ngô hoặc phấn rôm 30 phút rồi xoa nước rửa bát",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "me77d0f",
+   "title": "Nước hoa sen yếu và bắn tứ phía: bọc túi giấm quanh bát sen 30–60 phút",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m146b92",
+   "title": "Đáy nồi lõm làm bếp từ tốn điện: thử cục nam châm trước khi bắc lên nấu",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m1b530c",
+   "title": "Giày ướt sau mưa: nhét giấy báo đổi 20–30 phút, đừng sấy giày da bằng máy sấy tóc",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m065578",
+   "title": "Gió mùa về, cất quạt điện: lau cánh, phơi thật khô rồi bọc kín túi nilon",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "maf3ec0",
+   "title": "Bàn là 1.200W: là dồn một mẻ hay mỗi sáng một áo, chênh bao nhiêu tiền điện",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m65b56d",
+   "title": "3 câu nói với Trợ lý Google khi tay dính dầu: hẹn giờ, quy đổi gam, ghi đồ chợ",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 chỗ trong máy giặt cửa trước ít ai lau: ngăn nước xả, gioăng cửa, lưới lọc xơ",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 310.56,
+   "input_tokens": 14,
+   "output_tokens": 13355,
+   "cost_usd": 1.2040085
+  }
+ ]
+}

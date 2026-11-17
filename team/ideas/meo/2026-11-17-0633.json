@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-17-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m13d233",
+   "title": "Trứng mới mua luộc xong khó bóc vỏ: thả vào nước đang sôi rồi ngâm nước đá 5 phút",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "ma77094",
+   "title": "Nem rán giòn lâu: chiên hai lửa, để nguội giữa hai lần, lửa vừa và không đậy vung",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m93aeb9",
+   "title": "Bánh mì cất ngăn mát khô nhanh gấp 6 lần: để túi giấy ngoài bàn, để lâu thì cấp đông",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m2c88a7",
+   "title": "Hành tím tỏi bọc túi nilon là mốc: đựng túi lưới nơi thoáng, nhặt củ hỏng mỗi tuần",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m1a96b2",
+   "title": "Cổ áo sơ mi ố vàng: baking soda pha nước ấm, đắp 15 phút rồi chà bàn chải mềm",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m63e911",
+   "title": "Ruột gối cả năm chưa giặt: giặt nước ấm, phơi nắng hanh rồi vỗ tơi cho phồng lại",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mbb265d",
+   "title": "Máy sấy tóc yếu dần vì lưới lọc sau máy bám bụi: tháo ra lau mỗi tháng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m6dd645",
+   "title": "Máy giặt LG: chạy Tub Clean mỗi tháng, hộc nước xả rửa mỗi tuần cho hết mùi lồng giặt",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m11346a",
+   "title": "Giày ướt mưa: vo giấy báo nhét kín, thay sau 30 phút — đừng hơ sát máy sấy",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m24de4a",
+   "title": "Bó hoa 20/11: cắt chéo cuống dưới vòi nước, tỉa lá ngập nước, thay nước mỗi ngày",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m6ece59",
+   "title": "Đèn sưởi nhà tắm 550W bật 15 phút hết khoảng 400 đồng: bật trước 3 phút là đủ ấm",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m6e5498",
+   "title": "Nấu ba món một lúc không quên nồi nào: đặt nhiều hẹn giờ có tên trên iPhone",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 234.95,
+   "input_tokens": 12,
+   "output_tokens": 14373,
+   "cost_usd": 1.08239
+  }
+ ]
+}

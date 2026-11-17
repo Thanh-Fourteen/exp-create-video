@@ -1,0 +1,75 @@
+{
+ "at": "2026-11-16-0631",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "md420bd",
+   "title": "Từ 15/11 cho AI tự chuyển tiền hộ: ba thứ phải ghi trong thoả thuận với ngân hàng",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m8d4631",
+   "title": "Lớp dạy \"đội quân AI agent làm việc 24/7\": hoá ra chỉ là một tiện ích Chrome rẻ tiền",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m019b4b",
+   "title": "Claude tự dựng bảng tính có công thức từ một câu mô tả: thay được việc gì trong Excel",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "ma459f7",
+   "title": "ChatGPT Wallet: AI tự bấm đặt hàng và thanh toán hộ — mở cho ai, chặn ở mức nào",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m9bb74d",
+   "title": "Mạng lưới AI chặn lừa đảo ở Việt Nam: ngân hàng và nhà mạng sẽ gắn cờ số lạ thế nào",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m3b9258",
+   "title": "Ghi biên bản họp tự động mà không cần bot lạ vào phòng họp: app miễn phí Yogurt",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mff08f7",
+   "title": "Vì sao AI dựng được mô hình 3D: nó viết chương trình ngắn chứ không nắn từng điểm",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "ma4f439",
+   "title": "6 lệnh ChatGPT viết bài đăng bán hàng Tết cho shop nhỏ: tiêu đề, giá, câu chốt đơn",
+   "pillar": "meo"
+  },
+  {
+   "id": "m180d23",
+   "title": "5 lệnh Gemini soát hợp đồng thuê nhà trước khi ký: điều khoản bất lợi và tiền cọc",
+   "pillar": "meo"
+  },
+  {
+   "id": "mb57896",
+   "title": "Gỡ băng 1 giờ ghi âm họp bằng app chạy offline trên card 6GB: mất bao nhiêu phút",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Gộp, ký tên, nén PDF khỏi tải lên web lạ: app miễn phí Stirling PDF chạy ngay trên máy",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Sửa máy tính cho bố mẹ từ xa khỏi trả phí TeamViewer: app miễn phí RustDesk",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 183.94,
+   "input_tokens": 4,
+   "output_tokens": 12460,
+   "cost_usd": 0.7608685
+  }
+ ]
+}

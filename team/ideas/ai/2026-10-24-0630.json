@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-24-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m45d20c",
+   "title": "App \"cày phim AI\" trả tiền xem: ba dấu hiệu lừa Công an Hà Nội vừa cảnh báo",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mdcfa3a",
+   "title": "Gmail và Google Photos của bạn có thể thành dữ liệu quảng cáo: chỗ tắt trong 30 giây",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mdca070",
+   "title": "Uber cho 30.000 nhân viên dùng ChatGPT Work: 4 việc văn phòng họ giao hẳn cho AI",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mf09d54",
+   "title": "ChatGPT bản miễn phí ở Việt Nam bắt đầu có quảng cáo: chịu quảng cáo hay trả 132.000đ/tháng?",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m0d97ac",
+   "title": "Hỏi thủ tục đất đai, khai sinh, bằng lái ngay trong Zalo: Trợ lý Công dân số miễn phí",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m659862",
+   "title": "Smart TV đầy quảng cáo ở trang chủ: app miễn phí dọn sạch, bấm một nút là hoàn lại",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m939e82",
+   "title": "Nói thay vì gõ, chữ hiện ngay trong Word và Zalo, chạy offline: app miễn phí Handy",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m05a60b",
+   "title": "Họp xong có biên bản tóm tắt, ghi âm không rời khỏi máy: app miễn phí Meetily",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m5b73a2",
+   "title": "Quét căn phòng bằng iPhone ra mô hình 3D sửa được: AI ghép ảnh với dữ liệu chiều sâu",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "md628ba",
+   "title": "5 lệnh ChatGPT soát giỏ hàng sale 11.11: món nào rẻ thật, món nào bị đội giá",
+   "pillar": "meo"
+  },
+  {
+   "id": "m3c6339",
+   "title": "6 lệnh Gemini chấm bài IELTS Writing Task 2 và chỉ đúng chỗ sai ngữ pháp",
+   "pillar": "meo"
+  },
+  {
+   "id": "m34f51c",
+   "title": "Card 6GB đọc ảnh hoá đơn offline: mỗi ảnh ra bảng số mất bao nhiêu giây",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 150.75,
+   "input_tokens": 4,
+   "output_tokens": 8788,
+   "cost_usd": 1.5723420000000001
+  }
+ ]
+}

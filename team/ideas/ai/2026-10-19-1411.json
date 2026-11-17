@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-19-1411",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m8ef93e",
+   "title": "DeepSeek V4.1 Flash ra bản 17/10: hỏi AI 1 triệu token, giá gần như cho không",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m8de75b",
+   "title": "Trung Quốc bán token AI như bán điện: giá dùng AI của bạn sắp rẻ tới đâu",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m4e567e",
+   "title": "Meta tự cho quyền quét website của shop rồi rút lại: chủ fanpage phải xem lại gì",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mbada22",
+   "title": "ChatGPT giờ đọc được tab Chrome đang mở: bật thế nào và khi nào nên tắt",
+   "pillar": "cong_cu"
+  },
+  {
+   "id": "m532310",
+   "title": "Ảnh Nhà Trắng Trump đăng bị AI sửa: ba chỗ luôn lộ khi ảnh qua tay AI",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m1437eb",
+   "title": "AI agent xoá sạch bản dựng một show TV trước ngày phát sóng: đừng cho AI quyền ghi file",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m4b12e6",
+   "title": "Model mở 816 tỷ tham số của Meta chạy trên Mac: cần 1TB RAM, bạn nên dùng gì thay",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m39911b",
+   "title": "Thú ảo QQ ngày xưa sống lại miễn phí trên máy và điện thoại: qqpet dựng lại nhờ AI",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m21294b",
+   "title": "Gửi bản tin email mà không nuôi danh sách chết: MailCheap trả tiền theo mail đã gửi",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m2b474e",
+   "title": "OpenAI mở kho chứng minh toán do model tự viết: AI đã giải được bài nào chưa ai giải",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m06d21f",
+   "title": "AI tự dạy mình bằng cách đoán trước kết quả: ý tưởng world model trong RSI-Anything",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "mc9f9eb",
+   "title": "Đo thử agent tự lướt web Scout trên card 6GB: chạy được mấy bước trước khi sai",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 148.42,
+   "input_tokens": 4,
+   "output_tokens": 9052,
+   "cost_usd": 0.861376
+  }
+ ]
+}

@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-23-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m5b799e",
+   "title": "Ảnh bài đăng bán hàng, thực đơn 2K ngay trong Canva: model Craft mở cho mọi người",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mfdaf6c",
+   "title": "Hỏi AI về kết quả xét nghiệm: cách hỏi đúng sau tin AI chẩn bệnh hơn bác sĩ",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "md5a97d",
+   "title": "Link chat AI bạn từng gửi cho người khác có thể bị người lạ tìm thấy: kiểm lại ngay",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m847f73",
+   "title": "Trợ lý AI xin tự đăng nhập hộ bạn: ba thứ tuyệt đối không giao cho AI",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m06f86e",
+   "title": "TV nhà bạn chậm dần vì app chạy nền: cách dọn Smart TV Android qua Wi-Fi",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m7dacba",
+   "title": "Ghi chú, công thức, giấy tờ cả nghìn trang lưu ngay trên máy mình: app miễn phí Trilium",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mbe73c1",
+   "title": "Lưu ảnh cả nhà bằng máy tính cũ, khỏi trả Google One: CasaOS miễn phí",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m26cf8c",
+   "title": "5 lệnh Gemini biến ảnh chụp bảng giấy thành file Google Sheets tính được",
+   "pillar": "meo"
+  },
+  {
+   "id": "mc89491",
+   "title": "7 lệnh ChatGPT biến báo cáo Word 20 trang thành dàn slide thuyết trình",
+   "pillar": "meo"
+  },
+  {
+   "id": "m153d9d",
+   "title": "6 lệnh ChatGPT lập lịch ôn thi 2 tuần từ ảnh đề cương môn học",
+   "pillar": "meo"
+  },
+  {
+   "id": "me26e8e",
+   "title": "Xoá nền 100 ảnh sản phẩm ngay trên máy, ảnh không rời khỏi nhà: 6GB mất bao lâu",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m630b41",
+   "title": "Gõ lại 1 giờ ghi âm họp thành chữ tiếng Việt offline: card 6GB mất mấy phút",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 230.26,
+   "input_tokens": 4,
+   "output_tokens": 14690,
+   "cost_usd": 2.099899
+  }
+ ]
+}

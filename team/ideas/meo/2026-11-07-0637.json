@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-07-0637",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mfcc1ea",
+   "title": "Luộc rau củ mùa đông: 3 mẹo giữ xanh giòn - nước sôi già, thêm dầu, ngâm đá",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mef57fa",
+   "title": "Vỏ cam, quýt ăn xong đừng vứt: phơi khô đặt trong tủ lạnh hết mùi hôi 5-7 ngày",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "me36f77",
+   "title": "3 chỗ trong máy giặt ít ai vệ sinh: khay nước xả, viền cao su cửa, ngăn bột giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m1915ab",
+   "title": "Giày ướt mưa cuối năm: nhồi giấy báo vò nhẵn, thay sau 2-3 giờ, đừng sấy gần lửa",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m703844",
+   "title": "Đèn sưởi nhà tắm 3 bóng bật 15 phút: chỉ tốn khoảng 500-800 đồng mỗi lần tắm",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m4aff0b",
+   "title": "Máy lọc nước: đặt lịch điện thoại nhắc thay lõi số 1 sau 3-6 tháng, kẻo lọc mà không sạch",
+   "pillar": "dien_thoai"
+  },
+  {
+   "id": "mecc3d9",
+   "title": "Mua tôm ngoài chợ: đầu tôm rời khỏi thân là tôm để lâu, đừng mua",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "me35efd",
+   "title": "Nấm mua về đừng rửa trước: gói khăn giấy cất tủ lạnh mới không bị nhớt",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m3d483a",
+   "title": "Rèm cửa bám bụi mùa hanh khô: hút bụi từ trên xuống mỗi tuần, không cần giặt cả tấm",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m7ccda3",
+   "title": "Máy lọc không khí Panasonic: màng lọc thô bẩn 2 tuần đã giảm hiệu quả, vệ sinh ngay",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mdb0d86",
+   "title": "Cất quạt điện cuối thu: lau khô, bọc kín, kiểm tra dây điện kẻo chuột cắn hỏng",
+   "pillar": "theo_mua"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Máy sấy quần áo xơ vải đầy lưới lọc: sấy lâu hơn, tốn điện hơn - lau sau mỗi lần dùng",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 241.34,
+   "input_tokens": 4,
+   "output_tokens": 18496,
+   "cost_usd": 0.9635005000000001
+  }
+ ]
+}

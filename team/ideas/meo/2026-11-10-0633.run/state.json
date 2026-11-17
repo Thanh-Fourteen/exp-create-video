@@ -1,0 +1,77 @@
+{
+  "video_id": "ideas-meo-2026-11-10-0633",
+  "stage": "idea_gen",
+  "round": 0,
+  "stages": {
+    "idea_gen": {
+      "status": "running",
+      "input_hash": "",
+      "outputs": [],
+      "started_at": "2026-11-10T06:33:04+0700",
+      "finished_at": "",
+      "wall_sec": 0.0
+    }
+  },
+  "llm_calls": [
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-11-10T06:33:05+0700",
+      "role": "idea_gen",
+      "attempt": 1,
+      "error": "Exception: Claude Code returned an error result: success",
+      "wall_sec": 1.03,
+      "subtype": "success",
+      "num_turns": 1,
+      "duration_ms": 37,
+      "duration_api_ms": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cost_usd": 0,
+      "models": [],
+      "session_id": "1b3dd275-09e0-4d5f-8e7e-a71d0759ff62"
+    },
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-11-10T06:33:37+0700",
+      "role": "idea_gen",
+      "attempt": 2,
+      "error": "Exception: Claude Code returned an error result: success",
+      "wall_sec": 32.15,
+      "subtype": "success",
+      "num_turns": 1,
+      "duration_ms": 37,
+      "duration_api_ms": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cost_usd": 0,
+      "models": [],
+      "session_id": "edaeae09-7478-4d9d-94df-c796035516bd"
+    },
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-11-10T06:35:08+0700",
+      "role": "idea_gen",
+      "wall_sec": 123.26,
+      "subtype": "success",
+      "num_turns": 1,
+      "duration_ms": 37,
+      "duration_api_ms": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 0,
+      "cost_usd": 0,
+      "models": [],
+      "session_id": "d8843052-7591-4553-8c40-d28e9d839e57",
+      "error": "Exception: Claude Code returned an error result: success"
+    }
+  ],
+  "errors": []
+}

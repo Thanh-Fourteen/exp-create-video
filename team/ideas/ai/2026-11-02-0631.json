@@ -1,0 +1,73 @@
+{
+ "at": "2026-11-02-0631",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mbb4897",
+   "title": "Claude bản miễn phí tự làm slide, Word, Excel: bài thuyết trình khỏi trả phí mẫu",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "medb386",
+   "title": "Hợp đồng thuê nhà, hợp đồng lao động: nhờ AI soi điều khoản bất lợi trước khi ký",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m312331",
+   "title": "Thi AI chuẩn quốc tế miễn phí cho học sinh cấp 3: giải nhất 100 triệu, đăng ký ở đâu",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m2ca894",
+   "title": "Bản cài trợ lý AI trên chợ ngoài gài khoá SSH lạ: ba dấu hiệu nhận ra bản giả",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "md9ffad",
+   "title": "ChatGPT siết bảo vệ tuổi teen: ba cài đặt bố mẹ nên bật trên tài khoản của con",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m270fcc",
+   "title": "AI tự mở Zalo gửi tin hộ bạn trên điện thoại: Mika chạy ở màn hình ẩn thế nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m20bd3b",
+   "title": "5 lệnh ChatGPT soạn email tiếng Anh trả lời khách, kèm bản dịch để kiểm lại",
+   "pillar": "meo"
+  },
+  {
+   "id": "me0a764",
+   "title": "Gỡ băng ghi âm họp 1 tiếng bằng AI chạy trên card 6GB: mất bao lâu, sai bao nhiêu chữ",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Điện thoại Xiaomi, Oppo nhảy quảng cáo và tin nóng: app miễn phí tắt sạch, khỏi root",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Sửa máy tính cho bố mẹ từ xa khỏi trả phí TeamViewer: app miễn phí RustDesk",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Gỡ băng ghi âm họp và lồng tiếng video ngay trên máy, file không lên mạng",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "6 lệnh ChatGPT biến đề cương môn học thành lịch ôn thi cuối kỳ ba tuần",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 138.72,
+   "input_tokens": 4,
+   "output_tokens": 8270,
+   "cost_usd": 1.6394440000000001
+  }
+ ]
+}

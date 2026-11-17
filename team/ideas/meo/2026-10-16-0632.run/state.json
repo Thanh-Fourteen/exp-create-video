@@ -1,0 +1,40 @@
+{
+  "video_id": "ideas-meo-2026-10-16-0632",
+  "stage": "idea_gen",
+  "round": 0,
+  "stages": {
+    "idea_gen": {
+      "status": "running",
+      "input_hash": "",
+      "outputs": [],
+      "started_at": "2026-10-16T06:32:53+0700",
+      "finished_at": "",
+      "wall_sec": 0.0
+    }
+  },
+  "llm_calls": [
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-10-16T06:35:04+0700",
+      "role": "idea_gen",
+      "wall_sec": 130.55,
+      "subtype": "error_max_budget_usd",
+      "num_turns": 6,
+      "duration_ms": 126989,
+      "duration_api_ms": 68928,
+      "input_tokens": 4,
+      "output_tokens": 480,
+      "cache_read_input_tokens": 0,
+      "cache_creation_input_tokens": 123821,
+      "cost_usd": 1.5813694999999997,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ],
+      "session_id": "a06b1a69-eed0-405b-aab3-d0c4972bf8c0",
+      "error": "Exception: Claude Code returned an error result: Reached maximum budget ($1.5)"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-11-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m0ecd8b",
+   "title": "Bắp cải chính vụ: ấn nghe tiếng lá giòn mới chắc, xào lửa to không đậy vung mới ngọt",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "mef7eda",
+   "title": "Đậu phụ rán không vỡ không dính: ngâm nước muối 15 phút, chảo thật nóng mới thả",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m331fa7",
+   "title": "Hành tím, tỏi khô đừng bọc túi nilon hay cất tủ lạnh: túi lưới treo chỗ thoáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m6b8e75",
+   "title": "Lạc, ngô bị mốc đừng rửa rồi rang lại: độc tố aflatoxin không mất khi đun nóng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "ma3548d",
+   "title": "Công dụng của vỏ cam quýt vừa ăn: khử mùi tủ lạnh 3 ngày, đun nước lau bếp dầu mỡ",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m152165",
+   "title": "Vòi sen chảy yếu không phải tại nước: cặn vôi bít lỗ, tháo ngâm giấm một tiếng",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m7d2502",
+   "title": "Máy giặt cửa ngang LG: 3 chỗ ít ai lau làm quần áo giặt xong vẫn có mùi",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m54c47d",
+   "title": "Máy hút mùi hút yếu, mùi cá bám khắp nhà: ngâm lưới lọc nước nóng với baking soda",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m7a623f",
+   "title": "Giày ướt mưa: nhét giấy báo đổi 2 tiếng một lần, quạt thổi — hơ lửa là bong keo đế",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mac558d",
+   "title": "Đệm điện đầu đông: trải phẳng, bật trước 20 phút rồi tắt — gập nếp dễ hở dây điện",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m0a5489",
+   "title": "Hoá đơn điện đầu đông tăng vọt vì nhảy bậc: ghi số giữa tháng, tra biểu giá 6 bậc EVN",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m98c30c",
+   "title": "Ghi chú chia sẻ trên iPhone: danh sách đi chợ cả nhà cùng tích, hết gì ghi ngay",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 281.33,
+   "input_tokens": 12,
+   "output_tokens": 13481,
+   "cost_usd": 1.021773
+  }
+ ]
+}

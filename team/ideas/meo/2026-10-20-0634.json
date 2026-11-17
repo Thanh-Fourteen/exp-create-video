@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-20-0634",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mc45733",
+   "title": "Hành tỏi buộc kín túi nilon là nhanh mốc: để rổ thưa, chỗ khô, tránh nắng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mb1d748",
+   "title": "Rau thơm úng sau 2 ngày: lót khăn giấy khô vào hộp rồi mới cất ngăn mát",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mecbcfd",
+   "title": "Cổ áo sơ mi ố vàng: trộn baking soda với nước cốt chanh, đắp 30 phút rồi giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mfa3e4f",
+   "title": "Khăn tắm có mùi chua: đừng gấp đôi treo trên móc, phơi căng và ngâm giấm 15 phút",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m1b2744",
+   "title": "Máy giặt LG cửa trước: 3 chỗ ít ai lau — gioăng cửa, khay nước xả, lọc xả đáy",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m5cd541",
+   "title": "Lò vi sóng khét mùi thức ăn: quay bát nước pha giấm 5 phút rồi lau",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m9b7bc0",
+   "title": "Áo phao giặt máy bị xẹp lông: chế độ giặt nhẹ và bỏ 2–3 quả bóng tennis",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m053cd5",
+   "title": "Hoá đơn điện đầu đông nhảy bậc: 100 số cuối đắt gần gấp đôi 100 số đầu",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m8e0566",
+   "title": "Ghi chi tiêu đi chợ ngay màn hình khoá: thêm Ghi chú vào trung tâm điều khiển",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Xào mực ra đầy nước: chần 30 giây nước sôi có gừng rồi mới xào lửa to",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 mẹo luộc rau xanh mướt: nước sôi mạnh, một thìa muối, mở vung",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt mưa: nhồi giấy báo và thay sau 20 phút, đừng phơi nắng gắt hay sấy nóng",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 260.93,
+   "input_tokens": 6,
+   "output_tokens": 14738,
+   "cost_usd": 1.1510850000000001
+  }
+ ]
+}

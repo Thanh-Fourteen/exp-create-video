@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-28-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mfdea4b",
+   "title": "Trợ lý AI xin mật khẩu app ngân hàng: mất tiền ai chịu, ba câu phải nói Không",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m541c74",
+   "title": "Bị khoá tài khoản ChatGPT oan, mất sạch lịch sử chat: ba việc nên tránh làm",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "ma2ca22",
+   "title": "Khỏi gõ lại địa chỉ, kinh nghiệm làm việc mỗi lần điền form: Firefox tự điền hộ",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mc8a647",
+   "title": "Dựng slide Keynote, bảng Numbers bằng cách nhờ chatbot: Apple làm thay việc gõ",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m02a5cf",
+   "title": "Chạy AI ngay trong trình duyệt, dữ liệu không rời máy: chuẩn WebAI của Opera",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m4db314",
+   "title": "Card RTX 2060 6GB bị khoá nửa sức mạnh AI: tôi mở khoá rồi đo lại tốc độ sinh ảnh",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m720543",
+   "title": "Vì sao tắt được quảng cáo trên TV Android qua Wi-Fi mà không cần root máy",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m5b718f",
+   "title": "Tắt quảng cáo và tin đẩy trên điện thoại Xiaomi, Oppo: cắm cáp, bấm vài nút, hoàn lại được",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m019a34",
+   "title": "Hết hạn dùng thử Notion, Evernote? Joplin ghi chú, đồng bộ, mã hoá miễn phí",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "me5981e",
+   "title": "6 lệnh Gemini trả lời tin nhắn khách Shopee, TikTok Shop trong 30 giây",
+   "pillar": "meo"
+  },
+  {
+   "id": "m771c66",
+   "title": "Ghi âm buổi họp rồi nhờ Gemini viết biên bản tiếng Việt: 4 thao tác, 1 lệnh",
+   "pillar": "meo"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "5 lệnh ChatGPT soi hợp đồng thuê nhà, tìm điều khoản bất lợi trước khi ký",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 149.14,
+   "input_tokens": 4,
+   "output_tokens": 9102,
+   "cost_usd": 1.608145
+  }
+ ]
+}

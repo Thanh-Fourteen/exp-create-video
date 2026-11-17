@@ -1,0 +1,72 @@
+{
+ "at": "2026-10-19-0632",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m65997a",
+   "title": "Hành tỏi mọc mầm, mốc: bỏ túi nilon, cho túi lưới kèm gói trà khô hút ẩm",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m135e2b",
+   "title": "Thùng gạo có mọt mùa hanh khô: vùi vài tép tỏi khô, đậy kín, kê cách sàn",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mbabeaf",
+   "title": "Điều hoà chế độ sưởi: đặt 22–25°C, hướng gió xuống — mỗi 2 độ bớt hơn 10% điện",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "md4b13e",
+   "title": "Tủ lạnh trời lạnh: hạ mức làm lạnh, kê cách tường, kiểm gioăng cửa bằng tờ giấy",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m0765b7",
+   "title": "Lấy chăn bông ra bị mùi tủ: phơi 2 nắng, đập bụi, cất chăn mỏng vào túi hút chân không",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m96c135",
+   "title": "Quạt sưởi 2.000W bật 2 tiếng mỗi tối hết bao nhiêu tiền điện: cách tự tính",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m05ea7e",
+   "title": "3 báo thức đặt tên cho việc nhà: ngâm áo 30 phút, bình nóng lạnh 20 phút, nồi hấp 15",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 mẹo luộc rau xanh giòn: nước sôi già, thêm chút muối, vớt ra thả nước lạnh",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Xào mực không ra nước: chần 10 giây nước sôi có gừng rồi xào lửa to",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: ngăn nước giặt, gioăng cửa, lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Khăn tắm cứng và hôi: giặt riêng với giấm, bỏ nước xả, phơi thật khô",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt sau mưa: nhồi giấy báo đổi 2 lần, để chỗ thoáng — đừng hơ lửa hay sấy nóng",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 145.44,
+   "input_tokens": 6,
+   "output_tokens": 6444,
+   "cost_usd": 0.648569
+  }
+ ]
+}

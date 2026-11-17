@@ -1,0 +1,74 @@
+{
+ "at": "2026-11-10-1030",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m27e212",
+   "title": "Ghép, tách, xoá chữ trên PDF khỏi trả phí iLovePDF: web miễn phí Stirling PDF",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "ma14ae1",
+   "title": "Video triệu view dựng kiểu gì: web mổ từng cảnh, chỉ rõ cảnh nào do AI làm",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mf00687",
+   "title": "Trợ lý tự bấm app trên điện thoại thay bạn: Mika 'nhìn' màn hình bằng cách nào",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m54c999",
+   "title": "Chạy chatbot AI offline trên card 6GB: app Unsloth cho ra bao nhiêu chữ mỗi giây",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m6261b7",
+   "title": "6 lệnh Gemini soạn tin nhắn chốt đơn và trả lời khách khó tính cho shop online",
+   "pillar": "meo"
+  },
+  {
+   "id": "m4ac6f7",
+   "title": "Tự làm filter Story bằng một câu mô tả: Instagram mở Effect Builder ngày 9/11",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m46429c",
+   "title": "Apple bắt đầu bán thêm lượt dùng AI 1,29 triệu đồng: AI trên máy hết miễn phí?",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m27b56a",
+   "title": "Nhà văn đoạt giải Goncourt thừa nhận dùng ChatGPT: viết tới đâu thì chấp nhận được",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mefc0fa",
+   "title": "Hỏi ChatGPT chuyện sức khoẻ, tâm lý: vụ kiện 9/11 và ba câu đừng bao giờ hỏi",
+   "pillar": "canh_bao"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Họp Zoom tiếng Anh có phụ đề tiếng Việt và biên bản tự động: app miễn phí Cicada",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "5 lệnh ChatGPT biến slide bài giảng thành 50 câu hỏi ôn thi cuối kỳ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Nhạc AI trong video bán hàng: vụ kiện Suno 9/11 và nguy cơ bị gỡ tiếng video",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 147.3,
+   "input_tokens": 4,
+   "output_tokens": 8975,
+   "cost_usd": 0.8642219999999999
+  }
+ ]
+}

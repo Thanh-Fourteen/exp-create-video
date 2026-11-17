@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-31-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "mb08656",
+   "title": "RAM và laptop sắp tăng giá vì AI: mua máy bây giờ hay chờ qua Tết?",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m68dc76",
+   "title": "Bài viết, ảnh trên web của bạn bị AI học: thêm 3 dòng này để chặn",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "mc20a81",
+   "title": "Con dùng ChatGPT: ba cài đặt phụ huynh bật trong 2 phút sau bản cập nhật mới",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m7cfc60",
+   "title": "Claude Pro 20 đô hay Max 100 đô: hạn mức gấp 5 lần, ai thật sự cần trả thêm",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m95d45d",
+   "title": "Nghiên cứu Việt Nam: dữ liệu mã hóa vẫn lộ — ba thứ đừng dán vào chatbot",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mf4294a",
+   "title": "Ký hợp đồng thuê nhà, hợp đồng lao động: 5 câu hỏi để AI chỉ ra điều khoản bất lợi",
+   "pillar": "meo"
+  },
+  {
+   "id": "m663dfc",
+   "title": "Chụp ảnh bảng giá, phiếu nhập hàng thành file Excel: 6 lệnh gõ trong Gemini",
+   "pillar": "meo"
+  },
+  {
+   "id": "m46d57c",
+   "title": "Họp xong không ai chịu ghi biên bản: app miễn phí tự ghi và tóm tắt, chạy trên máy bạn",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mf69bda",
+   "title": "Smart TV bật lên toàn quảng cáo: đổi màn hình chính sạch, một nút hoàn tác",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m357faf",
+   "title": "Điện thoại Xiaomi, Oppo nhét quảng cáo vào cả phần Cài đặt: tắt không cần root",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mcbb0f8",
+   "title": "NVIDIA khóa card GeForce chạy AI ở nửa tốc độ: tự mở trên RTX 2060 và đo lại",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Nói thay vì gõ, chữ hiện ngay trong Zalo và Word: vì sao chạy offline được",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 165.88,
+   "input_tokens": 4,
+   "output_tokens": 9588,
+   "cost_usd": 1.831232
+  }
+ ]
+}

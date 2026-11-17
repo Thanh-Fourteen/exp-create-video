@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-29-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m082c2f",
+   "title": "Chrome tự điền form từ hộp thư: mã vận đơn, vé máy bay khỏi phải mở Gmail đi tìm",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m1c2e29",
+   "title": "Gỡ băng ghi âm họp 1 tiếng, tách ai nói câu nào: model miễn phí mới của Nvidia",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m915f40",
+   "title": "Quảng cáo chen vào câu trả lời AI của Google: ba dấu hiệu nhận ra trước khi tin",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "ma9158f",
+   "title": "Trợ lý AI xin mật khẩu ngân hàng: nhà băng nói mất tiền thì bạn tự chịu",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m34a16a",
+   "title": "ChatGPT khuyên con gái họ giảm thuốc động kinh: ba việc đừng bao giờ hỏi AI",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "mf3ede5",
+   "title": "6 lệnh ChatGPT biến đề cương 20 trang thành 50 câu trắc nghiệm ôn thi giữa kỳ",
+   "pillar": "meo"
+  },
+  {
+   "id": "m716b4a",
+   "title": "7 lệnh Gemini viết caption và hashtag bán hàng cho đợt sale 11.11",
+   "pillar": "meo"
+  },
+  {
+   "id": "mc0f5ae",
+   "title": "Điện thoại Xiaomi, OPPO, vivo nhảy quảng cáo khắp nơi: tắt hết, không cần root",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mdf6368",
+   "title": "Làm CV đẹp khỏi trả phí trang mẫu: web miễn phí, xuất PDF, dữ liệu nằm ở máy bạn",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m1e2794",
+   "title": "Vì sao AI vẽ người sai tay chân: 1.439 ảnh dáng mẫu giúp ra đúng tư thế bạn muốn",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m256060",
+   "title": "Mở khoá tensor trên card RTX 2060 6GB: sinh ảnh nhanh thêm bao nhiêu, mình đo thật",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Màn hình chính TV đầy quảng cáo phim: dọn sạch bằng app miễn phí, một nút hoàn tác",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 127.52,
+   "input_tokens": 4,
+   "output_tokens": 8786,
+   "cost_usd": 1.6334970000000002
+  }
+ ]
+}

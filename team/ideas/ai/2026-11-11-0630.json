@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-11-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m1d72dc",
+   "title": "Họp online tiếng Anh vẫn hiểu hết: app miễn phí Cicada hiện phụ đề và viết biên bản",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "mef0bea",
+   "title": "Video quảng cáo đó quay thật hay AI làm? Web miễn phí soi từng cảnh và chỉ cách làm lại",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m21f036",
+   "title": "Nghe playlist Spotify không quảng cáo, khỏi trả Premium: app miễn phí Spotube",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "m77d8bb",
+   "title": "AI tự mở app bấm hộ trên điện thoại: Mika làm được nhờ ý tưởng gì",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "md5952a",
+   "title": "5 lệnh Gemini biến slide bài giảng PDF thành 20 câu trắc nghiệm ôn thi",
+   "pillar": "meo"
+  },
+  {
+   "id": "m570698",
+   "title": "6 lệnh ChatGPT lên kế hoạch chi tiêu Tết 2027 từ bảng lương tháng",
+   "pillar": "meo"
+  },
+  {
+   "id": "mca7029",
+   "title": "10/11: ChatGPT mở hồ sơ doanh nghiệp, shop online của bạn có hiện khi khách hỏi?",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m5820ca",
+   "title": "Apple bắt đầu bán gói AI 1,29 triệu đồng/năm: người dùng iPhone Việt sắp trả gì",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m4cf8bd",
+   "title": "Xoá người lạ khỏi ảnh du lịch: Photoshop vừa thêm AI, hay app Gemini miễn phí?",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m820ca0",
+   "title": "Cục An ninh mạng cảnh báo 10/11: đăng ảnh giấy tờ, ảnh riêng tư lên app AI mất gì",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m7e4c9f",
+   "title": "Mất mạng vẫn chat được AI: chạy chatbot trên laptop card 6GB, nhanh chậm thế nào",
+   "pillar": "tu_do"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "6 lệnh ChatGPT viết bản tự đánh giá cuối năm từ danh sách việc đã làm",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 162.77,
+   "input_tokens": 4,
+   "output_tokens": 9644,
+   "cost_usd": 0.889345
+  }
+ ]
+}

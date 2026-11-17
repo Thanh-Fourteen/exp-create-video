@@ -1,0 +1,74 @@
+{
+ "at": "2026-10-14-0632",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "m9760d0",
+   "title": "Cất gạo cả tháng không mọt: bỏ 3 tép tỏi bóc vỏ vào thùng, đậy kín, kê cao",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "m02bf4a",
+   "title": "4 tầng tủ lạnh xếp đúng: đồ chín ngăn trên, thịt cá ngăn dưới, rau khay cuối",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mea6824",
+   "title": "Vết dầu mỡ trên áo: rắc bột ngô hút dầu 15 phút rồi mới vò nước ấm",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m44eb71",
+   "title": "Ấm siêu tốc đóng cặn trắng: đun 500ml nước với 3 thìa giấm, để 20 phút rồi tráng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m7b26b4",
+   "title": "Nồi cơm điện: lau khô mâm nhiệt và đáy nồi trước khi cắm, cơm mới chín đều",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "md42763",
+   "title": "Giặt chăn bông tại nhà: máy dưới 9kg thì đừng, gấp từng lớp, mỗi lần 1 cái",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m5d4323",
+   "title": "Phơi đồ ngày mưa không hôi: vắt lại lần hai, phơi so le móc, quạt thổi ngang",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "maaf6b7",
+   "title": "Điều hoà mùa lạnh: chỉ chênh ngoài trời 5 độ, mỗi 1 độ bớt hơn 3% điện",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m246598",
+   "title": "3 đồng hồ đếm ngược đặt tên sẵn trong điện thoại: ngâm gạo, luộc rau, hầm xương",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Rán cá không bắn dầu: thấm khô, chà gừng lên chảo nóng rồi lăn lớp bột mỏng",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Công dụng của nước vo gạo: ngâm thớt 10 phút là hết mùi tanh, rửa bát đỡ dầu",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "3 chỗ trong máy giặt ít ai lau: khay bột giặt, lưới lọc xơ và gioăng cửa",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 149.86,
+   "input_tokens": 10,
+   "output_tokens": 6156,
+   "cost_usd": 0.9713635
+  }
+ ]
+}

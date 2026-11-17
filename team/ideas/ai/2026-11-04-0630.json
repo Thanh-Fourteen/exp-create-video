@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-04-0630",
+ "channel": "ai",
+ "added": [
+  {
+   "id": "m17c504",
+   "title": "AI tự bấm điện thoại thay bạn làm việc: cách agent Mika nhìn và bấm màn hình",
+   "pillar": "kien_thuc_repo"
+  },
+  {
+   "id": "m340555",
+   "title": "Nghe Spotify không quảng cáo, tải nhạc về máy miễn phí: app mã nguồn mở Spotube",
+   "pillar": "repo_hay"
+  },
+  {
+   "id": "md2c556",
+   "title": "Chạy chatbot AI riêng trên máy yếu RTX 2060 6GB: AnyModelBot nhanh hay chậm?",
+   "pillar": "tu_do"
+  },
+  {
+   "id": "m61a29e",
+   "title": "5 lệnh Gemini lên lịch ôn thi cuối kỳ 7 ngày đúng môn bạn đang học",
+   "pillar": "meo"
+  },
+  {
+   "id": "m3fd6b9",
+   "title": "6 lệnh Canva Magic Studio làm video quảng cáo bán hàng online không cần dựng tay",
+   "pillar": "meo"
+  },
+  {
+   "id": "m1c82fe",
+   "title": "Siri trên iPhone tự mở app bên thứ ba làm việc thay bạn: cập nhật iOS 27.3",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m81e7fa",
+   "title": "Hết biết xem gì: tab AI Discover mới của Netflix gợi phim theo tâm trạng",
+   "pillar": "tin_nong"
+  },
+  {
+   "id": "m6cf9c7",
+   "title": "Hỏi ChatGPT hay gõ Google: lúc nào nên dùng cái nào cho ra kết quả đúng",
+   "pillar": "so_sanh"
+  },
+  {
+   "id": "m5a91f2",
+   "title": "Ảnh Jeff Bezos cấy tóc gây xôn xao là ảnh AI giả: ba dấu hiệu nhận ra ngay",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m2e0499",
+   "title": "Loa 'đã nhận tiền' phát giả bằng AI Voice: ngân hàng cảnh báo khẩn người bán hàng",
+   "pillar": "canh_bao"
+  },
+  {
+   "id": "m8a6a68",
+   "title": "Quản lý việc nhóm khỏi trả phí Trello, Asana: app mã nguồn mở Plane tự host miễn phí",
+   "pillar": "repo_hay"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "Tắt quảng cáo vặt trên điện thoại Xiaomi, Oppo, Vivo không cần root: app miễn phí",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 187.18,
+   "input_tokens": 4,
+   "output_tokens": 15302,
+   "cost_usd": 1.1668945
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+  "video_id": "ideas-meo-2026-11-06-0635",
+  "stage": "idea_gen",
+  "round": 0,
+  "stages": {
+    "idea_gen": {
+      "status": "done",
+      "input_hash": "",
+      "outputs": [],
+      "started_at": "2026-11-06T06:35:49+0700",
+      "finished_at": "2026-11-06T06:42:46+0700",
+      "wall_sec": 417.21
+    }
+  },
+  "llm_calls": [
+    {
+      "stage": "idea_gen",
+      "round": 0,
+      "at": "2026-11-06T06:42:46+0700",
+      "role": "idea_gen",
+      "wall_sec": 416.92,
+      "subtype": "success",
+      "num_turns": 15,
+      "duration_ms": 415545,
+      "duration_api_ms": 483686,
+      "input_tokens": 12,
+      "output_tokens": 27914,
+      "cache_read_input_tokens": 731885,
+      "cache_creation_input_tokens": 64452,
+      "cost_usd": 1.4024534999999998,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-sonnet-5"
+      ],
+      "session_id": "4c348ef4-c3b4-4496-a378-0ef2d05ee1e1"
+    }
+  ],
+  "errors": []
+}

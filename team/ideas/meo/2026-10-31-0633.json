@@ -1,0 +1,75 @@
+{
+ "at": "2026-10-31-0633",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "ma9caaf",
+   "title": "Luộc ốc đừng chế nước: lót sả, lá chanh dưới nồi, sôi 2–3 phút là tắt",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "macdcf8",
+   "title": "Mua thịt lợn ở chợ: ấn 3 giây không đàn hồi, nhớt tay là bỏ — 4 dấu hiệu nhận biết",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "me840f3",
+   "title": "Hành tím, tỏi khô cất túi nilon là nhanh mốc: đổi sang túi lưới, treo chỗ thoáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "md22117",
+   "title": "Cà chua để ngăn mát nhanh bở và nhạt: úp cuống xuống, để ngoài chỗ thoáng",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "ma098c7",
+   "title": "Vỏ cam đừng bỏ: phơi khô 2 ngày, bỏ vào tủ quần áo và ngăn tủ bếp hút mùi",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mb6f3c1",
+   "title": "Áo vướng dầu mỡ lúc nấu: rắc bột ngô hoặc phấn rôm 15 phút trước khi giặt",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "m20fedb",
+   "title": "Gioăng cửa tủ lạnh bám đen hở hơi: kẹp tờ giấy để thử, lau 1–2 lần mỗi tháng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "mfa3570",
+   "title": "Vỏ gối giặt đều nhưng ruột gối chưa bao giờ phơi: tranh nắng hanh 2–3 giờ",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "mb34220",
+   "title": "Máy sấy quần áo 8kg bật 1–2 giờ mỗi ngày: thêm 75–140 số điện một tháng",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "mef1b45",
+   "title": "Mắm, tương, dầu hào đã mở nắp: chụp ngày mở vào Ghi chú điện thoại, nhắc 3 tháng",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [
+  {
+   "title": "3 chỗ trong máy giặt cửa ngang ít ai lau: khay nước xả, gioăng cửa, lọc xơ",
+   "why": "trùng ý đã có"
+  },
+  {
+   "title": "Giày ướt sau mưa: nhồi giấy báo đổi 20 phút một lần, đừng sấy giày da",
+   "why": "trùng ý đã có"
+  }
+ ],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 241.09,
+   "input_tokens": 8,
+   "output_tokens": 12418,
+   "cost_usd": 1.075669
+  }
+ ]
+}

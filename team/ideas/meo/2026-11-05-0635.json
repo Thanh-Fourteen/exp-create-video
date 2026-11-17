@@ -1,0 +1,76 @@
+{
+ "at": "2026-11-05-0635",
+ "channel": "meo",
+ "added": [
+  {
+   "id": "mad006b",
+   "title": "Bóc cam quýt mùa này: cắt 4 đường dọc, tách vỏ không nát múi, không bắn nước",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "m69a82c",
+   "title": "Ngâm ốc trước khi luộc: thêm vài quả ớt vào nước, ốc nhả sạch nhớt nhanh hơn",
+   "pillar": "bep_an_toan"
+  },
+  {
+   "id": "meb21f0",
+   "title": "Bã cà phê uống xong đừng đổ: đặt hộp hở trong tủ lạnh, hết mùi hôi sau vài ngày",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mc201f7",
+   "title": "Hành tỏi mới mua để trong túi nilon: hơi ẩm đọng lại làm mọc mầm nhanh hơn",
+   "pillar": "bao_quan"
+  },
+  {
+   "id": "mdb8a04",
+   "title": "Giày ướt mưa miền Trung: nhồi giấy báo hút nước, đừng sấy sát đế kẻo bong keo",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mc38ce2",
+   "title": "Đóng cửa máy giặt ngay sau khi giặt xong: gioăng cao su đọng nước sinh mốc đen",
+   "pillar": "giat_don"
+  },
+  {
+   "id": "mad19ff",
+   "title": "Chăn điện mùa lạnh: bật ấm giường trước khi ngủ rồi tắt, đừng để cắm cả đêm",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m6c7b59",
+   "title": "Máy sấy quần áo sấy lâu khô, tốn điện hơn: lưới lọc xơ vải bẩn sau mỗi lần dùng",
+   "pillar": "do_dien"
+  },
+  {
+   "id": "m1cdd48",
+   "title": "Hanh khô miền Bắc: đặt chậu nước sạch trong phòng ngủ, nhớ thay nước mỗi sáng",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m74f9e8",
+   "title": "Sau mưa ngập sát nhà: để aptomat ở vị trí tắt, đừng tự cắm lại ổ điện còn ướt",
+   "pillar": "theo_mua"
+  },
+  {
+   "id": "m6b68b3",
+   "title": "Nồi lẩu điện 1.600W nấu 1 giờ lẩu cuối tuần: tốn khoảng bao nhiêu tiền điện",
+   "pillar": "tien_bac"
+  },
+  {
+   "id": "m116868",
+   "title": "Chụp hoá đơn điện mỗi tháng lưu vào điện thoại: so ngay số kWh tăng mùa lạnh",
+   "pillar": "dien_thoai"
+  }
+ ],
+ "dropped": [],
+ "llm": [
+  {
+   "role": "idea_gen",
+   "wall_sec": 258.89,
+   "input_tokens": 4,
+   "output_tokens": 20318,
+   "cost_usd": 0.9555174
+  }
+ ]
+}
